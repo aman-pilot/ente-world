@@ -28116,8 +28116,8 @@
     true
    ],
    [
-    7325,
-    5055,
+    7335,
+    5072,
     true
    ],
    [
@@ -31491,22 +31491,6 @@
    "wind": true
   },
   {
-   "id": "bigger-seed-meadow-table",
-   "name": "table",
-   "src": "reuse/picnic-table.svg",
-   "x": 7273.21,
-   "y": 5210,
-   "width": 1614,
-   "height": 653,
-   "anchor": {
-    "x": 0.5,
-    "y": 0.97
-   },
-   "scale": 0.25,
-   "flip": false,
-   "wind": false
-  },
-  {
    "id": "bigger-seed-meadow-bench",
    "name": "bench",
    "src": "reuse/street--bench-wood.svg",
@@ -33837,31 +33821,6 @@
     "ry": 68.6
    },
    "z": 1027.9
-  },
-  {
-   "id": "hamlet-pollenpatch-sunflower-barrel",
-   "name": "sunflower-barrel",
-   "src": "hamlets/pollenpatch/sunflower-barrel.svg",
-   "x": 1506.1,
-   "y": 1231.51,
-   "width": 193.8,
-   "height": 212.8,
-   "scale": 1,
-   "anchor": {
-    "x": 0.5,
-    "y": 1
-   },
-   "resolution": 1.5,
-   "zone": "pollenpatch",
-   "order": 78,
-   "wind": true,
-   "footprint": {
-    "x": 1606.1,
-    "y": 1046.3,
-    "rx": 58.1,
-    "ry": 23.3
-   },
-   "z": 1058.3
   },
   {
    "id": "hamlet-pollenpatch-grass-98-993",
@@ -36243,15 +36202,15 @@
   {
    "id": "hamlet-petalpost-bench-west",
    "name": "bench-west",
-   "src": "hamlets/petalpost/bench-west.svg",
+   "src": "/pixi-art/detail/street--bench-wood.svg",
    "x": 4109.8,
    "y": 5221.4,
-   "width": 159,
-   "height": 122.7,
-   "scale": 1,
+   "width": 818,
+   "height": 463,
+   "scale": 0.24406047516198703,
    "anchor": {
     "x": 0.5,
-    "y": 1
+    "y": 0.9740820734341252
    },
    "resolution": 1.5,
    "zone": "petalpost",
@@ -36262,20 +36221,22 @@
     "rx": 47.7,
     "ry": 19.1
    },
-   "z": 5221.4
+   "z": 5221.4,
+   "flip": false,
+   "wind": false
   },
   {
    "id": "hamlet-petalpost-bench-east",
    "name": "bench-east",
-   "src": "hamlets/petalpost/bench-east.svg",
+   "src": "/pixi-art/detail/street--bench-wood.svg",
    "x": 4779.9,
    "y": 5232.8,
-   "width": 158.3,
-   "height": 137.4,
-   "scale": 1,
+   "width": 818,
+   "height": 463,
+   "scale": 0.24406047516198703,
    "anchor": {
     "x": 0.5,
-    "y": 1
+    "y": 0.9740820734341252
    },
    "resolution": 1.5,
    "zone": "petalpost",
@@ -36286,7 +36247,9 @@
     "rx": 47.5,
     "ry": 19
    },
-   "z": 5232.8
+   "z": 5232.8,
+   "flip": false,
+   "wind": false
   },
   {
    "id": "hamlet-petalpost-shrub-5",
@@ -40571,17 +40534,20 @@
    "name": "Stargazing telescope.svg"
   },
   {
-   "src": "/pixi-art/home-review/hill/bench.svg",
+   "src": "/pixi-art/detail/street--bench-wood.svg",
    "x": 7645,
    "y": 2330,
-   "width": 200,
-   "height": 130,
+   "width": 818,
+   "height": 463,
    "anchor": {
     "x": 0.5,
-    "y": 1
+    "y": 0.9740820734341252
    },
    "id": "sunbob-outer-194",
-   "name": "Stargazing bench.svg"
+   "name": "Stargazing bench.svg",
+   "scale": 0.24406047516198703,
+   "flip": false,
+   "wind": false
   },
   {
    "src": "/pixi-art/home-review/hill/star-sign.svg",
@@ -63954,6 +63920,53 @@
    },
    "scale": 0.5,
    "flip": false
+  },
+  {
+   "id": "hamlet-whirlyseed-whirlyseed-windmill-rotor",
+   "name": "Windmill sails",
+   "src": "hamlets/whirlyseed/windmill-lattice-sails-rotor.svg",
+   "x": 8796.9,
+   "y": 2761.2384180790964,
+   "width": 499.7,
+   "height": 696.4,
+   "scale": 1,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.3587570621468927
+   },
+   "resolution": 1.5,
+   "zone": "whirlyseed",
+   "order": 31,
+   "shadowSize": [
+    209.9,
+    60
+   ],
+   "z": 3207.8,
+   "spinPeriod": 48,
+   "wind": false,
+   "shadow": false,
+   "sortWith": "hamlet-whirlyseed-whirlyseed-windmill",
+   "contact": false
+  },
+  {
+   "id": "windmill-2-rotor",
+   "name": "Windmill sails",
+   "src": "detail/windmill-rotor.svg",
+   "x": 5824.152,
+   "y": 898.8231200000001,
+   "width": 360,
+   "height": 531,
+   "anchor": {
+    "x": 0.5083333333333333,
+    "y": 0.32015065913371
+   },
+   "scale": 1.384,
+   "flip": false,
+   "spinPeriod": 48,
+   "wind": false,
+   "shadow": false,
+   "sortWith": "windmill-2",
+   "contact": false
   }
  ],
  "origin": {

@@ -1083,15 +1083,15 @@
     "sources": {
       "version": 1,
       "theme": "sunflower",
-      "modelSha256": "6a4a9482bec88fbbb472263daa2f90a65498866245604bccb7f6cd54f9737769",
+      "modelSha256": "25e2362b1dc6d6e700019367d951dda639958c5c452af5486026170bb60c26a2",
       "files": [
         {
           "path": "assets/world/island-geometry.mjs",
           "sha256": "d51edc67386bf41b050d6d4be8fab99228e064840596bf529b99b974eb18f1dd"
         },
         {
-          "path": "public/pixi-art/home-review/hill/bench.svg",
-          "sha256": "affb6c62d37390febe209cbc71225f15356718e969822a4d2da73e5afa9d4f3a"
+          "path": "public/pixi-art/detail/street--bench-wood.svg",
+          "sha256": "0eada8da38c75aeaebad9c52bb6fd8bfb34163b53e54bba5bba2ffacbed8a2f0"
         },
         {
           "path": "public/pixi-art/home-review/hill/mound.svg",
@@ -1143,7 +1143,7 @@
         },
         {
           "path": "public/pixi-art/themes/sunflower/art.json",
-          "sha256": "b10bfe494be576eec496762f965acea5ab9e1803a0f3e54da9191ccccac399b1"
+          "sha256": "f6f1b864d60282971f191516bbd15c709e23c75e1ff0f4f348d2f6556d1b10df"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/arch-original-1.svg",
@@ -1195,195 +1195,195 @@
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-0-0.svg",
-          "sha256": "51491b62f0289f9b6018291bf51465af630a007534b4b6f9e5d3a13614586c17"
+          "sha256": "a87a643c3c9956942d3a6d81355e183a1b0250c2b80f0a75a0bc9b79cabad3c1"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-0-1.svg",
-          "sha256": "eb1087495884af136c095a1fcb01b7552ade6dbdc5232fb1cf0a0f5874648abd"
+          "sha256": "3e90f0e87061939c4361359a61171f0bc94c173bc05e65bd3bd7cfec83c23f8f"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-0-2.svg",
-          "sha256": "00ccdcb7356e65f8256d2cc004c845997ae48bc54a9befad9057eefea5e40ddf"
+          "sha256": "36c04c8db2bec0edc7dd749a925ead6ba83023997d6a47feec57833f1d44cc20"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-0-3.svg",
-          "sha256": "0435f6e925467d81001d2e9bf2a5bf65519297a47e2d51c9fc0c6fadf5349b5d"
+          "sha256": "7aa6edd44c98a8cc07658911a64ddb56ee6e30174e2caef59153a170fb3b204b"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-0-4.svg",
-          "sha256": "e6968239663ca11005df6054ab71252f8d53ef25d3dfe9e3fed7883ff46fa003"
+          "sha256": "b1775ab8a22b23b6088c3d1a4b8a06787e2e3720cdea6025c0a7e6382a9e745f"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-0-5.svg",
-          "sha256": "18ccb0a19d244fe463919a2df700076ecd45dea9248b038e3f2bed6ded64e348"
+          "sha256": "13256368fbbe843de9f3b73fe45e7bf2435011b0aeb973fe68cb99ee7e1349ed"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-0-6.svg",
-          "sha256": "bf31a805d099fbe86b4eedcb4bb62dbaf3594728c9b78e3df0daa9d980d9fc26"
+          "sha256": "cd73a73d355ef3e783f967a9a0c82ecb05c05e6acb9f5354efbad38b29b63216"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-0-7.svg",
-          "sha256": "b26198b398b0be17e1c0ef49683712cd24f208f6feccf317bab7b32f26ad3b45"
+          "sha256": "868c0b9cbf0f6473105a96701fefc4119a2e780439a118917951820bcd892667"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-1-0.svg",
-          "sha256": "7cca55dd67d66c085345b5074cc8f2169c1a9e6ea6e5aa070a437bec6b4b537f"
+          "sha256": "fd4ea95956ab5d0bd8ce3f13f04405de9d1e48482247cfe1c67d9a7d31fb4d17"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-1-1.svg",
-          "sha256": "87cfc89c290116256d59c35061dfe01c5c4736ae06d960f5124e7ea71df89878"
+          "sha256": "142f04c37858a89047abceec6ad761f90a877a840aa1e49929a9d5dd5fbc52df"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-1-2.svg",
-          "sha256": "dfea24b4929ba111b64b9dfd7157a5cd1fb2264eee22965cc3fec442747fe34d"
+          "sha256": "5a9497f1235c9d4a5add7234f0fec50e17cdc091c772e849c926e7565aa2dc60"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-1-3.svg",
-          "sha256": "6a7cba6e1f1a1b0405fa08633beabee1daedaec1c22d576eaa91d8dcc773c360"
+          "sha256": "a483fc145fda007c25d143a032312d2d07932bfab2bcd3f0dd660ca3e5a7d9d2"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-1-4.svg",
-          "sha256": "d826c2461bb14aa5c54cdd9e73191eea9dae19d8ed0c56a92965eb883a45ff11"
+          "sha256": "57ed2d78e65982817f2bbcc04e53e01d38078d6f706573ceeabd1a1b88faffb7"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-1-5.svg",
-          "sha256": "0fa01b12e6d5df707803db7ce7d968e323484b732bf19350a99663d345cca407"
+          "sha256": "bd2579b608c6554e11a61f89d6eedfce5622df57963d8ec60a47f27b34c17299"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-1-6.svg",
-          "sha256": "aafc8fb3cb3c0e44fba43c67f5a733c10bc8fa4a70fb2239ffc59933c4947a74"
+          "sha256": "caede59b0566d93cfce0f72a0a2f64d44829dfbea7a45973c2e56c8357f63bbf"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-1-7.svg",
-          "sha256": "e84b9124f65d3aaaee029db817ef6112564cdb3f7e055ea0f8fbe66a54b9f33b"
+          "sha256": "0f4cd705ba4b2493841841ea328fa9f40fd9efaf2d78e10fdd67b261f2c27310"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-2-0.svg",
-          "sha256": "9c72764ffab6637e4f1053768ec5fea33ba3764d59ba49e9a208830a92420d4c"
+          "sha256": "c2db11a4b54cbd8485777214aee701b4cdd1410f4b5bfeaa88939d27406d035f"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-2-1.svg",
-          "sha256": "da2bb361234558f74c925090771c5f994fe26f2cb95b9270b8a2dca5c4654201"
+          "sha256": "6588dc0fd1fc7b696126380b0bc48d1b0b07715c1236757c404b13be2b14ae91"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-2-2.svg",
-          "sha256": "29fcd6d7e1b6b42be71eea8fea614e0c84ddbb267d08fe0d153aa78328c6a8f7"
+          "sha256": "f44de1c3b010f8aafe624c92f6c703103590009f32999a893faffa21cef52e9f"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-2-3.svg",
-          "sha256": "632ac8b941dfb6ae050964da2bee09ee8c3bf2fd4a26e9dfea724eec4c23ebd0"
+          "sha256": "eb7809ca1856d8ce5284007ae527946c626427fca394f9ce52530795795fd202"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-2-4.svg",
-          "sha256": "1c534549eaae09a762af7d56e93d728c280331027a5ca16ee389960d366d36a3"
+          "sha256": "36bd597a86ff3ef67964b1d79c27a03b6064259b0d2952bc346c2c5142bf58d3"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-2-5.svg",
-          "sha256": "b85d92d0072e479a26ba945b5a0d3725724509160dd39cc80d3d93d09822aed5"
+          "sha256": "1292b56225246605394accdf10cdeb3a0648e00f61e03f97f9097d60068470bf"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-2-6.svg",
-          "sha256": "b3d2b6ab44c60855b57488fe5858867096f41bd4865414b7aebabc9016e51302"
+          "sha256": "3b40bc36c92ffcf07f623824c94d11840a87a8796dbcf2e5a5ac3c29bcfa1ffb"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-2-7.svg",
-          "sha256": "7cfbee19f8487f57258f52c5b369431208f1d41c62970b6c2171fb781d6a9e40"
+          "sha256": "4acff72acf7c830eaaf14613956d9b64ebc0008d6d4de84caa2e71612eda1553"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-3-0.svg",
-          "sha256": "911da50dba648faa240fb8f99954a813bc4a43dd18d8e05cdc093000b4e88d4c"
+          "sha256": "eb88ee14d2e37692abb0221bcbac66878eed2a9578eb9cc4f6c75998d7905ed6"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-3-1.svg",
-          "sha256": "0ab73bdba3aa7950cf59f6b02082028f4644245e477b344728ebae1eea7e6fe6"
+          "sha256": "7a973039c1b4d5b2e90691e0a7f9716132baf28f25936419258447a6af25201e"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-3-2.svg",
-          "sha256": "1934d24c90fa6040a0332c741e162839a1212db5ba8ac087be486006a06d7cf8"
+          "sha256": "ca22fb8364c5b094209c37ef124a45d5517160ecfd0f148c6d4a4b395637f043"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-3-3.svg",
-          "sha256": "e4ebdc13a96f63243347da60ea64b94ddbaf4ad2d4e28579a04bebd9dac6c325"
+          "sha256": "50c3c1bc304089765166c6f2b20a401e8b6bbebfa84a4993abcf52a7bf5517b2"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-3-4.svg",
-          "sha256": "5c9e439fc50f2792194ffaf57407c6ac50c94897caee56fe350b5e92a978b13e"
+          "sha256": "4388914b249238018b0981e3e63d3a58b6aea9f8d6b7027d4256281f6dbfd2f1"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-3-5.svg",
-          "sha256": "1032752bd3558422708b2c1b18436ddd0d2271af3b8ef154c5b0a3385a809340"
+          "sha256": "983ab51813e601e836692986b2c9dd58366b8eba7e78b2ccf8d3da034df36e91"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-3-6.svg",
-          "sha256": "4873444c8cfe54d65956d45274b896ac5badbace12f18fbf8ee7565cf9897037"
+          "sha256": "5f42bb818ec9af8f79424ede28c5f5a078ae94e156380421d6051f7b2af55cae"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-3-7.svg",
-          "sha256": "4f95c655bc7e03765c9fbd963f06890eb4de1a5f417790b56830fc93a8b9be43"
+          "sha256": "382d8431aa65aeea503ceb574548013c410a3cd9e700f986d7b1e6e76dc9e6a7"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-4-0.svg",
-          "sha256": "7f0f173e37478162dc9e880766ec47f43b234fbd51186815276029c5996f7c57"
+          "sha256": "6dfe0eb37361938c2717d14d50f981357363548ffc4561649c2aad4a56ffe9d6"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-4-1.svg",
-          "sha256": "2d9739d21e16b4c3cafca88c613f2918eeab6dffb3e5802d5bbae217dfdc4338"
+          "sha256": "e29b84e237b88e748bada96e73d26a6636b2100dab85f917d31a6c491fb1d528"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-4-2.svg",
-          "sha256": "3fff8514b60b8d7f41605558bf16ad3236695a77a35afc27f9ea31812bade78d"
+          "sha256": "de46220f7ac5baab36e05e54865c41ea7f998cf972a865d7091ff578ea7702ea"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-4-3.svg",
-          "sha256": "f44a5ca01c47ae9c6bb121b2100ad545e1770729c5c06ddc52f3ae540ee87779"
+          "sha256": "c6cc2ef75f230ce0f36e23f8f9d2f1ca9a9f2152c4f3bd0ab4854f8b3b7bd6c5"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-4-4.svg",
-          "sha256": "42b31bc7d76a550b8c547fe20513aa67191716aa892b9124717736b7b1c0081f"
+          "sha256": "0f0ba95ecb94174585f2e0a63c6b1653aecf4cf5985e39c044916f95f618ae7a"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-4-5.svg",
-          "sha256": "41fd061e8a56681da6794e37833d144688386d6259d9c6b85c163672a1a445e9"
+          "sha256": "6106a0a6d687e497fd7db9628e716c6bd1f1362a82b1e2cc1a6e15cabf0f0cb9"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-4-6.svg",
-          "sha256": "b66eee741d108e6e84752718d2c61e127f46eca595df06a173738177de025446"
+          "sha256": "f38386e2a74c382449fa0abbd53636b9c90f57ed161bb0bf0b5e4b80a913293f"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-4-7.svg",
-          "sha256": "4081051984e9123d0940f8d7e21f2bfa02c2d4e2d17b34569589edfdec6de613"
+          "sha256": "5877c274577022f278b6060493dac390f34c34476ebbfc4330b733e36217ac0b"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-5-0.svg",
-          "sha256": "5c2bf71883604a3445da1586711ab1d89ae4c6041c599c18da8ce6e680c3e746"
+          "sha256": "7e5c0c01d8ba8dcbdca0daa86a6cf2622a2bbe03e8e5d0670cf9fb57785a50db"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-5-1.svg",
-          "sha256": "d3585e2348274c3f5a46355b0915d88ad593779f460409026467d418fa63f692"
+          "sha256": "83f9a77541f2f0f1ba53ded04365884b130986c69afa815a52ea028fb81380b3"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-5-2.svg",
-          "sha256": "bafe45c28de06973d56ff6c6c8894d854a51977ae1fd189430163c04700b753c"
+          "sha256": "3a8297571d57c97ae4ad5bbf1c8f6ab2b53226ff8397ac8bb92c35452dad4341"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-5-3.svg",
-          "sha256": "857704e19e8db3678f28c263307972adbecfe0cf15b51abaed8f892084e92608"
+          "sha256": "ffe54d121f65da296dacaff91b5487b6d1aadec26879fb66f70d8850f2bdeeca"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-5-4.svg",
-          "sha256": "47a3ab8e8d414dbf70bce343aa6894804a096b8266bfad4989962f7a627abba7"
+          "sha256": "10ed35083bf03265d7ba6250914803ad0a0a8d60e6e79ff83bc41bb5924a18b3"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-5-5.svg",
-          "sha256": "63b552f7f676f11b65875131a7c3152cade0a89a85d1b302064584a31e7e8186"
+          "sha256": "01be689a78f24445a8d9587304d98e93ba8a1db7ef7f7731b467617b79fb4aff"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-5-6.svg",
-          "sha256": "6905814d1b44207e40caeae8d76b0aba26a172dd89eafa302cab7e9314d14066"
+          "sha256": "92eb299fbb78ab2c48a0571516103081ac62366291878df6adf292f91a192842"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/ground-5-7.svg",
-          "sha256": "915b62c24ac6ba58a3b806fb35331ed11db235e0a04aa7c641c08901b8581bd6"
+          "sha256": "ec9aceb24ee99a63c11f00e408ca785d988db2ad1e978da888cd4aa369def00b"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/landing-pier.svg",
@@ -1391,99 +1391,99 @@
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-0.svg",
-          "sha256": "44997ff50bf5a4469fed20d25f2a7e97fd2c50e96e2d48e5b495197b46969d08"
+          "sha256": "c55792804275afd9722d0622658605f7978adb87244325549c7038b2c53dfa27"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-1.svg",
-          "sha256": "8aeedf1985483d944ea3ccae74f4fa70a5f614536badd66f20defa2836461913"
+          "sha256": "0f75d902404e70d73c7dcc147da511e70256aa1676d5a3d983ce19553dc643c5"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-10.svg",
-          "sha256": "7bdbe61807fa7e08763d541b7151969c029b5761651e178dfe2c3660a07ec923"
+          "sha256": "b3aed23909358d5f46e17f4b1ba1a5c42248fbb11f1394c38caa0f9b76dea7a3"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-11.svg",
-          "sha256": "5b80364d5256091307cef7884c8a1b52600552761c32e54974c20a990ba09de3"
+          "sha256": "4b9b103a947578c7cb05c4c02f0a591d9f678e513feecff8a42b3a7a7884693d"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-12.svg",
-          "sha256": "4cec43fee5862a256f877dd08ee1505204a81d67f6f4d3a55bedab093387894a"
+          "sha256": "3da55c8ee35912f21a14222556c49874be37e1bbf95204d88bc1de30ecd5fcc7"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-13.svg",
-          "sha256": "088592f8c5d7aa2051f33ed8db5fe8baab899775e2e9f25adacd369d3d45e7b6"
+          "sha256": "118016398b6d1c926da1644c7c06e3d1a437bc64ba8c4eb60df2aa8354f9b416"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-14.svg",
-          "sha256": "b496b98384944dd4782a80053234c3bfe9e40c2b8722e9c63506b13dea7dfecd"
+          "sha256": "077704fd62b322814e2758e7deb5c1c8e5893cc424da1ebdbb1c67eb79828782"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-15.svg",
-          "sha256": "551bd7b744419c63320e137fbda0fe4efaaee37a133198bcb6e48e6d35d0a7bc"
+          "sha256": "f331d2964555cbf1de7a76c994de66f9d5b83f061d7c4e98346b6b956f5699db"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-16.svg",
-          "sha256": "1f0f1fdea702b65659c4fb9cfe0fca3c493488f1d4cecf75bf34303ba283a076"
+          "sha256": "4df9954b905b30f58772c921b5217f536ef3aeb585f45f5291d6529d7cbb90e0"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-17.svg",
-          "sha256": "e592de8ef761fdfb92499b5e7d1ff60c7ab497ab43abfb19a126be6b4b52cb91"
+          "sha256": "ac9ef70d8e4142c23415fa3aa1f916bc1d679074a74889b7dc30570ec06edc8f"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-18.svg",
-          "sha256": "ef4ccdff84018db3fe826e290a1307e2341a5c4a31125aede1d375261f8dc275"
+          "sha256": "0b56187e3770696a15558f6631b5093a566b6e4281bce7c375aeecb26537f94d"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-19.svg",
-          "sha256": "a31013e4121221f921f994a68b55a20bc766d09aa423a3b2865a577643167ee7"
+          "sha256": "e1f22b5911c16d93524145c678e74e589ef0eb2e8f3be2323d0963ad6264ced7"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-2.svg",
-          "sha256": "00a90a91341a794b720c44ea2935e35ea334c97461c1b9c37f30fb1f6a499d59"
+          "sha256": "45cbc98f7620b7a3750c1050179dac8dbd93ee85577a36ab48fe5ffd3b36d1a4"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-20.svg",
-          "sha256": "b5d372d164e6721205d8399631ba355c9745d17700db5d5bf3a011ed500d7dd9"
+          "sha256": "fdbb0c4de7397d834df6dd2f51569c8bc500c1a67ad87bc4b30121890d5a47f0"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-21.svg",
-          "sha256": "822cdb2fe38732f21e9ca0c4fe9dc806e7049bf2c23d1107cfc127fc5c71c97a"
+          "sha256": "4b99583348dd3b4e907738a62e6f4770ad0427e5b2f718568a2212b4da3d801b"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-22.svg",
-          "sha256": "0892610dea928d09055ab7bfe69b5aacf1f65d0238cdda75e0a57b47f3148531"
+          "sha256": "ca38f35d442159c2272b41d9c67b0ed879b5344c3951b4cd0cf0e888193e315b"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-23.svg",
-          "sha256": "e32d6e6b8b91d61a3f81384df64389ab1b84d9b39f045701a1df1c930d67bdcf"
+          "sha256": "74656cc483fabcbf2fd155a5e45c2cb3bc0dedb208ea5de48ffc5fba11c8d6a0"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-3.svg",
-          "sha256": "5640fae3835c535aa0e91896f68f9dee09773bf09b601f6c73181087679ef665"
+          "sha256": "5e2867724fdca8d7b4003042dc94bbc94fb95dbfe4ac2b6ecfff58a67a8ec24e"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-4.svg",
-          "sha256": "a94848b49fd0d1494d7acf6e7c29b113abc0e0b35330f944ada3fa12ab52fa6b"
+          "sha256": "f8a0b80c54df277e7b92efac42763318ba96b08574c0e9cb05d65665bddb2bf5"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-5.svg",
-          "sha256": "a752648b53a408004cbc5bba44a158158d7715c56e36980ff3ff5ffa8d7d7659"
+          "sha256": "43ec0fa52999ec4ea8a1f61111c29ee07dee2c0947a8b0612bbb9d4b7ec3fece"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-6.svg",
-          "sha256": "39be3c37781a59deb1c0dc499bc48975c3cfd9707c85d399fbf11d6aa5eb72dd"
+          "sha256": "1ae5c4e2543a65bb0b79d901d51a96bf0349704d7b3e78e3e55bbc89ad1027f0"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-7.svg",
-          "sha256": "ebff9d80718471b5d06c2dab86b86128c28e02698f506b3acebe6847ac616b03"
+          "sha256": "7c9f93253a0e9a8b4b54b7e84a57d4cbdc942ccb43484f81f43b5918fc257724"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-8.svg",
-          "sha256": "ef0358bf5c3726abb138120e1283bd8fb41f5086c3c5bc423648733174f9de12"
+          "sha256": "5cc72c03569c8f46b006ef6de5e228a18ec189da9eb246fada23b3e070ef0f57"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/original-ground-9.svg",
-          "sha256": "acf8a8c573c2e93d236aaf6d807ec9f8bf97dcdac71099baf939c5de8bba6ea7"
+          "sha256": "e7121627458b590eaf5f40b107e5efd26096c87701a8adf0e3749a4b493dae38"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bridge-nw.svg",
@@ -1606,8 +1606,12 @@
           "sha256": "acca8c954306cc6a2db7051349893eee23a3b20e3fe592d36f262528cdb043a9"
         },
         {
+          "path": "public/pixi-art/themes/sunflower/detail/windmill-rotor.svg",
+          "sha256": "6c348e794b0e3bac1ef5b2a05f13752c20dbb7d706b1bf9e82dfb26fa1dddb79"
+        },
+        {
           "path": "public/pixi-art/themes/sunflower/detail/windmill.svg",
-          "sha256": "474809396dd6a959dfe28d033076d2dff8e0336b8e57ac5a5abe82bd8b9d6333"
+          "sha256": "7e153157c0497b2572b47968ecd78be90dfa3a6d917959b15449c8b9294f6593"
         },
         {
           "path": "public/pixi-art/themes/sunflower/hamlets/hayhello/acorn-lamp.svg",
@@ -1666,14 +1670,6 @@
           "sha256": "29ca1b48e4cf60d473ce4147454cb3b3081a63bd0b60b60adf381e382cc4ae94"
         },
         {
-          "path": "public/pixi-art/themes/sunflower/hamlets/petalpost/bench-east.svg",
-          "sha256": "b9f2849eb2823923c7964b5aae02fdf1701b9c1baff1ce57b1f2d38ac603594d"
-        },
-        {
-          "path": "public/pixi-art/themes/sunflower/hamlets/petalpost/bench-west.svg",
-          "sha256": "1e75361874366c1a952ca7152ea960017cb8a013c914d53e45f1d3768f3d2d24"
-        },
-        {
           "path": "public/pixi-art/themes/sunflower/hamlets/petalpost/bouquet-and-parcel-workbench.svg",
           "sha256": "2a0779f66fc4ccf21a84d1425fd65075b7d6f5b49cd30dea2e8e1eb7391cfc69"
         },
@@ -1719,7 +1715,7 @@
         },
         {
           "path": "public/pixi-art/themes/sunflower/hamlets/petalpost/flower-wrapping-workbench.svg",
-          "sha256": "873781bb65131b86eb0aa25ea0c197997e7ea69e4b23459055f954c9c1384a75"
+          "sha256": "aa27a9192349295eaf701c76919c601ebf50dc10b6f175bf2085e632d8c66e2f"
         },
         {
           "path": "public/pixi-art/themes/sunflower/hamlets/petalpost/lamp.svg",
@@ -1866,10 +1862,6 @@
           "sha256": "f0a2765514e669624a206d6371cd1fdaf82ef90c768fed49828278ec4f6402e6"
         },
         {
-          "path": "public/pixi-art/themes/sunflower/hamlets/pollenpatch/sunflower-barrel.svg",
-          "sha256": "456a6c2af76b391e06db9f6cff79ea04237858bcd8c9c5c0fd46e820db4a2818"
-        },
-        {
           "path": "public/pixi-art/themes/sunflower/hamlets/pollenpatch/sunflower-bed-east.svg",
           "sha256": "cd692c8065974efcb78cb0b5eeeccca71da4ea6bd7fded32008d19a3ef5ca4f7"
         },
@@ -2014,8 +2006,12 @@
           "sha256": "703af1c1be62383c65503665ec5f87a7e63ea92f6a01e5490ad6d9b4080973ab"
         },
         {
+          "path": "public/pixi-art/themes/sunflower/hamlets/whirlyseed/windmill-lattice-sails-rotor.svg",
+          "sha256": "f847a46093018355c6147009d5d75ae661c3fec947c9b02b52a6bafacf0f531d"
+        },
+        {
           "path": "public/pixi-art/themes/sunflower/hamlets/whirlyseed/windmill-lattice-sails.svg",
-          "sha256": "3f1fcd50e303e2cd9dbdfd59d3a02f0b40c47d698ae85310e8e95cd3c017b91d"
+          "sha256": "dc44888483bca4664b04deaab501d4e2e8204fe193cfeb2a564d141c3a9623b0"
         },
         {
           "path": "public/pixi-art/themes/sunflower/outer/kite-01-yellow.svg",
@@ -2146,14 +2142,14 @@
           "sha256": "0b81bb5ee6f33feb0db9eb60280edfa7aa960a84f4ac92936a326a611d7763b4"
         }
       ],
-      "sha256": "51ce92d80ac1d080dd758b1378fa41bf9953fd32dc0ab6c1dd2e0f15f5b112df"
+      "sha256": "c946cbd9b710a765640cf81dbb75b351aabd721836c9b1fe9b9b881ad9ea8dae"
     },
-    "groundSha256": "93fc36f9e96743bbb13cca5daa13f81f4640d965f1355529d28bbe8ae3c2cc49",
+    "groundSha256": "9ccbb8ccdcc856fbee572465311b5041240705b4b64336793493b855ae057189",
     "src": "/pixi-art/globe/sunflower.svg",
-    "sha256": "403fc551e79cdb2bea6f3baa29904e0989b87c0edbda87393fbf9157778affc6",
+    "sha256": "c87cc681b783a3443f12c3b8be23ac10fa505303bc56abcb6d5b27af9e74126f",
     "width": 1024,
     "height": 717,
-    "bytes": 1192823,
+    "bytes": 1191588,
     "groundBytes": 357246,
     "quality": {
       "tolerance": 0.4,
