@@ -13,6 +13,7 @@ import IslandCamera from './IslandCamera.jsx';
 import WorldMap from './WorldMap.jsx';
 import BogEntry from '../features/bog-combat/BogEntry.jsx';
 import {BOG_COMBAT} from '../features/bog-combat/config.js';
+import {settleHomeHeadStart,finishHomeHeadStart} from './home-head-start.js';
 import './pixi.css';
 import './star-dialog.css';
 
@@ -94,6 +95,7 @@ export default function PixiPage() {
       if (['expired','signed-out'].includes(state)) setSession(previous => previous && {...previous,user:null});
       if (['expired','signed-out','star-required'].includes(state)) refresh();
     }, (id,text) => island.current?.showChat(id,text), setOnline, setLatestJoin, state => {
+      settleHomeHeadStart(state.islandId);
       setTravel(state);
       void island.current?.prepareIsland(state.islandId).catch(()=>{});
     }, setTravelNotice);
@@ -108,7 +110,7 @@ export default function PixiPage() {
       onError:() => setError(true),onInteriorChange:setIndoors,onGlobeChange:setGlobeOpen,onPhotoReady:()=>setCameraReady(true)});
     island.current = game;
     // the island's art is in once its canvas says ready (mount resolves earlier, while the art still streams in)
-    const drawnPoll = setInterval(() => {if (host.current?.querySelector('canvas[data-state="ready"]')) {clearInterval(drawnPoll); requestAnimationFrame(() => setWorldDrawn(true));}}, 150);
+    const drawnPoll = setInterval(() => {if (host.current?.querySelector('canvas[data-state="ready"]')) {clearInterval(drawnPoll); finishHomeHeadStart(); requestAnimationFrame(() => setWorldDrawn(true));}}, 150);
     game.mount(host.current).catch(error=>{console.error('Could not initialize world',error);setError(true);});
     if (offline) {
       setStatus('local');

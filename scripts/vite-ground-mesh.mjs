@@ -33,6 +33,6 @@ export function groundMesh(){
     if(assets.has(req.url)){res.setHeader('Content-Type',req.url.endsWith('.png')?'image/png':'application/octet-stream');res.end(assets.get(req.url));return;}next();
    }catch(error){next(error);}});
   },
-  transform(code,id){if(id.endsWith('/art/ground-mesh.js'))return {code:code.replaceAll('__GROUND_MESH_MANIFEST__',JSON.stringify(manifestURL??'/art-prerender/ground-manifest.json')),map:null};},
+  transform(code,id){if(id.endsWith('/art/ground-mesh.js')||id.endsWith('/app/home-head-start.js'))return {code:code.replaceAll('__GROUND_MESH_MANIFEST__',JSON.stringify(manifestURL??'/art-prerender/ground-manifest.json')),map:null};},
  };
 }

@@ -1,3 +1,4 @@
+import {takeHomeBitmap} from '../../../app/home-head-start.js';
 import {groundMeshEntry} from '../art/ground-mesh.js';
 import {BufferImageSource, Container, GlProgram, Graphics, Mesh, MeshGeometry, Shader} from 'pixi.js';
 import {PALETTE} from '../../shared/palette.js';
@@ -387,7 +388,7 @@ export async function createWater({app, world, art, layer, objects, props, motio
     const meshGround=await groundMeshEntry('home');
     let pondMask;
     if(meshGround?.waterMask){
-      try{const m=meshGround.waterMask,[c,ctx]=canvas(m.width,m.height);const image=new Image();image.src=m.url;await image.decode();ctx.drawImage(image,0,0);pondMask={width:m.width,height:m.height,data:ctx.getImageData(0,0,m.width,m.height).data};c.width=c.height=1;}catch(error){console.warn('Home water mask unavailable; using authored tiles',error);}
+      try{const m=meshGround.waterMask,[c,ctx]=canvas(m.width,m.height);let image=await takeHomeBitmap(m.url);const prepared=!!image;if(!image){image=new Image();image.src=m.url;await image.decode();}try{ctx.drawImage(image,0,0);}finally{if(prepared)image.close();}pondMask={width:m.width,height:m.height,data:ctx.getImageData(0,0,m.width,m.height).data};c.width=c.height=1;}catch(error){console.warn('Home water mask unavailable; using authored tiles',error);}
     }
     pondMask??=await groundMask(art.ground.tiles,rect,1.2);
     bodies.push(makeBody({id: 'pond', rect, cols: 97, rows: 65, mask: pondMask, parent: layer}));

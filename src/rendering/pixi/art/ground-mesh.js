@@ -1,7 +1,8 @@
+import {headStartJSON,takeHomeMesh} from '../../../app/home-head-start.js';
 import {Container,Geometry,GlProgram,Shader,Mesh,Buffer,BufferUsage,Texture,BufferImageSource} from 'pixi.js';
 const manifestURL=typeof __GROUND_MESH_MANIFEST__==='string'?__GROUND_MESH_MANIFEST__:null;
 let manifestPromise;
-const manifest=()=>manifestPromise??=(manifestURL?fetch(manifestURL,{signal:AbortSignal.timeout(5000)}).then(r=>{if(!r.ok)throw Error(`Ground manifest HTTP ${r.status}`);return r.json();}):Promise.resolve({}));
+const manifest=()=>manifestPromise??=(manifestURL?headStartJSON(manifestURL,{timeoutMs:5000}):Promise.resolve({}));
 export const groundMeshEnabled=()=>new URLSearchParams(globalThis.location?.search??'').get('ground')!=='tiles';
 export async function groundMeshEntry(id){if(!groundMeshEnabled())return null;try{return (await manifest())[id]??null;}catch(error){console.warn('Ground mesh unavailable; using tiles',error);return null;}}
 const vertex=`#version 300 es
@@ -34,6 +35,7 @@ async function parseMesh(buffer){
  });}finally{worker.terminate();}
 }
 export async function loadGroundMesh(entry,{fetcher=fetch,parse=parseMesh}={}){
+ const prepared=await takeHomeMesh(entry.url);if(prepared)return prepared;
  const response=await fetcher(entry.url,{signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error(`Ground mesh HTTP ${response.status}`);const start=performance.now();let buffer=await response.arrayBuffer();
  // Some hosts also set Content-Encoding, in which case fetch already inflated it.
  if(entry.compression==='gzip'&&new Uint8Array(buffer)[0]===31&&new Uint8Array(buffer)[1]===139)buffer=await new Response(new Blob([buffer]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
