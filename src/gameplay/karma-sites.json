@@ -360,14 +360,14 @@
     "id": "sunset-3",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 4495,
-    "y": -381
+    "x": 4092,
+    "y": 40
   },
   {
     "id": "sunset-4",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 95.00000000000045,
+    "x": 7,
     "y": 4519
   },
   {
@@ -388,29 +388,29 @@
     "id": "sunset-7",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 2295,
-    "y": 1579
+    "x": 2439,
+    "y": 1583
   },
   {
     "id": "sunset-8",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 1195,
-    "y": -381
+    "x": 636,
+    "y": -312
   },
   {
     "id": "sunset-9",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 6694.999999999998,
-    "y": 1579
+    "x": 6343,
+    "y": 1323
   },
   {
     "id": "sunset-10",
     "region": "sunset",
     "islandId": "sunset",
     "x": 2295,
-    "y": 4519
+    "y": 4543
   },
   {
     "id": "sunset-11",
@@ -437,8 +437,8 @@
     "id": "sunset-14",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 7794.999999999998,
-    "y": 4519
+    "x": 7843,
+    "y": 4391
   },
   {
     "id": "sunset-15",
@@ -451,29 +451,29 @@
     "id": "sunset-16",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 3395,
-    "y": 599
+    "x": 3407,
+    "y": 571
   },
   {
     "id": "sunset-17",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 1195,
-    "y": 2559
+    "x": 1196,
+    "y": 2544
   },
   {
     "id": "sunset-18",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 4495,
-    "y": 4519
+    "x": 4315,
+    "y": 4527
   },
   {
     "id": "sunset-19",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 5595,
-    "y": 599
+    "x": 5619,
+    "y": 579
   },
   {
     "id": "sunset-20",
@@ -493,8 +493,8 @@
     "id": "sunset-22",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 6694.999999999998,
-    "y": -381
+    "x": 6436,
+    "y": -192
   },
   {
     "id": "sunset-23",

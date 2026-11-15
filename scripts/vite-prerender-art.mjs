@@ -126,7 +126,7 @@ export async function collectPlacedArt(root) {
 }
 
 export function prerenderArt() {
-  let config, manifestURL, manifest, entries, sheetBytes, homeURL, duckPartsURL, islandsURL;
+  let config, manifestURL, manifest, entries, sheetBytes, homeURL, pinkURL, duckPartsURL, islandsURL;
   const previousDetail=new Map();
   return {
     name: 'prerender-island-art', apply: 'build',
@@ -135,6 +135,7 @@ export function prerenderArt() {
     // Fetch them with the page instead. The HTML is written after generateBundle,
     // so the island index name is known here.
     transformIndexHtml() {return startupPreloads([homeURL,islandsURL,manifestURL,duckPartsURL,manifestURL&&DUCK_MANIFEST]);},
+
     async buildStart() {
       const start = performance.now(), root = config.root;
       const sharp = require('sharp');
@@ -145,6 +146,9 @@ export function prerenderArt() {
       const home = JSON.stringify(packHomeScene(await bakeHomeScene(root)));
       homeURL = config.base + `${DIRECTORY}/home-${hash(home)}.json`;
       this.emitFile({type:'asset',fileName:homeURL.slice(config.base.length),source:home});
+      const pink=await readFile(path.join(root,'assets/world/themes/pink/scene-pack.json'),'utf8');
+      pinkURL=config.base+`${DIRECTORY}/pink-${hash(pink)}.json`;
+      this.emitFile({type:'asset',fileName:pinkURL.slice(config.base.length),source:pink});
       for (const src of new Set(entries.map(e => e.src).filter(src => /\.(svg|png)$/.test(src) && !sizes[src]))) {
         const {width, height} = await sharp(path.join(config.publicDir, src)).metadata();
         sizes[src] = [width, height];
@@ -381,7 +385,7 @@ export function prerenderArt() {
           view.detail=[];view.detailBytes=view.rasterDetail.rasterBytes+planBytes;view.detailSharpZoom=1.8;
         }
       }
-      const json=JSON.stringify(index),fileName=`${DIRECTORY}/islands-${hash(json)}.json`;
+      const {json,fileName}=serializeIslandIndex(index);
       this.emitFile({type:'asset',fileName,source:json});
       this.emitFile({type:'asset',fileName:`${DIRECTORY}/islands.json`,source:JSON.stringify({url:config.base+fileName})});
       islandsURL=config.base+fileName;
@@ -395,11 +399,23 @@ export function prerenderArt() {
       }
     },
     transform(code, id) {
+      if(id.endsWith('/world/prop-outlines/pink-scene.js'))return {code:lazyPinkScene(code,pinkURL),map:null};
       if(id.endsWith('/world/home/placements.js'))return {code:indexHomeGeometry(code),map:null};
       if(id.endsWith('/world/home/startup-scene.js'))return {code:`import {unpackHomeScene} from './scene-pack.js';const get=()=>(async()=>{const response=await fetch(${JSON.stringify(homeURL)});if(!response.ok)throw Error('Home layout unavailable');return response.json();})().catch(error=>{pending=undefined;throw error;});let pending=get();export async function loadHomeScene(room){pending??=get();const data=await pending;const scene=unpackHomeScene(data,room?'room':'solo');scene.beds.bad=scene.dropped;return scene;}`,map:null};
       if (id.endsWith('/art/whole-svg-loader.js')) return {code: code.replaceAll('__PRERENDER_ART_MANIFEST__', JSON.stringify(manifestURL)), map: null};
     },
   };
+}
+
+export function lazyPinkScene(code,url){
+  const deferred=code.replace(/(?:const|let|var)\s+readPacked\s*=\s*async\s*\(\s*\)\s*=>\s*packed\s*;?/,`const readPacked=async()=>{const response=await fetch(${JSON.stringify(url)});if(!response.ok)throw Error('Rosybutton layout unavailable');return response.json();};`);
+  if(deferred===code)throw Error('Rosybutton scene loader transform did not match');
+  return deferred.replace(/import\s+packed\s+from\s+[^;]+;/,'const packed=null;');
+}
+
+export function serializeIslandIndex(index){
+  const json=JSON.stringify(index);
+  return {json,fileName:`${DIRECTORY}/islands-${hash(json)}.json`};
 }
 
 // Ground and rig sheets preserve decoded pixels. Prop groups opt into

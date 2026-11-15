@@ -1,3 +1,4 @@
+import {assertRosySample} from './lib/rosy-clearance.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -27,7 +28,7 @@ test('Rosy uses Home widths and one unoutlined path surface in its retained pale
  }
  assert.ok(!art.flats.some(p=>p.id==='path-joins'||p.src.includes('floor-detail-')));
  assert.ok(map.JETTY.art,'the marina has one authored deck');
- for(const r of routes)for(const p of r.samples)assert.ok(map.nav().walkable(...p),r.id+' at '+p);
+ for(const r of routes)for(const p of r.samples)assertRosySample(map.nav(),p,r.id+' alpha audit at '+p);
 });
 function homeBody(s,dir){
  let inner=s.replace(/^[\s\S]*?<svg[^>]*>/,'').replace(/<\/svg>\s*$/,'');

@@ -4,7 +4,7 @@ import {placeIslet,unplaceIslet} from '../world/islet-placement.js';
 import {isletClearance,ISLETS} from '../world/islets.js';
 import {walkNav,isletWalks,inWalkArea} from '../world/islet-walk.js';
 import {WORLD_ISLANDS, neighboursOf, offsetOf} from '../world/world-map.js';
-import {HOME_MAP, mapOf, mapsVersion, FIELD_RES, FIELD_PAD} from '../world/island-maps.js';
+import {HOME_MAP, mapOf, mapsVersion, islandMapReady, FIELD_RES, FIELD_PAD} from '../world/island-maps.js';
 
 export const ISLANDS = WORLD_ISLANDS.map(({id,name,accent}) => ({id,name,accent}));
 const ISLAND_BY_ID = new Map(ISLANDS.map(island => [island.id,island]));
@@ -153,6 +153,7 @@ export function landingSpot(actor,nav=null,reach=420,target=null) {
   };
   const findShore=(p,walk)=>target ? (walk.walkable(p.x,p.y) ? p : null) : shoreFor(p.x,p.y,walk,reach);
   for (const island of WORLD_ISLANDS) {
+    if(!islandMapReady(island.id))continue;
     const map=mapOf(island.id),p=unplaceRigid(actor.islandId,island.id,target ?? actor),lx=p.x,ly=p.y;
     if (lx < map.origin.x-reach || ly < map.origin.y-reach || lx > map.origin.x+map.width+reach || ly > map.origin.y+map.height+reach) continue;
     const shore=findShore(p,island.id===actor.islandId && nav && map.home ? nav : map.nav());

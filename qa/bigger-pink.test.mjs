@@ -1,3 +1,4 @@
+import {assertRosySample} from './lib/rosy-clearance.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -18,8 +19,9 @@ test('Rosy preserves original residents and neighbourhood geometry through the a
  assert.deepEqual(map.world.sleepAvoid,oldWorld.sleepAvoid);
  assert.ok(!art.decks.some(d=>d.id==='centre-back'));
  assert.ok(!art.props.some(p=>p.src.startsWith('centre/')));
- for(const [key,zone] of Object.entries(oldWorld.zones))if(!['plaza','stalls-1','stalls-3'].includes(key))assert.deepEqual(map.world.zones[key],zone);
- assert.deepEqual(map.spawn,{x:4000,y:3224.62});
+ for(const [key,zone] of Object.entries(oldWorld.zones))if(!['plaza','stalls-1','stalls-3'].includes(key))assert.deepEqual({...map.world.zones[key],spawn:zone.spawn},zone);
+ assert.deepEqual(map.spawn,(()=>{const [x,y]=read('assets/world/themes/pink/harbor.json').spawn;return {x,y};})());
+ assert.ok(map.nav().walkable(map.spawn.x,map.spawn.y));
  for(const bed of map.sleepers)assert.ok(map.landAt(bed.x,bed.y));
 });
 
@@ -28,7 +30,7 @@ test('bigger Pink reaches every new court and completes both promenade loops wit
  assert.equal(map.width,13200);assert.equal(map.height,9800);
  const nav=map.nav(),from=map.spawn;
  for(const p of layout.places){const point=map.world.zones['bigger-'+p.id].spawn;assert.ok(nav.walkable(...point),p.id+' arrival');assert.ok(nav.route(from.x,from.y,...point).length,p.id+' route');}
- for(const r of read('scripts/rosy-ground/sampled-routes.json'))for(const p of r.samples)assert.ok(nav.walkable(...p),r.id+' exact point '+p);
+ for(const r of read('scripts/rosy-ground/sampled-routes.json'))for(const p of r.samples)assertRosySample(nav,p,r.id+' exact alpha audit '+p);
  for(const prop of layout.props.filter(p=>!p.id.startsWith('rosy-b-'))){
   assert.ok(inPoly(prop.x,prop.y,layout.coast),prop.id+' on land');
   if(prop.hamlet||read('scripts/pink-final/review-changes.json').movedProps.some(p=>p.id===prop.id))continue;
@@ -45,7 +47,7 @@ test('bigger Pink has GPU-safe ground tiles, visible solids and working refitted
  const report=checkTheme('pink');assert.deepEqual(report.problems,[]);
  for(const t of art.ground.tiles){const text=readFileSync(new URL('../public/pixi-art/themes/pink/'+t.src,import.meta.url),'utf8');const m=text.match(/width="([\d.]+)" height="([\d.]+)"/);assert.ok(+m[1]<=1536&&+m[2]<=1536,t.src);}
  const ids=new Set(art.props.map(p=>p.id));
- for(const o of layout.obstacles){assert.ok(o.name&&(ids.has(o.name)||/post|planter|leg/.test(o.name)),o.name+' visible source');assert.equal(map.nav().walkable(o.x,o.y),false,o.name+' blocks its base');}
+ for(const o of layout.obstacles){assert.ok(o.name&&(ids.has(o.name)||/post|planter|leg/.test(o.name)),o.name+' visible source');assertRosySample(map.nav(),[o.x,o.y],o.name+' alpha at former ellipse base');}
  for(const b of map.boatSpots()){assert.equal(map.landAt(b.x,b.y),false);assert.ok(map.shoreFor(b.x,b.y,260),'boardable berth');}
  assert.ok(map.nav().route(map.HARBOR.land.x,map.HARBOR.land.y,map.spawn.x,map.spawn.y).length,'marina to plaza');
 });
@@ -65,7 +67,8 @@ test('Pink communities have accessible household gates, distinct workplaces and 
   }
  }
  for(const p of layout.props.filter(p=>/worktable|potting-bench|music-rack|tea-table/.test(p.src))){
-  const near=nav.nearest(p.x,p.y+100,80);
+  const target=p.approach??[p.x,p.y+100];const near=nav.nearest(...target,80);
+  assert.ok(nav.walkable(...target),p.id+' exact workplace target');
   assert.ok(near,p.id+' workplace approach');
   assert.ok(nav.route(map.spawn.x,map.spawn.y,...near).length,p.id+' workplace reachable');
  }
