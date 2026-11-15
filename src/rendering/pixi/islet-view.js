@@ -1,4 +1,4 @@
-import {createArtQueue, nextArtFrame} from './art/island-preparation.js';
+import {createArtQueue, preparationFrame} from './art/island-preparation.js';
 import {Container,Graphics,Matrix,RenderTexture} from 'pixi.js';
 import {ISLETS,ISLET_ART,ISLET_META,ISLET_VIEWBOX} from '../../world/islets.js';
 import {svgLayerContexts} from './art/svg-context.js';
@@ -26,7 +26,7 @@ export async function createIsletView(app,scene,objects){
  const started=performance.now();
  const arts=await Promise.all(ISLET_ART.map(loadIsletArt));
  const loadMs=Math.round(performance.now()-started);
- await nextArtFrame();
+ await preparationFrame();
  const atlas=bakeAtlas(app.renderer,arts);
  const layer=new Container({label:'Sea islet ground'});
  if(objects.parent===scene)scene.addChildAt(layer,scene.getChildIndex(objects));else scene.addChild(layer);
@@ -48,7 +48,7 @@ export async function createIsletView(app,scene,objects){
  const target=RenderTexture.create({width:1,height:1});
  try {
   for(const node of views.flatMap(v=>[v.art,...v.props.map(p=>p.visual)])) {
-   await nextArtFrame();
+   await preparationFrame();
    app.renderer.render({container:node,target,clear:true});
   }
  } finally {target.destroy(true);}
