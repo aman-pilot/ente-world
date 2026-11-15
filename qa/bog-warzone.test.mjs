@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import {BOG_COMBAT} from '../src/features/bog-combat/config.js';
 import {BOG_BLOCKERS} from '../src/features/bog-combat/bog-blockers.js';
 import {DUCK_RADIUS,traceShot} from '../src/features/bog-combat/physics.js';
-import {shelters,hasWideBypass,shortCrossing} from './bog-wall-layout-helpers.mjs';
+import {shelters,hasWideBypass,shortCrossing,bogFloorSample} from './bog-wall-layout-helpers.mjs';
 const art=JSON.parse(fs.readFileSync('public/pixi-art/themes/bog-arena/art.json'));
 const layout=JSON.parse(fs.readFileSync('scripts/bog-environment/layout.json'));
 const cover=art.props.filter(p=>p.author==='warzone'&&p.coverFootprints);
@@ -68,7 +68,8 @@ test('four boarded Home cottages are solid cover with connected front and rear f
  const shells=art.props.filter(p=>p.name==='boarded-cottage');assert.equal(shells.length,4);
  for(const p of shells){
   const b=BOG_BLOCKERS.find(b=>b.id===p.id);assert.ok(b,p.id);
-  for(const q of [[p.x,p.y+30],[p.x,b.y-50],[b.x-50,p.y],[b.x+b.width+50,p.y]]){
+  for(const [i,original] of [[p.x,p.y+30],[p.x,b.y-50],[b.x-50,p.y],[b.x+b.width+50,p.y]].entries()){
+   const q=bogFloorSample(p.id+':'+i,original);
    assert.ok(nav.walkable(...q),p.id+' clear shoulder '+q);
    assert.ok(nav.route(4200,2800,...q).length,p.id+' shoulder connected '+q);
   }

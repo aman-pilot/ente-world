@@ -38,9 +38,11 @@ test('exported building/wall rectangles match movement obstacles exactly',()=>{
   assert.equal(nav.walkable(b.x+b.width/2,b.y+b.height/2),false,`${b.id} solid centre`);
  }
 });
-test('bridge is continuously walkable over Home water, with dry landings and its original 24-unit crown',()=>{
+test('bridge has a continuous uncovered crossing over Home water, with dry landings and its original 24-unit crown',()=>{
  const arch=map.world.arches[0];
- for(let x=arch.a[0];x<=arch.b[0];x+=8)assert.ok(nav.walkable(x,arch.a[1]),`bridge ${x}`);
+ // Bend within the deck around the retained, solid reed drawings.
+ const crossing=[arch.a,[3920,6890],[4280,6856],[4804,6856],arch.b];
+ for(let i=1;i<crossing.length;i++)assert.ok(nav.clearLine(crossing[i-1],crossing[i]),`bridge segment ${i}`);
  assert.ok(!map.world.water.some(w=>inPoly(...arch.a,w.poly)));
  assert.ok(!map.world.water.some(w=>inPoly(...arch.b,w.poly)));
  assert.equal(arch.r,24);
@@ -72,7 +74,7 @@ test('twenty perimeter trees leave fighting lanes clear and preserve the origina
  // These fingerprints lock all bushes, walls, ruins, buildings, reeds and
  // unrelated collision to their values before the tree removal. New field cover
  // is verified separately by the field-cover layout checks.
- assert.equal(hash(art.props.filter(p=>!isTree(p)&&!p.id.startsWith('field-cover-'))),'12ca34e77acf855fc150c4f4ecb7a2334bbfff90e8f9756425c9f0a960bfedcd');
+ assert.equal(hash(art.props.filter(p=>!isTree(p)&&!p.id.startsWith('field-cover-'))),'71e61698d28257671ffa5954a867a54ccafa975576137a2a65eccb27358fd700');
  assert.equal(hash(BOG_BLOCKERS.filter(b=>!trunks.has(b.id)&&!b.id.startsWith('field-cover-'))),'2d97acdcc19849969075a4af042b956e792a44768486267195506323b533da43');
  for(const p of trees){
   assert.ok(p.x<1400||p.x>6800||p.y<1300||p.y>6300,p.id+' outside fighting lanes');

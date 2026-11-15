@@ -1,3 +1,4 @@
+import {outlineBogProps,loadBogScene,bogSceneReady} from './prop-outlines/bog-scene.js';
 import librarySleepers from '../../assets/world/themes/library/sleepers.json' with {type:'json'};
 import {outlineLibraryProps,loadLibraryScene,librarySceneReady} from './prop-outlines/library-scene.js';
 import pinkSleepers from '../../assets/world/themes/pink/sleepers.json' with {type:'json'};
@@ -27,16 +28,17 @@ const HOME_JETTY = expansion.jetty;
 const trimHome = w => ({...w, islets: w.islets.filter(a => ![3930, 3340, 2290, 5450].includes(a[0])), walkways: w.walkways.filter(b => ![3940, 3320, 2320, 5050].includes(b.a[0]))});
 
 export function makeMap(id, {world, walk = null, harbor, art = null, sea = null, centre = null, addJetty = true, sleepers = null}) {
-  const enabled=hasPropOutlines(id === 'pink' ? 'sunset' : id === 'library' ? 'isle-251' : id) && id !== 'home';
-  const scene=id==='library'?{ready:librarySceneReady,outline:outlineLibraryProps}: {ready:pinkSceneReady,outline:outlinePinkProps};
+  const liveBog=art==='/pixi-art/themes/bog-arena/art.json';
+  const enabled=liveBog||hasPropOutlines(id === 'pink' ? 'sunset' : id === 'library' ? 'isle-251' : id) && id !== 'home';
+  const scene=liveBog?{ready:bogSceneReady,outline:outlineBogProps}:id==='library'?{ready:librarySceneReady,outline:outlineLibraryProps}: {ready:pinkSceneReady,outline:outlinePinkProps};
   const deferred=enabled&&!scene.ready();
   if(enabled&&!deferred){
     if(id==='pink')sleepers??=pinkSleepers;
     if(id==='library'&&world.sleepSpots)sleepers??=librarySleepers;
-    const props=scene.outline(world.props??[]);
+    const props=scene.outline(liveBog?world.props:world.props??[]);
     world={...world,props};
     const ids=new Set(props.map(p=>p.id));
-    const structures=(walk??world).obstacles.filter(o=>o.name&&!ids.has(o.name));
+    const structures=(walk??world).obstacles.filter(o=>liveBog?!ids.has(o.id):o.name&&!ids.has(o.name));
     walk={...(walk??world),props,navigationCellSize:16,indexPropContours:true,obstacles:[...structures,...propObstacles(props)]};
   }
   const W = world.width, H = world.height, walking = walk ?? world;
@@ -168,7 +170,7 @@ export function registerMap(theme, data) {
 }
 for (const [theme, data] of Object.entries(READY ?? {})) if (THEME_IDS.includes(theme) && theme !== 'home') registerMap(theme, data);
 
-const outlinedScenes={pink:{ready:pinkSceneReady,load:loadPinkScene},library:{ready:librarySceneReady,load:loadLibraryScene}};
+const outlinedScenes={bog:{ready:bogSceneReady,load:loadBogScene},'bog-arena':{ready:bogSceneReady,load:loadBogScene},pink:{ready:pinkSceneReady,load:loadPinkScene},library:{ready:librarySceneReady,load:loadLibraryScene}};
 const loadedScenes=new Set(Object.entries(outlinedScenes).filter(([,scene])=>scene.ready()).map(([theme])=>theme));
 const pendingScenes=new Map();
 export const islandMapReady=id=>!outlinedScenes[themeOfIsland(id)]||loadedScenes.has(themeOfIsland(id));
@@ -177,7 +179,7 @@ export function prepareIslandMap(id){
   const theme=themeOfIsland(id);
   if(!pendingScenes.has(theme))pendingScenes.set(theme,outlinedScenes[theme].load().then(()=>{
     // Keep coastline/harbour references held by sailing and scenery consumers.
-    Object.assign(MAPS.get(theme),makeMap(theme,READY[theme]));
+    Object.assign(MAPS.get(theme),makeMap(theme,READY[theme]??READY.bog));
     VERSION++;
     loadedScenes.add(theme);
   }).catch(error=>{pendingScenes.delete(theme);throw error;}));

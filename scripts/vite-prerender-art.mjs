@@ -126,7 +126,7 @@ export async function collectPlacedArt(root) {
 }
 
 export function prerenderArt() {
-  let config, manifestURL, manifest, entries, sheetBytes, homeURL, pinkURL, libraryURL, duckPartsURL, islandsURL;
+  let config, manifestURL, manifest, entries, sheetBytes, homeURL, pinkURL, libraryURL, bogURL, duckPartsURL, islandsURL;
   const previousDetail=new Map();
   return {
     name: 'prerender-island-art', apply: 'build',
@@ -149,6 +149,9 @@ export function prerenderArt() {
       const pink=await readFile(path.join(root,'assets/world/themes/pink/scene-pack.json'),'utf8');
       pinkURL=config.base+`${DIRECTORY}/pink-${hash(pink)}.json`;
       this.emitFile({type:'asset',fileName:pinkURL.slice(config.base.length),source:pink});
+      const bog=await readFile(path.join(root,'assets/world/themes/bog-arena/scene-pack.json'),'utf8');
+      bogURL=config.base+`${DIRECTORY}/bog-${hash(bog)}.json`;
+      this.emitFile({type:'asset',fileName:bogURL.slice(config.base.length),source:bog});
       const library=await readFile(path.join(root,'assets/world/themes/library/scene-pack.json'),'utf8');
       libraryURL=config.base+`${DIRECTORY}/library-${hash(library)}.json`;
       this.emitFile({type:'asset',fileName:libraryURL.slice(config.base.length),source:library});
@@ -402,6 +405,7 @@ export function prerenderArt() {
       }
     },
     transform(code, id) {
+      if(id.endsWith('/world/prop-outlines/bog-scene.js'))return {code:lazyPinkScene(code,bogURL),map:null};
       if(id.endsWith('/world/prop-outlines/library-scene.js'))return {code:lazyPinkScene(code,libraryURL),map:null};
       if(id.endsWith('/world/prop-outlines/pink-scene.js'))return {code:lazyPinkScene(code,pinkURL),map:null};
       if(id.endsWith('/world/home/placements.js'))return {code:indexHomeGeometry(code),map:null};
