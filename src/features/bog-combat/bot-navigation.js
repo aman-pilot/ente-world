@@ -44,8 +44,8 @@ export function createBotNavigation({navigation:nav,bounds}){
   return id;
  }
  function route(brain,sx,sy,tx,ty){
-  const j=prepare(brain);j.active=false;brain.path.length=0;
-  j.start=nearest(sx,sy,true);j.end=nearest(tx,ty);if(j.start<0||j.end<0)return;
+  const j=prepare(brain);j.active=false;brain.path.length=0;j.sx=sx;j.sy=sy;j.tx=tx;j.ty=ty;
+  j.start=nearest(sx,sy,true);j.end=nearest(tx,ty);if(j.start<0||j.end<0){fine(j);return;}
   if(++j.epoch>=0xffffffff){j.seen.fill(0);j.closed.fill(0);j.epoch=1;}
   j.length=0;j.expanded=0;j.best=j.start;j.cost[j.start]=0;j.parent[j.start]=-1;
   j.seen[j.start]=j.epoch;j.where[j.start]=-1;j.priority[j.start]=heuristic(j.start,j.end);push(j,j.start);j.active=true;
@@ -57,11 +57,20 @@ export function createBotNavigation({navigation:nav,bounds}){
   for(let i=count-1;i>=0;i--){const node=j.trail[i],point=j.points[count-1-i];point[0]=px(node);point[1]=py(node);path.push(point);}
   j.active=false;
  }
+ // The coarse grid joins cell centres with straight lines, so Bog's narrow bridges can leave a base as a closed
+ // pocket on it (bots stood at their spawn for the whole match). When the grid cannot reach the target, the bot
+ // walks the same fine route a player's click uses; only then, so normal routes stay cheap.
+ function fine(j){
+  j.active=false;const route=nav.route?.(j.sx,j.sy,j.tx,j.ty);
+  const path=j.brain.path;path.length=0;
+  if(route?.length>1)for(const point of route)path.push([point[0],point[1]]);else if(j.best!==undefined&&j.start>=0)finish(j,j.best);
+ }
  function expand(j){
-  if(!j.length){finish(j,j.best);return;}
+  if(!j.length){if(j.best===j.end)finish(j,j.best);else fine(j);return;}
   const id=pop(j);j.closed[id]=j.epoch;j.expanded++;
   if(heuristic(id,j.end)<heuristic(j.best,j.end))j.best=id;
-  if(id===j.end||j.expanded>=MAX_SEARCH){finish(j,j.best);return;}
+  if(id===j.end){finish(j,id);return;}
+  if(j.expanded>=MAX_SEARCH){fine(j);return;}
   const x=id%cols,y=Math.floor(id/cols);
   for(let d=0;d<8;d++){
    const xx=x+DX[d],yy=y+DY[d];if(xx<0||xx>=cols||yy<0||yy>=rows)continue;

@@ -370,6 +370,14 @@
 .pixi-polaroid-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 .pixi-polaroid-actions .pixi-polaroid-primary { background: #ffc93c; }
 .pixi-polaroid-feedback:not(:empty) { margin-top: 12px; color: #fff9df; font: 700 15px/1.3 'Fredoka', system-ui, sans-serif; text-align: center; }
+/* a phone held sideways has no room for the camera: just the photo and its buttons, so both still fit */
+@media (max-height: 520px) {
+  .pixi-polaroid { padding-top: 56px; }
+  .pixi-polaroid-printer { margin: 0 auto 12px; }
+  .pixi-polaroid-camera { display: none; }
+  .pixi-polaroid-output { margin-top: 0; }
+  .pixi-polaroid-photo { max-height: max(80px, calc(100svh - 156px)); }
+}
 .pixi-bottom-hud { display: contents; }
 .pixi-notifications {
   position: fixed;

@@ -174,3 +174,11 @@ test('ten ducks run the normal shared brain and real simulation for three minute
  timings.sort((a,b)=>a-b);
  console.log(`Bog 10-duck AI + sim CPU: mean ${(timings.reduce((a,b)=>a+b,0)/timings.length).toFixed(3)} ms, P95 ${timings[Math.floor(timings.length*.95)].toFixed(3)} ms, P99 ${timings[Math.floor(timings.length*.99)].toFixed(3)} ms, max ${timings.at(-1).toFixed(3)} ms`);
 });
+test('evil bots leave their base and come to a human waiting at the karma spawn (the bridges once walled them in)',()=>{
+ const sim=createBogCombat(BOG_COMBAT),fill=createBogBots(sim,BOG_COMBAT,{random:seeded(5)});
+ const me=sim.join({id:'me',team:'karma',name:'Waiting'});fill.replace('karma');fill.sync();
+ let closest=Infinity;
+ for(let i=0;i<60*60;i++){fill.step();sim.step(1/60);me.alive=true;me.lives=5;
+  for(const p of sim.state.players.values())if(p.bot&&p.team==='evil'&&p.alive)closest=Math.min(closest,Math.hypot(p.x-me.x,p.y-me.y));}
+ assert.ok(closest<1200,`an evil bot came within ${Math.round(closest)} of the waiting player`);
+});
