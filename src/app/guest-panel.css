@@ -33,7 +33,7 @@
 .guest-duck { transform-origin: 50% 100%; will-change: transform; }
 .guest-face { position: absolute; inset: 0; will-change: transform; }
 .guest-beak { position: absolute; left: 41.31%; top: 50.78%; width: 17.19%; height: auto; }
-.guest-eye { position: absolute; top: 48.91%; width: 5.08%; aspect-ratio: 52 / 51; margin: -2.49% 0 0 -2.54%; border-radius: 50%; background: #372515; }
+.guest-eye { position: absolute; top: 48.91%; width: 5.08%; aspect-ratio: 52 / 51; margin: -2.49% 0 0 -2.54%; border-radius: 50%; background: #1c1a18; }
 .guest-eye-left { left: 40.58%; }
 .guest-eye-right { left: 58.54%; }
 .guest-play {
@@ -121,9 +121,5 @@
   .guest-panel[data-plain] .guest-title + .guest-action { margin-top: 96px; }
   .guest-panel[data-plain] .guest-duck-rise { width: 150px; margin-left: -75px; bottom: calc(100% - 11px); }
 }
-/* Watch as a guest on the landing: the clouds close in over the end screen, so the dimmed map stays as it is and only
-   Ducky and the buttons fade (the whole panel fading flashed the bright map before the clouds covered it) */
+/* leaving the end screen (Play or Watch): nothing moves, the clouds close in over Ducky and the buttons as they are */
 .guest-panel[data-plain][data-leaving="true"] { opacity: 1; translate: none; }
-.guest-panel[data-plain][data-leaving="true"] .guest-stack { opacity: 0; transition: opacity 200ms cubic-bezier(.4, 0, 1, 1); }
-.guest-panel[data-plain][data-leaving="true"] .guest-duck-rise:not(.guest-duck-wings) { translate: 0 70%; transition: translate 220ms cubic-bezier(.7, 0, .84, 0); }   /* Ducky ducks behind the button */
-.guest-panel[data-plain][data-leaving="true"] .guest-stack { transition-delay: 120ms; }

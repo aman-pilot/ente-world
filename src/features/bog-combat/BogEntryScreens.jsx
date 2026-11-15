@@ -2,7 +2,7 @@ import {KARMA_REQUIRED} from './entry.js';
 import {trapFocus} from './BogDock.jsx';
 
 const ART = '/pixi-art/themes/bog-arena/entry';
-const TEAMS = {evil: 'Evil', karma: 'Karma'};   // Evil on the left, Karma on the right
+const TEAMS = {karma: 'Karma', evil: 'Evil'};   // Karma on the left, Evil on the right, as on the ticket
 
 // The welcome ticket shown when you dock at the Bog: the island's own picture (the same one the globe uses) as the
 // map, the two team Duckies on its corners, and the game's numbers printed on the stub. The notches are real cuts.
@@ -27,7 +27,7 @@ export function BogWelcome({dialog, onEnter, onLeave, status}) {
         </dl>
         <div className="bog-ticket-actions">
           <button className="bog-entry-primary" onClick={onEnter} autoFocus>Enter the Bog</button>
-          <button onClick={onLeave}>Not now</button>
+          <button className="bog-entry-link" onClick={onLeave}>Not now</button>
         </div>
         {status}
       </div>
@@ -35,30 +35,27 @@ export function BogWelcome({dialog, onEnter, onLeave, status}) {
   </div>;
 }
 
-// Pick your side: the two teams face off across a "vs" badge, each with its Ducky bursting out of the panel and a
-// live head count. Tapping a side joins that team straight away.
+// Pick your side: the whole screen splits into the two teams across a slanted seam, the ticket's two Duckies facing off
+// with their splats meeting at the "vs". Each side carries its name, head count and Join button.
 export function BogTeamPick({dialog, data, onPlay, onLeave, leaveLabel, status}) {
-  return <div className="bog-entry">
-    <section ref={dialog} className="bog-pick" role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="bog-pick-heading" onKeyDown={trapFocus}>
-      <header className="bog-pick-head">
-        <h1 id="bog-pick-heading"><small>Booquack Bog</small>Pick your side</h1>
-        <button onClick={onLeave}>{leaveLabel}</button>
-      </header>
-      <div className="bog-pick-cards">
-        {Object.entries(TEAMS).map(([id, name]) => <button key={id} className={`bog-pick-card bog-pick-${id}`}
-          disabled={!data} onClick={() => onPlay(id)}>
-          <img src={`${ART}/${id}-action.svg`} alt="" draggable="false"/>
-          <span className="bog-pick-label">
-            <span><span className="bog-pick-name">{name}</span>
-              <span className="bog-pick-count">{data ? `${data.counts[id]} ${data.counts[id] === 1 ? 'Ducky' : 'Duckies'} playing` : 'Counting Duckies…'}</span></span>
-            <span className="bog-pick-join" aria-hidden="true">Join</span>
-          </span>
-          {data?.suggested === id && <span className="bog-pick-need">They need you</span>}
-        </button>)}
-        <span className="bog-pick-vs" aria-hidden="true">vs</span>
+  return <section ref={dialog} className="bog-pick" role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="bog-pick-heading" onKeyDown={trapFocus}>
+    <div className="bog-pick-side bog-pick-side-karma" aria-hidden="true"/>
+    <div className="bog-pick-side bog-pick-side-evil" aria-hidden="true"/>
+    <svg className="bog-pick-seam" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="54" y1="0" x2="46" y2="100"/></svg>
+    <svg className="bog-pick-seam bog-pick-seam-phone" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="53" x2="100" y2="47"/></svg>
+    <header className="bog-pick-head"><h1 id="bog-pick-heading"><small>Booquack Bog</small>Pick your side</h1></header>
+    <button className="bog-pick-back" onClick={onLeave}>{leaveLabel}</button>
+    {Object.entries(TEAMS).map(([id, name]) => <div key={id} className={`bog-pick-team bog-pick-${id}`}>
+      <span className="bog-pick-shadow" aria-hidden="true"/>
+      <img className="bog-pick-duck" src={`${ART}/${id}-corner.svg`} alt="" draggable="false"/>
+      <div className="bog-pick-info">
+        {data?.suggested === id && <span className="bog-pick-need">They need you</span>}
+        <span className="bog-pick-name">{name}</span>
+        <span className="bog-pick-count">{data ? `${data.counts[id]} ${data.counts[id] === 1 ? 'Ducky' : 'Duckies'} playing` : 'Counting Duckies…'}</span>
+        <button className="bog-pick-join" disabled={!data} onClick={() => onPlay(id)}>Join {name}</button>
       </div>
-      <p className="bog-pick-help"><kbd>WASD</kbd> move <kbd>Shift</kbd> run <kbd>Space</kbd> shoot</p>
-      {status}
-    </section>
-  </div>;
+    </div>)}
+    <span className="bog-pick-vs" aria-hidden="true">vs</span>
+    {status}
+  </section>;
 }
