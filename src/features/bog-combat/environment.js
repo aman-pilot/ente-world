@@ -17,8 +17,10 @@ export function combatForBogEnvironment({map,islandId,deferNavigation=false},rec
     })]));
     return positions[team]??[];
   };
+  // Bounds are available without decoding the walking props.
+  const origin=map.origin??map.world.origin;
   return {islandId,navigation,blockers,pads,
-    bounds:{x0:map.world.origin?.x??0,y0:map.world.origin?.y??0,width:map.width,height:map.height},
+    bounds:{x0:origin?.x??0,y0:origin?.y??0,width:map.width,height:map.height},
     isBonusZone:point=>areas['site-a']&&Math.hypot(point.x-areas['site-a'].x,point.y-areas['site-a'].y)<420,
   };
 }

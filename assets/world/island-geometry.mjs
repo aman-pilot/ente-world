@@ -1,3 +1,42 @@
+// Public polygons remain ordinary arrays on access. Their immutable backing
+// coordinates are shared with the contour indexes rather than copied per edge.
+const coordinateBuffer=Symbol('contour coordinates');
+const sourceBuffers=new WeakMap(),compactShapes=new WeakSet();
+const hasPolygon=shape=>compactShapes.has(shape)||Boolean(shape.poly);
+function coordinates(poly){
+ let coords=sourceBuffers.get(poly);
+ if(!coords){coords=Float64Array.from(poly.flat());sourceBuffers.set(poly,coords);}
+ return coords;
+}
+export function compactContours(shape,source=null,project=null){
+ if(!shape)return shape;
+ compactShapes.add(shape);
+ for(const key of ['poly','parts']){
+  if(!shape[key])continue;
+  const rings=(source?(key==='poly'?[source[0]]:source.slice(1)):(key==='poly'?[shape[key]]:shape[key])).map(coordinates);
+  Object.defineProperty(shape,key,{enumerable:true,configurable:true,get(){
+   const arrays=rings.map(sourceCoords=>{
+    const coords=project?new Float64Array(sourceCoords.length):sourceCoords;
+    const poly=Array.from({length:coords.length/2},(_,i)=>{
+     const point=project?project(sourceCoords[i*2],sourceCoords[i*2+1]):[coords[i*2],coords[i*2+1]];
+     if(project){coords[i*2]=point[0];coords[i*2+1]=point[1];}return point;
+    });
+    Object.defineProperty(poly,coordinateBuffer,{value:coords});return poly;
+   });
+   return key==='poly'?arrays[0]:arrays;
+  }});
+ }
+ return shape;
+}
+// Contour work is synchronous. A small shared LRU serves all islands and lets
+// grid construction release source endpoint/index objects as it advances.
+const contourCache=new Map();
+function cachedContours(shape,build,kind=0){
+ if(contourCache.has(shape)){const entry=contourCache.get(shape);if(entry.kind===kind){contourCache.delete(shape);contourCache.set(shape,entry);return entry.value;}}
+ const value=build();contourCache.set(shape,{kind,value});
+ if(contourCache.size>128)contourCache.delete(contourCache.keys().next().value);
+ return value;
+}
 export function inPoly(x,y,p){let inside=false;for(let i=0,j=p.length-1;i<p.length;j=i++){if((p[i][1]>y)!=(p[j][1]>y)&&x<(p[j][0]-p[i][0])*(y-p[i][1])/(p[j][1]-p[i][1])+p[i][0])inside=!inside;}return inside;}
 function edgeDist(x,y,p){let d=Infinity;for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[j],b=p[i],dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));d=Math.min(d,Math.hypot(x-a[0]-dx*t,y-a[1]-dy*t));}return d;}
 function nearEdge(x,y,p,pad){for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[j],b=p[i];
@@ -6,10 +45,9 @@ function nearEdge(x,y,p,pad){for(let i=0,j=p.length-1;i<p.length;j=i++){const a=
 // Body masks have exact, unsimplified pixel edges and zero clearance. Index
 // their edges by row so the first navigation grid does not scan every stair-step
 // vertex at every cell (which can consume a fresh manual input's expiry window).
-const bodyRows=new WeakMap();
+
 function inBodyMask(x,y,o){
- let rows=bodyRows.get(o);
- if(!rows){rows=[o.poly,...(o.parts??[])].map(poly=>polygonIndex(poly));bodyRows.set(o,rows);}
+ const rows=cachedContours(o,()=>[o.poly,...(o.parts??[])].map(poly=>polygonIndex(poly)),1);
  return rows.some(contains=>contains(x,y));
 }
 export const inShape=(x,y,o,pad=0)=>o.bodyBlock&&pad===0?inBodyMask(x,y,o):o.parts ? [o.poly,...o.parts].some(poly=>inShape(x,y,{poly},pad)) : o.poly?(pad<0?inPoly(x,y,o.poly)&&edgeDist(x,y,o.poly)>-pad:inPoly(x,y,o.poly)||pad>0&&nearEdge(x,y,o.poly,pad)):((x-o.x)/(o.rx+pad))**2+((y-o.y)/(o.ry+pad))**2<1;
@@ -26,24 +64,27 @@ export function shapeIndex(list,pad,CELL=256){
  const none=[];
  return (x,y)=>cells.get(key(Math.floor(x/CELL),Math.floor(y/CELL)))??none;
 }
-export function polygonIndex(poly,cellSize=64){
- const rows=new Map();
+// A row holds edge offsets into one full-precision coordinate buffer. Keeping
+// edge objects and their endpoint arrays here used more memory than the maps.
+function contourEdges(poly,cellSize,pad=0){
+ const coords=poly[coordinateBuffer]??Float64Array.from(poly.flat()),buckets=new Map();
  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
-  const a=poly[i],b=poly[j];
-  if(a[1]===b[1])continue;
-  const edge=[a,b];
-  const first=Math.floor(Math.min(a[1],b[1])/cellSize),last=Math.floor(Math.max(a[1],b[1])/cellSize);
-  for(let row=first;row<=last;row++){
-   if(!rows.has(row))rows.set(row,[]);
-   rows.get(row).push(edge);
+  const ay=coords[2*i+1],by=coords[2*j+1];
+  if(!pad&&ay===by)continue;
+  for(let r=Math.floor((Math.min(ay,by)-pad)/cellSize);r<=Math.floor((Math.max(ay,by)+pad)/cellSize);r++){
+   if(!buckets.has(r))buckets.set(r,[]);buckets.get(r).push(i);
   }
  }
+ const rows=new Map([...buckets].map(([r,edges])=>[r,Uint32Array.from(edges)]));
+ return {coords,rows};
+}
+export function polygonIndex(poly,cellSize=64){
+ const {coords,rows}=contourEdges(poly,cellSize),length=poly.length;
  return (x,y)=>{
-  const edges=rows.get(Math.floor(y/cellSize));
-  if(!edges)return false;
+  const edges=rows.get(Math.floor(y/cellSize));if(!edges)return false;
   let inside=false;
-  for(const [a,b] of edges){
-   if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])inside=!inside;
+  for(const i of edges){const j=i?i-1:length-1,ax=coords[2*i],ay=coords[2*i+1],bx=coords[2*j],by=coords[2*j+1];
+   if((ay>y)!==(by>y)&&x<(bx-ax)*(y-ay)/(by-ay)+ax)inside=!inside;
   }
   return inside;
  };
@@ -65,34 +106,25 @@ export function geometry(world){
  // containment and clearance queries preserve the original point tests.
  // Each 8-unit cell is certified with its circumscribed circle. Cells touching
  // a contour use the exact point test; the cache never rounds a blocked edge.
- const solids=new WeakMap(),CELL=8,RADIUS=Math.SQRT2*CELL/2+1e-7;
+ const CELL=8,RADIUS=Math.SQRT2*CELL/2+1e-7;
  function partsOf(o){
-  let parts=solids.get(o);
-  if(!parts){
+  return cachedContours(o,()=>{
    const reach=Math.max(20,o.clearance??16)+RADIUS;
-   parts=[o.poly,...(o.parts??[])].map(poly=>{
-    const contains=polygonIndex(poly,8),rows=new Map();
-    for(let i=0,j=poly.length-1;i<poly.length;j=i++){
-     const a=poly[j],b=poly[i],edge={a,b,x0:Math.min(a[0],b[0])-reach,x1:Math.max(a[0],b[0])+reach};
-     for(let r=Math.floor((Math.min(a[1],b[1])-reach)/64);r<=Math.floor((Math.max(a[1],b[1])+reach)/64);r++){
-      if(!rows.has(r))rows.set(r,[]);rows.get(r).push(edge);
-     }
-    }
-    return {contains,rows};
-   });solids.set(o,parts);
-  }
-  return parts;
+   return [o.poly,...(o.parts??[])].map(poly=>({contains:polygonIndex(poly,8),rows:contourEdges(poly,64,reach)}));
+  });
  }
- function edgeNear(x,y,rows,pad){
-  for(const {a,b,x0,x1} of rows.get(Math.floor(y/64))??[]){
-   if(x<x0||x>x1)continue;
-   const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));
-   if(Math.hypot(x-a[0]-dx*t,y-a[1]-dy*t)<pad)return true;
+ function edgeNear(x,y,{coords,rows},pad){
+  const length=coords.length/2;
+  for(const i of rows.get(Math.floor(y/64))??[]){
+   const j=i?i-1:length-1,ax=coords[2*j],ay=coords[2*j+1],bx=coords[2*i],by=coords[2*i+1];
+   if(x<Math.min(ax,bx)-pad||x>Math.max(ax,bx)+pad)continue;
+   const dx=bx-ax,dy=by-ay,t=Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/(dx*dx+dy*dy||1)));
+   if(Math.hypot(x-ax-dx*t,y-ay-dy*t)<pad)return true;
   }
   return false;
  }
  function solidAt(x,y,o,pad=o.clearance??16){
-  if(!o.poly||pad<0||o.bodyBlock&&pad===0)return inShape(x,y,o,pad);
+  if(!hasPolygon(o)||pad<0||o.bodyBlock&&pad===0)return inShape(x,y,o,pad);
   return partsOf(o).some(({contains,rows})=>contains(x,y)||pad>0&&edgeNear(x,y,rows,pad));
  }
  function staticLookup(list,defaultPad,near,respectClearance=true){
@@ -101,22 +133,22 @@ export function geometry(world){
   return (x,y)=>{
   if(!solidGrid){
    const x0=Math.floor((world.origin?.x??0)/CELL),y0=Math.floor((world.origin?.y??0)/CELL);
-   const cols=Math.ceil(world.width/CELL)+1,rows=Math.ceil(world.height/CELL)+1,cells=new Uint8Array(cols*rows);
+   const cols=Math.ceil(world.width/CELL)+1,rows=Math.ceil(world.height/CELL)+1,cells=new Uint8Array(Math.ceil(cols*rows/4));
    for(const o of list){
-    const pad=padding(o);
+    const pad=padding(o),hasPoly=hasPolygon(o),parts=hasPoly&&pad>=0?partsOf(o):null;
     // Unusual negative clearances keep the exact fallback throughout their box.
-    const points=o.poly?[o.poly,...(o.parts??[])].flat():[[o.x-o.rx,o.y-o.ry],[o.x+o.rx,o.y+o.ry]];
+    const points=hasPoly?[o.poly,...(o.parts??[])].flat():[[o.x-o.rx,o.y-o.ry],[o.x+o.rx,o.y+o.ry]];
     let left=Infinity,right=-Infinity,top=Infinity,bottom=-Infinity;
     for(const [px,py] of points){left=Math.min(left,px);right=Math.max(right,px);top=Math.min(top,py);bottom=Math.max(bottom,py);}
     const margin=Math.max(0,pad)+1;
     for(let r=Math.max(0,Math.floor((top-margin)/CELL)-y0);r<=Math.min(rows-1,Math.floor((bottom+margin)/CELL)-y0);r++)
      for(let c=Math.max(0,Math.floor((left-margin)/CELL)-x0);c<=Math.min(cols-1,Math.floor((right+margin)/CELL)-x0);c++){
-      const i=r*cols+c;if(cells[i]===1)continue;
+      const i=r*cols+c;if((cells[i>>2]>>((i&3)*2)&3)===1)continue;
       const cx=(x0+c+.5)*CELL,cy=(y0+r+.5)*CELL;
       let state=0;
       if(pad<0)state=2;
-      else if(o.poly){
-       for(const {contains,rows:edges} of partsOf(o)){
+      else if(hasPoly){
+       for(const {contains,rows:edges} of parts){
         const inside=contains(cx,cy);
         const full=inside?(pad>=RADIUS||!edgeNear(cx,cy,edges,RADIUS-pad)):pad>RADIUS&&edgeNear(cx,cy,edges,pad-RADIUS);
         if(full){state=1;break;}
@@ -128,14 +160,14 @@ export function geometry(world){
        const close=(Math.max(0,Math.abs(cx-o.x)-CELL/2)/rx)**2+(Math.max(0,Math.abs(cy-o.y)-CELL/2)/ry)**2;
        state=far<1?1:close<=1?2:0;
       }
-      if(state)cells[i]=state;
+      if(state){const shift=(i&3)*2;cells[i>>2]=(cells[i>>2]&~(3<<shift))|(state<<shift);}
      }
    }
    solidGrid={x0,y0,cols,rows,cells};
   }
   const {x0,y0,cols,rows,cells}=solidGrid,c=Math.floor(x/CELL)-x0,r=Math.floor(y/CELL)-y0;
   if(c<0||r<0||c>=cols||r>=rows)return near(x,y).some(o=>solidAt(x,y,o,padding(o)));
-  const state=cells[r*cols+c];
+  const i=r*cols+c,state=cells[i>>2]>>((i&3)*2)&3;
   return state===1||state===2&&near(x,y).some(o=>solidAt(x,y,o,padding(o)));
   };
  }

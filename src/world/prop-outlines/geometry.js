@@ -1,5 +1,10 @@
+import {compactContours} from '../../../assets/world/island-geometry.mjs';
 import {propOutlineKind} from '../home/prop-outline-rules.js';
 export const bodyMaskKey = p => JSON.stringify([p.src,p.width*(p.scale??1),p.height*(p.scale??1),Boolean(p.flip)]);
+// Factories live outside the rule closure so a projected prop cannot retain
+// the decoded silhouettes/body-mask dictionary through its lexical parent.
+const projectSilhouette=(x,y,flip,ax,ay,w,h)=>(u,v)=>[x+(flip?ax-u:u-ax)*w,y+(v-ay)*h];
+const projectBody=(px,py,flip,ax,ay,width,height,scale,pixelMasks)=>(x,y)=>pixelMasks?[px+(x/256+(flip?ax:-ax))*width*scale,py+(y/256-ay)*height*scale]:[px+x,py+y];
 export function createPropOutlines(silhouettes,bodyMasks,{pixelMasks=true}={}) {
 // Opaque SVG silhouettes, normalized to the authored view box. Blocking the
 // projected roof as well as the walls prevents a Ducky disappearing beneath it.
@@ -22,8 +27,10 @@ function buildingFootprint(prop) {
     prop.x + (prop.flip ? prop.anchor.x - u : u - prop.anchor.x) * w,
     prop.y + (v - prop.anchor.y) * h,
   ]));
-  return {prop: prop.id, ...(pixelMasks?{name:prop.id}:{}), building: true, clearance: 22 + Math.max(w,h) / 256,
-    poly: rings[0], ...(rings.length > 1 ? {parts: rings.slice(1)} : {})};
+  const {x,y,flip,anchor:{x:ax,y:ay}}=prop;
+  return compactContours({prop: prop.id, ...(pixelMasks?{name:prop.id}:{}), building: true, clearance: 22 + Math.max(w,h) / 256,
+    poly: rings[0], ...(rings.length > 1 ? {parts: rings.slice(1)} : {})},contours,
+    projectSilhouette(x,y,flip,ax,ay,w,h));
 }
 
 function solidBuilding(prop) {
@@ -38,7 +45,9 @@ function solidBuilding(prop) {
   // anchor. A Ducky on the approach is in front; one above the roof is behind.
   const sortY = Math.max(...[footprint.poly, ...(footprint.parts ?? [])].flat().map(p => p[1]));
   const rings=bodyMasks[pixelMasks?bodyMaskKey(prop):prop.id]?.map(r=>r.map(([x,y])=>pixelMasks?[prop.x+(x/256+(prop.flip?prop.anchor.x:-prop.anchor.x))*prop.width*(prop.scale??1),prop.y+(y/256-prop.anchor.y)*prop.height*(prop.scale??1)]:[prop.x+x,prop.y+y]));
-  const bodyFootprint=rings?{prop:prop.id,...(pixelMasks?{name:prop.id}:{}),building:true,bodyBlock:true,clearance:0,poly:rings[0],...(rings.length>1?{parts:rings.slice(1)}:{})}:null;
+  const {x:px,y:py,flip,anchor:{x:ax,y:ay},width,height,scale=1}=prop;
+  const bodyFootprint=rings?compactContours({prop:prop.id,...(pixelMasks?{name:prop.id}:{}),building:true,bodyBlock:true,clearance:0,poly:rings[0],...(rings.length>1?{parts:rings.slice(1)}:{})},bodyMasks[pixelMasks?bodyMaskKey(prop):prop.id],
+    projectBody(px,py,flip,ax,ay,width,height,scale,pixelMasks)):null;
   return {...prop, outlineKind, footprint, bodyFootprint, z: sortY, sortY};
 }
 

@@ -28,13 +28,13 @@ export function packHomeScene(scenes) {
   return {packed: 1, table, scenes: packed};
 }
 
-export function unpackHomeScene(data, name) {
-  if (!data.packed) return structuredClone(data[name]);
+export function unpackHomeScene(data, name, fields = null) {
+  if (!data.packed) return structuredClone(fields ? Object.fromEntries(fields.map(k=>[k,data[name][k]])) : data[name]);
   const {table} = data;
   const open = v => {
     if (!v || typeof v !== 'object') return v;
     if (isRef(v)) return open(table[v.$r]);
     return Array.isArray(v) ? v.map(open) : Object.fromEntries(Object.entries(v).map(([k, x]) => [k, open(x)]));
   };
-  return open(data.scenes[name]);
+  return open(fields ? Object.fromEntries(fields.map(k=>[k,data.scenes[name][k]])) : data.scenes[name]);
 }
