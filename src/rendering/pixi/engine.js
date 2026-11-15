@@ -248,8 +248,8 @@ export class PixiIsland {
       this.initialSpawn=this.randomArrival&&!this.room?await pickWorldSpawn({homeNav:this.sim.nav,prepareIsland:prepareIslandMap}):null;
       const startingIsland=this.room ? await this.room.waitForIsland() : this.initialSpawn?.islandId ?? 'home';
       if(this.disposed||!startingIsland)return;
-      await recoverArt(()=>this.prepareIsland(startingIsland),{label:'Spawn sheets'});
-      await prepareIslandMap(startingIsland);
+      // Fetch the island's layout alongside its sheets, not after them.
+      await Promise.all([recoverArt(()=>this.prepareIsland(startingIsland),{label:'Spawn sheets'}),prepareIslandMap(startingIsland)]);
       const prepareHome=artOf(startingIsland)==='home';
       this.arrivalRig=await createDuck({outfit:this.player?.outfit,seed:21,isPlayer:true});
       if(this.disposed){this.arrivalRig.dispose();return;}
