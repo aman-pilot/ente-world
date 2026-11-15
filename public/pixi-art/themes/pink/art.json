@@ -21831,7 +21831,7 @@
   {
    "id": "pink-craft-3",
    "name": "Rose garden bush",
-   "src": "/pixi-art/plants/bush-1.svg",
+   "src": "park/bush-1.svg",
    "x": 2514.7,
    "y": 746.6,
    "width": 130,
@@ -25253,7 +25253,7 @@
   {
    "id": "hamlet-ribbonwick-tree-green-east",
    "name": "Round tree",
-   "src": "/pixi-art/plants/tree-3.svg",
+   "src": "park/tree-3.svg",
    "x": 2154.7,
    "y": 122.35,
    "width": 300,
@@ -25841,15 +25841,15 @@
   {
    "id": "hamlet-ribbonwick-bench-east",
    "name": "bench-east",
-   "src": "hamlets/ribbonwick/bench-east.svg",
+   "src": "/pixi-art/detail/street--bench-wood.svg",
    "x": 1054.9,
    "y": 487,
-   "width": 204.75,
-   "height": 171.6,
+   "width": 199.6414686825054,
+   "height": 113,
    "scale": 1,
    "anchor": {
     "x": 0.5,
-    "y": 1
+    "y": 0.9740820734341252
    },
    "resolution": 1.5,
    "zone": "ribbonwick",
@@ -25874,52 +25874,17 @@
    ]
   },
   {
-   "id": "hamlet-ribbonwick-ribbon-cutting-table",
-   "name": "ribbon-cutting-table",
-   "src": "hamlets/ribbonwick/ribbon-cutting-table.svg",
-   "x": 1555.15,
-   "y": 395.7,
-   "width": 319.8,
-   "height": 218.4,
-   "scale": 1,
-   "anchor": {
-    "x": 0.5,
-    "y": 1
-   },
-   "resolution": 1.5,
-   "zone": "ribbonwick",
-   "hamlet": "ribbonwick",
-   "order": 774,
-   "wind": false,
-   "footprint": {
-    "x": 1555.15,
-    "y": 377.7,
-    "rx": 95.94,
-    "ry": 28
-   },
-   "z": 395.7,
-   "shadow": true,
-   "shadowSize": [
-    120.24,
-    15.6
-   ],
-   "shadowOffset": [
-    -4.02,
-    -21.06
-   ]
-  },
-  {
    "id": "hamlet-ribbonwick-bench-west",
    "name": "bench-west",
-   "src": "hamlets/ribbonwick/bench-west.svg",
+   "src": "/pixi-art/detail/street--bench-wood.svg",
    "x": 237.89,
    "y": 465.82,
-   "width": 204.75,
-   "height": 171.6,
+   "width": 199.6414686825054,
+   "height": 113,
    "scale": 1,
    "anchor": {
     "x": 0.5,
-    "y": 1
+    "y": 0.9740820734341252
    },
    "resolution": 1.5,
    "zone": "ribbonwick",
@@ -26265,7 +26230,7 @@
   {
    "id": "hamlet-ribbonwick-tree-green-southeast-back",
    "name": "Oak tree",
-   "src": "/pixi-art/plants/tree-1.svg",
+   "src": "park/tree-1.svg",
    "x": 2123.5,
    "y": 791.2,
    "width": 260,
@@ -27160,41 +27125,6 @@
    "shadowOffset": [
     -1.61,
     -8.06
-   ]
-  },
-  {
-   "id": "hamlet-chirrup-heart-fountain",
-   "name": "heart-fountain",
-   "src": "hamlets/chirrup/heart-fountain.svg",
-   "x": 6241.6,
-   "y": 238.4,
-   "width": 350,
-   "height": 294,
-   "scale": 1,
-   "anchor": {
-    "x": 0.5,
-    "y": 1
-   },
-   "resolution": 1.5,
-   "zone": "melody",
-   "hamlet": "chirrup",
-   "order": 718,
-   "wind": false,
-   "footprint": {
-    "x": 6241.6,
-    "y": 220.4,
-    "rx": 105,
-    "ry": 28
-   },
-   "z": 238.4,
-   "shadow": true,
-   "shadowSize": [
-    99.75,
-    13.44
-   ],
-   "shadowOffset": [
-    -5.98,
-    -19.34
    ]
   },
   {
@@ -28449,60 +28379,6 @@
    ]
   },
   {
-   "id": "hamlet-petalpatch-flowerbed-nw",
-   "name": "flowerbed-nw",
-   "src": "hamlets/petalpatch/flowerbed-nw.svg",
-   "x": -777.1,
-   "y": 2619.4,
-   "width": 170.5,
-   "height": 108.5,
-   "scale": 1,
-   "anchor": {
-    "x": 0.5,
-    "y": 1
-   },
-   "resolution": 1.5,
-   "zone": "petalpatch",
-   "hamlet": "petalpatch",
-   "order": 498,
-   "wind": false,
-   "shadow": false,
-   "footprint": {
-    "x": -777.1,
-    "y": 2598.94,
-    "rx": 64.79,
-    "ry": 20.46
-   },
-   "z": 2619.4
-  },
-  {
-   "id": "hamlet-petalpatch-flowerbed-ne",
-   "name": "flowerbed-ne",
-   "src": "hamlets/petalpatch/flowerbed-ne.svg",
-   "x": -539.95,
-   "y": 2619.4,
-   "width": 170.5,
-   "height": 108.5,
-   "scale": 1,
-   "anchor": {
-    "x": 0.5,
-    "y": 1
-   },
-   "resolution": 1.5,
-   "zone": "petalpatch",
-   "hamlet": "petalpatch",
-   "order": 498,
-   "wind": false,
-   "shadow": false,
-   "footprint": {
-    "x": -539.95,
-    "y": 2598.94,
-    "rx": 64.79,
-    "ry": 20.46
-   },
-   "z": 2619.4
-  },
-  {
    "id": "hamlet-petalpatch-petal-sundial",
    "name": "petal-sundial",
    "src": "hamlets/petalpatch/petal-sundial.svg",
@@ -28637,60 +28513,6 @@
     -1.85,
     -16.9
    ]
-  },
-  {
-   "id": "hamlet-petalpatch-flowerbed-se",
-   "name": "flowerbed-se",
-   "src": "hamlets/petalpatch/flowerbed-se.svg",
-   "x": -524.45,
-   "y": 2886,
-   "width": 170.5,
-   "height": 108.5,
-   "scale": 1,
-   "anchor": {
-    "x": 0.5,
-    "y": 1
-   },
-   "resolution": 1.5,
-   "zone": "petalpatch",
-   "hamlet": "petalpatch",
-   "order": 670,
-   "wind": false,
-   "shadow": false,
-   "footprint": {
-    "x": -524.45,
-    "y": 2865.54,
-    "rx": 64.79,
-    "ry": 20.46
-   },
-   "z": 2886
-  },
-  {
-   "id": "hamlet-petalpatch-flowerbed-sw",
-   "name": "flowerbed-sw",
-   "src": "hamlets/petalpatch/flowerbed-sw.svg",
-   "x": -769.35,
-   "y": 2889.1,
-   "width": 170.5,
-   "height": 108.5,
-   "scale": 1,
-   "anchor": {
-    "x": 0.5,
-    "y": 1
-   },
-   "resolution": 1.5,
-   "zone": "petalpatch",
-   "hamlet": "petalpatch",
-   "order": 672,
-   "wind": false,
-   "shadow": false,
-   "footprint": {
-    "x": -769.35,
-    "y": 2868.64,
-    "rx": 64.79,
-    "ry": 20.46
-   },
-   "z": 2889.1
   },
   {
    "id": "hamlet-petalpatch-cart-daisy-pot",
@@ -30705,74 +30527,6 @@
    ]
   },
   {
-   "id": "hamlet-tutu-tides-pink-bench",
-   "name": "pink-bench",
-   "asset": "pink-bench",
-   "src": "hamlets/tutu-tides/pink-bench.svg",
-   "x": 3674.8,
-   "y": 6420,
-   "width": 229.6,
-   "height": 145.6,
-   "scale": 1,
-   "anchor": {
-    "x": 0.5,
-    "y": 1
-   },
-   "zone": "tutu",
-   "resolution": 1.5,
-   "footprint": {
-    "name": "hamlet-tutu-tides-pink-bench",
-    "x": 3674.8,
-    "y": 6388,
-    "rx": 61.99,
-    "ry": 24
-   },
-   "hamlet": "tutu",
-   "shadow": true,
-   "shadowSize": [
-    89.41,
-    15.4
-   ],
-   "shadowOffset": [
-    -9.56,
-    -23.94
-   ]
-  },
-  {
-   "id": "hamlet-tutu-tides-tutu-basket",
-   "name": "tutu-basket",
-   "asset": "tutu-basket",
-   "src": "hamlets/tutu-tides/tutu-basket.svg",
-   "x": 3774.2,
-   "y": 6450.8,
-   "width": 154,
-   "height": 145.6,
-   "scale": 1,
-   "anchor": {
-    "x": 0.5,
-    "y": 1
-   },
-   "zone": "tutu",
-   "resolution": 1.5,
-   "footprint": {
-    "name": "hamlet-tutu-tides-tutu-basket",
-    "x": 3774.2,
-    "y": 6424.32,
-    "rx": 41.58,
-    "ry": 18.48
-   },
-   "hamlet": "tutu",
-   "shadow": true,
-   "shadowSize": [
-    62.25,
-    15.4
-   ],
-   "shadowOffset": [
-    -3.73,
-    -18.34
-   ]
-  },
-  {
    "id": "hamlet-tutu-tides-oak-west-low",
    "name": "Round tree",
    "asset": "tree-3",
@@ -32565,7 +32319,7 @@
    "id": "rosy-b-sleeper-s1-3-tree",
    "name": "Rosy tree-4",
    "asset": "tree-4",
-   "src": "/pixi-art/plants/tree-4.svg",
+   "src": "park/tree-4.svg",
    "x": 2340,
    "y": -50,
    "width": 200,
@@ -32697,7 +32451,7 @@
    "id": "rosy-b-northwest-coast-crown-01",
    "name": "Rosy bush-1",
    "asset": "bush-1",
-   "src": "/pixi-art/plants/bush-1.svg",
+   "src": "park/bush-1.svg",
    "x": 2020,
    "y": -850,
    "width": 130,
@@ -32730,7 +32484,7 @@
    "id": "rosy-b-northwest-coast-crown-02",
    "name": "Rosy bush-3",
    "asset": "bush-3",
-   "src": "/pixi-art/plants/bush-3.svg",
+   "src": "park/bush-3.svg",
    "x": 2140,
    "y": -815,
    "width": 116,
@@ -32763,7 +32517,7 @@
    "id": "rosy-b-northwest-coast-crown-03",
    "name": "Rosy bush-4",
    "asset": "bush-4",
-   "src": "/pixi-art/plants/bush-4.svg",
+   "src": "park/bush-4.svg",
    "x": 2260,
    "y": -850,
    "width": 140,
@@ -32796,7 +32550,7 @@
    "id": "rosy-b-northwest-coast-crown-04",
    "name": "Rosy bush-4",
    "asset": "bush-4",
-   "src": "/pixi-art/plants/bush-4.svg",
+   "src": "park/bush-4.svg",
    "x": 2680,
    "y": -780,
    "width": 140,
@@ -32829,7 +32583,7 @@
    "id": "rosy-b-northwest-coast-crown-05",
    "name": "Rosy bush-1",
    "asset": "bush-1",
-   "src": "/pixi-art/plants/bush-1.svg",
+   "src": "park/bush-1.svg",
    "x": 2790,
    "y": -850,
    "width": 130,
@@ -32862,7 +32616,7 @@
    "id": "rosy-b-northwest-east-shelter-01",
    "name": "Rosy tree-3",
    "asset": "tree-3",
-   "src": "/pixi-art/plants/tree-3.svg",
+   "src": "park/tree-3.svg",
    "x": 3490,
    "y": -370,
    "width": 300,
@@ -32928,7 +32682,7 @@
    "id": "rosy-b-northwest-east-shelter-03",
    "name": "Rosy bush-3",
    "asset": "bush-3",
-   "src": "/pixi-art/plants/bush-3.svg",
+   "src": "park/bush-3.svg",
    "x": 3000,
    "y": -390,
    "width": 116,
@@ -32961,7 +32715,7 @@
    "id": "rosy-b-northwest-east-shelter-04",
    "name": "Rosy bush-1",
    "asset": "bush-1",
-   "src": "/pixi-art/plants/bush-1.svg",
+   "src": "park/bush-1.svg",
    "x": 3150,
    "y": -300,
    "width": 130,
@@ -32994,7 +32748,7 @@
    "id": "rosy-b-northwest-east-shelter-05",
    "name": "Rosy bush-2",
    "asset": "bush-2",
-   "src": "/pixi-art/plants/bush-2.svg",
+   "src": "park/bush-2.svg",
    "x": 3440,
    "y": -200,
    "width": 168,
@@ -33027,7 +32781,7 @@
    "id": "rosy-b-northwest-east-shelter-06",
    "name": "Rosy bush-3",
    "asset": "bush-3",
-   "src": "/pixi-art/plants/bush-3.svg",
+   "src": "park/bush-3.svg",
    "x": 3590,
    "y": -135,
    "width": 116,
@@ -33060,7 +32814,7 @@
    "id": "rosy-b-northwest-east-shelter-07",
    "name": "Rosy bush-1",
    "asset": "bush-1",
-   "src": "/pixi-art/plants/bush-1.svg",
+   "src": "park/bush-1.svg",
    "x": 3720,
    "y": -180,
    "width": 130,
@@ -33093,7 +32847,7 @@
    "id": "rosy-b-northwest-east-shelter-08",
    "name": "Rosy bush-4",
    "asset": "bush-4",
-   "src": "/pixi-art/plants/bush-4.svg",
+   "src": "park/bush-4.svg",
    "x": 3360,
    "y": -160,
    "width": 140,
@@ -33126,7 +32880,7 @@
    "id": "rosy-b-northwest-east-shelter-09",
    "name": "Rosy bush-3",
    "asset": "bush-3",
-   "src": "/pixi-art/plants/bush-3.svg",
+   "src": "park/bush-3.svg",
    "x": 3150,
    "y": -140,
    "width": 116,
@@ -33159,7 +32913,7 @@
    "id": "rosy-b-north-notch-west-foot-01",
    "name": "Rosy tree-1",
    "asset": "tree-1",
-   "src": "/pixi-art/plants/tree-1.svg",
+   "src": "park/tree-1.svg",
    "x": 3360,
    "y": 100,
    "width": 260,
@@ -33192,7 +32946,7 @@
    "id": "rosy-b-north-notch-west-foot-02",
    "name": "Rosy tree-4",
    "asset": "tree-4",
-   "src": "/pixi-art/plants/tree-4.svg",
+   "src": "park/tree-4.svg",
    "x": 3540,
    "y": 175,
    "width": 200,
@@ -33291,7 +33045,7 @@
    "id": "rosy-b-north-notch-west-foot-05",
    "name": "Rosy bush-4",
    "asset": "bush-4",
-   "src": "/pixi-art/plants/bush-4.svg",
+   "src": "park/bush-4.svg",
    "x": 3250,
    "y": 195,
    "width": 140,
@@ -33324,7 +33078,7 @@
    "id": "rosy-b-north-notch-west-foot-06",
    "name": "Rosy bush-3",
    "asset": "bush-3",
-   "src": "/pixi-art/plants/bush-3.svg",
+   "src": "park/bush-3.svg",
    "x": 3390,
    "y": 280,
    "width": 116,
@@ -33357,7 +33111,7 @@
    "id": "rosy-b-north-notch-west-foot-07",
    "name": "Rosy bush-2",
    "asset": "bush-2",
-   "src": "/pixi-art/plants/bush-2.svg",
+   "src": "park/bush-2.svg",
    "x": 3540,
    "y": 300,
    "width": 168,
@@ -33390,7 +33144,7 @@
    "id": "rosy-b-north-notch-west-foot-08",
    "name": "Rosy bush-1",
    "asset": "bush-1",
-   "src": "/pixi-art/plants/bush-1.svg",
+   "src": "park/bush-1.svg",
    "x": 3680,
    "y": 260,
    "width": 130,
@@ -33423,7 +33177,7 @@
    "id": "rosy-b-north-notch-west-foot-09",
    "name": "Rosy bush-4",
    "asset": "bush-4",
-   "src": "/pixi-art/plants/bush-4.svg",
+   "src": "park/bush-4.svg",
    "x": 3830,
    "y": 355,
    "width": 140,
@@ -37977,7 +37731,7 @@
    "id": "rosy-b-northwest-sleeper-backdrop-01",
    "name": "Rosy tree-4",
    "asset": "tree-4",
-   "src": "/pixi-art/plants/tree-4.svg",
+   "src": "park/tree-4.svg",
    "x": 2030,
    "y": -590,
    "width": 200,
@@ -38010,7 +37764,7 @@
    "id": "rosy-b-northwest-sleeper-backdrop-02",
    "name": "Rosy bush-3",
    "asset": "bush-3",
-   "src": "/pixi-art/plants/bush-3.svg",
+   "src": "park/bush-3.svg",
    "x": 2030,
    "y": -430,
    "width": 116,
@@ -38043,7 +37797,7 @@
    "id": "rosy-b-northwest-sleeper-backdrop-03",
    "name": "Rosy bush-4",
    "asset": "bush-4",
-   "src": "/pixi-art/plants/bush-4.svg",
+   "src": "park/bush-4.svg",
    "x": 2180,
    "y": -350,
    "width": 140,
@@ -38076,7 +37830,7 @@
    "id": "rosy-b-northwest-sleeper-backdrop-04",
    "name": "Rosy bush-2",
    "asset": "bush-2",
-   "src": "/pixi-art/plants/bush-2.svg",
+   "src": "park/bush-2.svg",
    "x": 2500,
    "y": -480,
    "width": 168,
@@ -38109,7 +37863,7 @@
    "id": "rosy-b-northwest-sleeper-backdrop-05",
    "name": "Rosy bush-3",
    "asset": "bush-3",
-   "src": "/pixi-art/plants/bush-3.svg",
+   "src": "park/bush-3.svg",
    "x": 2730,
    "y": -510,
    "width": 116,
@@ -38142,7 +37896,7 @@
    "id": "rosy-b-northwest-sleeper-backdrop-06",
    "name": "Rosy bush-1",
    "asset": "bush-1",
-   "src": "/pixi-art/plants/bush-1.svg",
+   "src": "park/bush-1.svg",
    "x": 2890,
    "y": -330,
    "width": 130,
@@ -38175,7 +37929,7 @@
    "id": "rosy-b-northwest-sleeper-backdrop-07",
    "name": "Rosy bush-4",
    "asset": "bush-4",
-   "src": "/pixi-art/plants/bush-4.svg",
+   "src": "park/bush-4.svg",
    "x": 2750,
    "y": -270,
    "width": 140,
@@ -38208,7 +37962,7 @@
    "id": "rosy-b-northwest-sleeper-backdrop-08",
    "name": "Rosy bush-3",
    "asset": "bush-3",
-   "src": "/pixi-art/plants/bush-3.svg",
+   "src": "park/bush-3.svg",
    "x": 2580,
    "y": -260,
    "width": 116,
@@ -38241,7 +37995,7 @@
    "id": "rosy-b-ribbonwick-eastern-shade-01",
    "name": "Rosy tree-4",
    "asset": "tree-4",
-   "src": "/pixi-art/plants/tree-4.svg",
+   "src": "park/tree-4.svg",
    "x": 2490,
    "y": 150,
    "width": 200,
@@ -38340,7 +38094,7 @@
    "id": "rosy-b-ribbonwick-eastern-shade-04",
    "name": "Rosy bush-2",
    "asset": "bush-2",
-   "src": "/pixi-art/plants/bush-2.svg",
+   "src": "park/bush-2.svg",
    "x": 2730,
    "y": 190,
    "width": 168,
@@ -38373,7 +38127,7 @@
    "id": "rosy-b-north-notch-west-canopy-01",
    "name": "Rosy tree-1",
    "asset": "tree-1",
-   "src": "/pixi-art/plants/tree-1.svg",
+   "src": "park/tree-1.svg",
    "x": 3050,
    "y": -70,
    "width": 260,
@@ -38406,7 +38160,7 @@
    "id": "rosy-b-north-notch-west-canopy-02",
    "name": "Rosy tree-4",
    "asset": "tree-4",
-   "src": "/pixi-art/plants/tree-4.svg",
+   "src": "park/tree-4.svg",
    "x": 3240,
    "y": -70,
    "width": 200,
@@ -38505,7 +38259,7 @@
    "id": "rosy-b-north-notch-west-canopy-05",
    "name": "Rosy bush-3",
    "asset": "bush-3",
-   "src": "/pixi-art/plants/bush-3.svg",
+   "src": "park/bush-3.svg",
    "x": 2990,
    "y": 90,
    "width": 116,
@@ -38538,7 +38292,7 @@
    "id": "rosy-b-north-notch-west-canopy-06",
    "name": "Rosy bush-4",
    "asset": "bush-4",
-   "src": "/pixi-art/plants/bush-4.svg",
+   "src": "park/bush-4.svg",
    "x": 3140,
    "y": 80,
    "width": 140,
@@ -38571,7 +38325,7 @@
    "id": "rosy-b-north-notch-west-canopy-07",
    "name": "Rosy bush-1",
    "asset": "bush-1",
-   "src": "/pixi-art/plants/bush-1.svg",
+   "src": "park/bush-1.svg",
    "x": 3310,
    "y": 90,
    "width": 130,
@@ -38604,7 +38358,7 @@
    "id": "rosy-b-north-notch-west-canopy-08",
    "name": "Rosy bush-2",
    "asset": "bush-2",
-   "src": "/pixi-art/plants/bush-2.svg",
+   "src": "park/bush-2.svg",
    "x": 3490,
    "y": 130,
    "width": 168,
@@ -38637,7 +38391,7 @@
    "id": "rosy-b-north-notch-west-canopy-09",
    "name": "Rosy bush-3",
    "asset": "bush-3",
-   "src": "/pixi-art/plants/bush-3.svg",
+   "src": "park/bush-3.svg",
    "x": 3670,
    "y": 160,
    "width": 116,
@@ -38670,7 +38424,7 @@
    "id": "rosy-b-north-notch-west-canopy-10",
    "name": "Rosy bush-4",
    "asset": "bush-4",
-   "src": "/pixi-art/plants/bush-4.svg",
+   "src": "park/bush-4.svg",
    "x": 3590,
    "y": 240,
    "width": 140,
@@ -38703,7 +38457,7 @@
    "id": "rosy-b-north-notch-west-canopy-11",
    "name": "Rosy bush-1",
    "asset": "bush-1",
-   "src": "/pixi-art/plants/bush-1.svg",
+   "src": "park/bush-1.svg",
    "x": 3330,
    "y": 200,
    "width": 130,
@@ -42762,7 +42516,7 @@
    "id": "rosy-b-ribbonwick-north-seaward-trees-03",
    "name": "Rosy tree-4",
    "asset": "tree-4",
-   "src": "/pixi-art/plants/tree-4.svg",
+   "src": "park/tree-4.svg",
    "x": 2050,
    "y": -790,
    "width": 200,
@@ -42861,7 +42615,7 @@
    "id": "rosy-b-ribbonwick-north-seaward-trees-06",
    "name": "Rosy bush-2",
    "asset": "bush-2",
-   "src": "/pixi-art/plants/bush-2.svg",
+   "src": "park/bush-2.svg",
    "x": 2040,
    "y": -620,
    "width": 168,
@@ -43059,7 +42813,7 @@
    "id": "rosy-b-northwest-back-canopy-infill-04",
    "name": "Rosy bush-3",
    "asset": "bush-3",
-   "src": "/pixi-art/plants/bush-3.svg",
+   "src": "park/bush-3.svg",
    "x": 2860,
    "y": -220,
    "width": 116,
@@ -43092,7 +42846,7 @@
    "id": "rosy-b-northwest-back-canopy-infill-05",
    "name": "Rosy bush-4",
    "asset": "bush-4",
-   "src": "/pixi-art/plants/bush-4.svg",
+   "src": "park/bush-4.svg",
    "x": 3020,
    "y": -180,
    "width": 140,
@@ -43125,7 +42879,7 @@
    "id": "rosy-b-northwest-back-canopy-infill-06",
    "name": "Rosy bush-1",
    "asset": "bush-1",
-   "src": "/pixi-art/plants/bush-1.svg",
+   "src": "park/bush-1.svg",
    "x": 3780,
    "y": 60,
    "width": 130,
@@ -43158,7 +42912,7 @@
    "id": "rosy-b-northwest-back-canopy-infill-07",
    "name": "Rosy bush-2",
    "asset": "bush-2",
-   "src": "/pixi-art/plants/bush-2.svg",
+   "src": "park/bush-2.svg",
    "x": 3670,
    "y": -240,
    "width": 168,
@@ -43224,7 +42978,7 @@
    "id": "rosy-b-northwest-back-canopy-infill-09",
    "name": "Rosy bush-4",
    "asset": "bush-4",
-   "src": "/pixi-art/plants/bush-4.svg",
+   "src": "park/bush-4.svg",
    "x": 3730,
    "y": 190,
    "width": 140,
@@ -45160,15 +44914,15 @@
    "id": "rosy-b-hill-bench",
    "name": "stargazing-bench",
    "asset": "stargazing-bench",
-   "src": "/pixi-art/home-review/hill/bench.svg",
+   "src": "/pixi-art/detail/street--bench-wood.svg",
    "x": 7965,
    "y": 840,
-   "width": 200,
-   "height": 130,
+   "width": 199.6414686825054,
+   "height": 113,
    "scale": 1,
    "anchor": {
     "x": 0.5,
-    "y": 1
+    "y": 0.9740820734341252
    },
    "shadow": false,
    "footprint": {
@@ -45265,7 +45019,7 @@
    "height": 126,
    "scale": 1,
    "anchor": {
-    "x": 0.0,
+    "x": 0,
     "y": 0.5396825396825397
    },
    "sortY": 2620,
@@ -45284,15 +45038,15 @@
     "width": 135,
     "height": 126,
     "anchor": {
-     "x": 0.0,
+     "x": 0,
      "y": 0.5396825396825397
     },
     "animate": {
      "kind": "wind",
      "period": 1.6,
      "pivot": [
-      0.0,
-      63.0
+      0,
+      63
      ]
     }
    }
@@ -45332,8 +45086,8 @@
      "kind": "spin",
      "period": 4.8,
      "pivot": [
-      61.0,
-      174.0
+      61,
+      174
      ]
     }
    }
