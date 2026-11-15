@@ -4,6 +4,8 @@ import {RoomClient} from '../multiplayer/room-client.js';
 import IslandChat from './IslandChat.jsx';
 import IslandPresence from './IslandPresence.jsx';
 import StarDialog from './StarDialog.jsx';
+import ArrivalClouds from './ArrivalClouds.jsx';
+import {arrivalPending} from './arrival.js';
 import IslandTravel from './IslandTravel.jsx';
 import IslandStargaze from './IslandStargaze.jsx';
 import IslandProfile from './IslandProfile.jsx';
@@ -12,9 +14,12 @@ import WorldMap from './WorldMap.jsx';
 import BogEntry from '../features/bog-combat/BogEntry.jsx';
 import {BOG_COMBAT} from '../features/bog-combat/config.js';
 import './pixi.css';
+import './star-dialog.css';
 
+// statuses shown in the middle of the screen (the rest stay top right)
+const CENTRE = new Set(['connecting', 'reconnecting', 'taken-over', 'spectators-full', 'expired']);
 const notices = {
-  connecting:'Connecting to the island…',
+  connecting:'Connecting to your island…',
   reconnecting:'Reconnecting…',
   'spectators-full':'Live view is full.',
   'players-full':'There’s no room to join right now. You can still watch.',
@@ -54,8 +59,13 @@ export default function PixiPage() {
   const [notificationHost,setNotificationHost] = useState(null);
   const params = new URLSearchParams(location.search);
   const offline = params.has('offline') || (import.meta.env.DEV && params.get('dev') === '1');
+  // back from GitHub: the intro's clouds cover the island until it is drawn, then a name tag, then the star box
+  const [arriving] = useState(() => arrivalPending() || !!window.EWArrival?.guest);   // guests come in under the same cover
+  const [arrived, setArrived] = useState(() => !arriving);
+  const [worldDrawn, setWorldDrawn] = useState(false);
 
   useEffect(() => {setTravelNotice('');},[travel.islandId,travel.mode]);
+  useEffect(() => {document.getElementById('boot-sky')?.remove();}, []);   // the landing's first frame (index.html) is not part of the game
 
   useEffect(() => {
     const abort = new AbortController();
@@ -97,6 +107,8 @@ export default function PixiPage() {
       },
       onError:() => setError(true),onInteriorChange:setIndoors,onGlobeChange:setGlobeOpen,onPhotoReady:()=>setCameraReady(true)});
     island.current = game;
+    // the island's art is in once its canvas says ready (mount resolves earlier, while the art still streams in)
+    const drawnPoll = setInterval(() => {if (host.current?.querySelector('canvas[data-state="ready"]')) {clearInterval(drawnPoll); requestAnimationFrame(() => setWorldDrawn(true));}}, 150);
     game.mount(host.current).catch(error=>{console.error('Could not initialize world',error);setError(true);});
     if (offline) {
       setStatus('local');
@@ -107,6 +119,7 @@ export default function PixiPage() {
     return () => {
       abort.abort();
       clearTimeout(arrivalTimer);
+      clearInterval(drawnPoll);
       client.dispose();
       game.dispose();
       island.current = null;
@@ -152,6 +165,10 @@ export default function PixiPage() {
   const retryPlay = session?.user?.canPlay && ['players-full','taken-over','watching'].includes(status);
   // a visitor who cannot play yet only watches: no duck, so no profile circle, and the sign-in ask sits top right
   const watchOnly = !offline && status !== 'playing' && (guest || starRequired);
+  // waiting and problems take the middle of the screen with the golden feather (the same loader as the cloud
+  // cover); passing information (watching, sign in, landed, star) stays small at the top right
+  const centre = !error && !offline && arrived && CENTRE.has(status);
+  const waiting = status === 'connecting' || status === 'reconnecting';
   return <main ref={page} className={`pixi-page${watchOnly ? ' pixi-page--watch' : ''}`}>
     <div className="pixi-host" ref={host}/>
     <img className="pixi-ente-logo" src="/ente-wordmark-white.svg" alt="Ente" width="844" height="264"/>
@@ -162,18 +179,18 @@ export default function PixiPage() {
     {/* status and the odd action stay top right, but only when there is something to say; the profile button
         takes over outfit, friends and sign out */}
     {!error && (() => {
-      const message = notice || arrival || (offline ? 'Playing without sign-in' : notices[status])
+      const message = notice || arrival || (offline ? 'Playing without sign-in' : centre ? '' : notices[status])
         || (guest ? 'Sign in to explore and play' : starRequired ? notices['star-required'] : status === 'playing' ? '' : 'Watching live');
-      const actions = offline || starRequired || retryLive || retryPlay || guest;
+      const actions = offline || starRequired || (!centre && (retryLive || retryPlay)) || guest;
       return (message || actions) && <aside className="pixi-live" aria-label="Live island">
         {message && <div role="status">{message}</div>}
         {offline && <a href={location.pathname}>Back to live</a>}
         {guest && (session.signInAvailable
-          ? <a className="pixi-live-signin" href="/auth/github/start"><img src="/github-mark.svg" width="16" height="16" alt=""/>Sign in</a>
+          ? <a className="pixi-live-signin" href="/auth/github/start" onClick={() => {try {sessionStorage.setItem('ew-arrive', '1');} catch {/* ignore */}}}><img src="/github-mark.svg" width="16" height="16" alt=""/>Sign in</a>
           : <button disabled>Sign-in unavailable</button>)}
         {starRequired && <button onClick={() => setStarDialogOpen(true)}>Unlock play</button>}
-        {retryLive && <button onClick={() => room.current?.connect(room.current.wantsPlay)}>Retry live view</button>}
-        {retryPlay && <button onClick={() => room.current?.connect()}>
+        {retryLive && !centre && <button onClick={() => room.current?.connect(room.current.wantsPlay)}>Retry live view</button>}
+        {retryPlay && !centre && <button onClick={() => room.current?.connect()}>
           {status === 'taken-over' ? 'Take control' : 'Join island'}
         </button>}
       </aside>;
@@ -196,7 +213,18 @@ export default function PixiPage() {
       accountId={session?.user?.accountId}
       name={session?.user?.login??'Ducky'}
       onReturnToDock={()=>room.current?.returnToBoat()} onLeave={()=>room.current?.returnToBoat()}/>}
-    {starRequired && starDialogOpen && <StarDialog onClose={() => setStarDialogOpen(false)} onConfirm={() => {
+    {centre && <div className={`pixi-centre${waiting ? ' pixi-centre--wait' : ''}`} key={status}>
+      <div className="pixi-centre-card" role={waiting ? 'status' : 'alertdialog'} aria-live="polite" aria-label={notices[status]}>
+        {/* waiting: the feather with the words under it (their dots hop); a problem: the feather, then the message and its button */}
+        <div className="arrival-loader" aria-hidden="true" dangerouslySetInnerHTML={{__html:window.EWArrival?.loader?.(waiting ? notices[status].replace(/…$/, '') : '') || ''}}/>
+        {!waiting && <p>{notices[status]}</p>}
+        {status === 'taken-over' && <button onClick={() => room.current?.connect()}>Take control</button>}
+        {status === 'spectators-full' && <button onClick={() => room.current?.connect(room.current.wantsPlay)}>Try again</button>}
+        {status === 'expired' && <a href="/auth/github/start" onClick={() => {try {sessionStorage.setItem('ew-arrive', '1');} catch {/* ignore */}}}>Sign in again</a>}
+      </div>
+    </div>}
+    {arriving && <ArrivalClouds drawn={worldDrawn || error} login={session?.user?.login} onDone={() => setArrived(true)}/>}
+    {starRequired && starDialogOpen && arrived && <StarDialog onClose={() => setStarDialogOpen(false)} onConfirm={() => {
       setSession(previous => ({...previous,user:{...previous.user,canPlay:true}}));
       setStarDialogOpen(false);
       room.current?.connect();

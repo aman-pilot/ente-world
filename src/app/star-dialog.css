@@ -1,0 +1,36 @@
+/* Star box. Spacing from one scale (8 16 24 32 48): more room around a group than inside it. The near-black
+   matches the peeking Ducky's outline; the green button is the end screen's Play with GitHub button. */
+.star-box { --ink: #1c1a18; --cream: #fff8e4; padding: 0; border: 0; background: none; overflow: visible; max-width: none; color: var(--ink); }
+.star-box::backdrop { background: rgb(10 22 40 / .55); }
+.star-box[open]::backdrop { animation: star-box-dim 200ms cubic-bezier(.45, 0, .55, 1) both; }   /* the dim faded in, not one frame */
+@keyframes star-box-dim { from { opacity: 0; } }
+.star-box[open] { animation: star-box-in 640ms linear both; }
+.star-box-wrap { position: relative; isolation: isolate; width: min(100vw - 32px, 440px); margin-top: 120px; }
+.star-box-card { position: relative; z-index: 1; display: grid; justify-items: center; padding: 48px 32px 32px; border-radius: 32px; background: var(--cream); border: 4px solid var(--ink);
+  box-shadow: 0 8px 0 var(--ink), 0 26px 30px -12px rgb(0 0 0 / .3);   /* no upward spill onto Ducky's body */ text-align: center; font-family: 'Fredoka', system-ui, sans-serif; }
+.star-box-card h2 { margin: 0 0 32px; font: 700 36px/1.1 'Fredoka', system-ui, sans-serif; letter-spacing: -.01em; text-wrap: balance; }
+.star-box-error { margin: -16px 0 24px; color: #9c3424; font: 600 14px/1.4 system-ui, sans-serif; }
+.star-box-btn { box-sizing: border-box; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 56px; padding: 0 24px; border-radius: 99px;
+  font: 700 18px/1 'Fredoka', system-ui, sans-serif; text-decoration: none; cursor: pointer; transition: translate .15s, box-shadow .15s; }
+.star-box-btn + .star-box-btn { margin-top: 16px; }
+.star-box-go { border: 0; background: #58cc02; color: #fff; box-shadow: 0 6px 0 #46a302; text-transform: uppercase; letter-spacing: .04em; }
+.star-box-go:active { translate: 0 6px; box-shadow: 0 0 0 #46a302; }
+.star-box-check { border: 3px solid var(--ink); background: #fff; color: var(--ink); box-shadow: 0 6px 0 var(--ink); }
+.star-box-check:active { translate: 0 4px; box-shadow: 0 2px 0 var(--ink); }
+.star-box-check:disabled { cursor: progress; opacity: .8; }
+.star-box-watch { margin-top: 24px; padding: 0; border: 0; background: none; font: 700 16px/1 'Fredoka', system-ui, sans-serif; color: #57534e; text-decoration: underline; text-underline-offset: .3em; cursor: pointer; }
+.star-box-card:focus { outline: none; }   /* the box takes focus on open, so no button shows a ring until the keyboard moves */
+.star-box :is(a, button):focus-visible { outline: 3px solid #58cc02; outline-offset: 4px; }
+/* Ducky: body behind the card, hands over its top edge */
+.star-box-duck { position: absolute; left: 50%; bottom: calc(100% - 6px); width: 192px; translate: -50% 0; z-index: 0; }
+.star-box-duck img { display: block; width: 100%; height: auto; }
+.star-box-wings { z-index: 2; bottom: auto; top: 0; translate: -50% calc(-100% + 6px); }
+.star-box-beak { position: absolute; left: 41.31%; top: 50.78%; width: 17.19% !important; }
+.star-box-eye { position: absolute; top: 48.91%; width: 5.08%; aspect-ratio: 52 / 51; margin: -2.49% 0 0 -2.54%; border-radius: 50%; background: var(--ink); }
+.star-box-eye-l { left: 40.58%; } .star-box-eye-r { left: 58.54%; }
+@media (max-width: 480px) { .star-box-card { padding: 48px 24px 24px; } .star-box-card h2 { font-size: 30px; } .star-box-duck { width: 160px; } }
+/* the box springs in on the same jelly curve as the title */
+@keyframes star-box-in {
+  0% { opacity: 0; scale: .6; } 6% { opacity: 1; } 18% { scale: .93; } 30% { scale: 1.06; } 45% { scale: 1.02; } 62% { scale: .995; } 100% { opacity: 1; scale: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .star-box[open] { animation: none; } }

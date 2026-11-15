@@ -47,34 +47,6 @@
   cursor: pointer;
 }
 .pixi-live button:disabled { opacity: .65; cursor: default; }
-.pixi-star-dialog {
-  box-sizing: border-box;
-  width: min(440px, calc(100vw - 32px));
-  padding: 24px;
-  color: #332b23;
-  background: #fff9df;
-  border: 2px solid #564537;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px #332b2340;
-  font: 16px/1.5 system-ui, sans-serif;
-}
-.pixi-star-dialog::backdrop { background: #332b2370; }
-.pixi-star-dialog h2 { margin: 0 0 12px; font-size: 24px; line-height: 1.2; }
-.pixi-star-dialog p { margin: 0 0 20px; }
-.pixi-star-actions { display: grid; gap: 10px; }
-.pixi-star-actions :is(a, button) {
-  padding: 10px 12px;
-  color: inherit;
-  background: #ffda69;
-  border: 1px solid #564537;
-  border-radius: 10px;
-  font: 600 14px/1.4 system-ui, sans-serif;
-  text-align: center;
-  text-decoration: none;
-  cursor: pointer;
-}
-.pixi-star-actions button { background: transparent; }
-.pixi-star-actions :is(a, button):focus-visible { outline: 2px solid #564537; outline-offset: 3px; }
 @media (max-width: 480px) {
   .pixi-ente-logo { width: 60px; }
   .pixi-live { max-width: calc(100vw - 128px); }
@@ -669,3 +641,18 @@
 .pixi-build-kit img.pixi-build-kit-got { opacity: 1; filter: none; animation: pixi-action-pop .25s cubic-bezier(.34,1.56,.64,1); }
 .pixi-build-burst { position: absolute; z-index: 4; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .pixi-build-kit img.pixi-build-kit-got { animation: none; } }
+/* waiting and problems, in the middle with the golden feather (the cloud cover's loader, styles in index.html), over the
+   same 60% dim as the end screen, no card. Waiting only shows after 0.4 s, so a quick reconnect never flashes */
+.pixi-centre { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px));
+  background: rgb(10 22 40 / .6); animation: pixi-centre-in 280ms cubic-bezier(.23, 1, .32, 1) both; }
+.pixi-centre--wait { pointer-events: none; animation-delay: 400ms; }
+.pixi-centre-card { display: grid; justify-items: center; gap: 16px; max-width: 360px; text-align: center; color: #fff; text-shadow: 0 2px 0 rgb(28 26 24 / .55); font: 700 20px/1.3 'Fredoka', system-ui, sans-serif; }
+.pixi-centre-card p { margin: 0; }
+.pixi-centre .arrival-loader { position: static; translate: none; animation: none; }
+.pixi-centre .arrival-msg { color: #fff; text-shadow: 0 2px 0 rgb(28 26 24 / .55); }
+.pixi-centre-card :is(button, a) { padding: 12px 28px; border-radius: 99px; border: 3px solid #1c1a18; background: #ffc928; box-shadow: 0 4px 0 #1c1a18; color: #1c1a18; text-shadow: none; font: inherit; text-decoration: none; cursor: pointer; animation: pixi-btn-in 420ms 120ms cubic-bezier(.34, 1.4, .64, 1) both; }
+.pixi-centre-card :is(button, a):active { translate: 0 4px; box-shadow: none; }
+.pixi-centre-card :is(button, a):focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+@keyframes pixi-centre-in { from { opacity: 0; } }
+@keyframes pixi-btn-in { from { opacity: 0; scale: .6; } }
+@media (prefers-reduced-motion: reduce) { .pixi-centre, .pixi-centre-card :is(button, a) { animation-duration: 1ms !important; } }
