@@ -251,10 +251,17 @@ const getIslandIndex=()=>islandIndex??=fetch('/art-prerender/islands.json',{cach
   .then(p=>fetch(p.url)).then(r=>{if(!r.ok)throw Error('Island index unavailable');return r.json();})
   .catch(e=>{islandIndex=undefined;throw e;});
 
+// The island first shows with a lighter set of sheets, then the detail sheets
+// replace it. The camera and its zoom limits still follow the full landing set.
+export const FIRST_SET_BYTES=3.5*1000000;
 export function createIslandPreparer({getIndex=getIslandIndex,getManifest=loadPrerenderManifest,
   loader=wholeSVGLoader,renderDetail=loadRasterDetail,fetchGround=async url=>{
     const response=await fetch(url);if(!response.ok)throw Error(`Landing ground HTTP ${response.status}`);await response.arrayBuffer();
-  },dpr=()=>Math.min(globalThis.devicePixelRatio||1,2)}={}) {
+  },dpr=()=>Math.min(globalThis.devicePixelRatio||1,2),
+  // A full landing set already in the browser cache (prefetched) is used as it is.
+  // The cache-only request fails when a file is not there.
+  cached=urls=>Promise.all(urls.map(url=>fetch(url,{cache:'only-if-cached',mode:'same-origin'}))).then(all=>all.every(r=>r.ok),()=>false),
+  fetchPlan=async url=>{const response=await fetch(url);if(!response.ok)throw Error(`Detail plan HTTP ${response.status}`);return response.json();}}={}) {
   const preparations=new Map();
   return function prepare(islandId,renderDPR=dpr()) {
     const key=islandId+':'+renderDPR;
@@ -265,6 +272,9 @@ export function createIslandPreparer({getIndex=getIslandIndex,getManifest=loadPr
       if(!tier)throw Error(`Unknown island ${islandId}`);
       const groundReady=Promise.all((tier.ground??[]).map(fetchGround));
       groundReady.catch(()=>{});
+      const lighter=index.version>=2&&tier.rasterDetail&&!tier.rasterDetail.overBudget?selectIslandTier(index,islandId,renderDPR,undefined,undefined,FIRST_SET_BYTES):null;
+      // Only pieces the detail sheets will replace may start lighter; the plan lists them.
+      const replaced=lighter?.bytes<tier.bytes?cached(tier.webp).then(have=>have?null:fetchPlan(tier.rasterDetail.plan)).then(plan=>plan&&new Set(plan.sheets.flatMap(s=>s.frames.map(f=>f.src)))).catch(()=>null):null;
       const manifest=await getManifest([],tier.manifest);
       const choose=urls=>{
         const set=new Set(urls),selected=new Map();
@@ -274,7 +284,11 @@ export function createIslandPreparer({getIndex=getIslandIndex,getManifest=loadPr
         }
         return selected;
       };
-      const landing=choose(tier.webp),detail=choose(tier.detail??tier.webp);
+      let landing=choose(tier.webp);const detail=choose(tier.detail??tier.webp),covered=await replaced;
+      if(covered){
+        const light=choose(lighter.webp);
+        landing=new Map([...landing].map(([src,t])=>[src,covered.has(src)&&light.has(src)?light.get(src):t]));
+      }
       const owner=Symbol(islandId);let svgRelease,svgActive=false;
       const activate=selected=>{
         const pinned=pinnedSheetTiers.get(manifest)??new Map(),planned=plannedSheetTiers.get(manifest)??new Map();
