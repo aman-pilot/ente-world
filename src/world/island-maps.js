@@ -36,18 +36,8 @@ export function makeMap(id, {world, walk = null, harbor, art = null, sea = null,
   const enabled=liveBog||hasPropOutlines(id === 'pink' ? 'sunset' : id === 'library' ? 'isle-251' : id === 'community' ? 'isle-250' : id === 'snow' ? 'isle-55' : id) && id !== 'home';
   const scene=liveBog?{ready:bogSceneReady,outline:outlineBogProps}:id==='library'?{ready:librarySceneReady,outline:outlineLibraryProps}:id==='community'?{ready:communitySceneReady,outline:outlineCommunityProps}:id==='snow'?{ready:snowSceneReady,outline:outlineSnowProps}: {ready:pinkSceneReady,outline:outlinePinkProps};
   const deferred=enabled&&!scene.ready();
-  if(enabled&&!deferred){
-    if(id==='pink')sleepers??=pinkSleepers;
-    if(id==='snow'&&world.sleepSpots)sleepers??=snowSleepers;
-    if(id==='library'&&world.sleepSpots)sleepers??=librarySleepers;
-    if(id==='community')sleepers??=communitySleepers;
-    const props=scene.outline(liveBog?world.props:world.props??[]);
-    world={...world,props};
-    const ids=new Set(props.map(p=>p.id));
-    const structures=(walk??world).obstacles.filter(o=>liveBog?!ids.has(o.id):o.name&&!ids.has(o.name));
-    walk={...(walk??world),props,navigationCellSize:16,indexPropContours:true,obstacles:[...structures,...propObstacles(props)]};
-  }
-  const W = world.width, H = world.height, walking = walk ?? world;
+  const W = world.width, H = world.height;
+  let walking = walk ?? world;
   const FOOT = {x: harbor.jetty.foot[0], y: harbor.jetty.foot[1]}, TIP = {x: harbor.jetty.tip[0], y: harbor.jetty.tip[1]};
   const JETTY_W = harbor.jetty.width ?? 104, AXIS = Math.hypot(TIP.x - FOOT.x, TIP.y - FOOT.y);
   const DIR = {x: (TIP.x - FOOT.x) / AXIS, y: (TIP.y - FOOT.y) / AXIS};
@@ -88,13 +78,32 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
       return Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)<w/2;
     });
   }
-  const baseWalk = {...world, ...walking, walkways: [...(walking.walkways ?? []), ...(addJetty ? [JETTY.walkway] : [])]};
-  const beds = id === 'home' || deferred ? [] : (sleepers ?? (world.sleepSpots ? resolveSleepSpots(baseWalk, world.props ?? [], geometry(baseWalk).walkable, sleepHalfWidths(),
-    {spots: world.sleepSpots, avoid: world.sleepAvoid ?? [], warn: false}) : [])).map(({x, y, pose, r, flip, tree, approach}) => ({x, y, pose, r, flip: Boolean(flip), tree, ...(approach?{approach}:{})}));
-  const walkMap = beds.length ? {...baseWalk, obstacles: [...(baseWalk.obstacles ?? []), ...beds.map(enabled?homeSleeperFootprint:sleeperFootprint)]} : baseWalk;
+  // Sailing, world layout and mooring loops need only the cheap coastline and
+  // harbour data above. Build exact prop/sleeper obstacles on first walking use.
+  let baseWalk, beds, walkMap;
+  function buildWalking() {
+    if(walkMap)return;
+    if(enabled&&!deferred){
+      if(id==='pink')sleepers??=pinkSleepers;
+      if(id==='snow'&&world.sleepSpots)sleepers??=snowSleepers;
+      if(id==='library'&&world.sleepSpots)sleepers??=librarySleepers;
+      if(id==='community')sleepers??=communitySleepers;
+      const props=scene.outline(liveBog?world.props:world.props??[]);
+      world={...world,props};
+      const ids=new Set(props.map(p=>p.id));
+      const structures=(walk??world).obstacles.filter(o=>liveBog?!ids.has(o.id):o.name&&!ids.has(o.name));
+      walk={...(walk??world),props,navigationCellSize:16,indexPropContours:true,obstacles:[...structures,...propObstacles(props)]};
+    }
+    walking = walk ?? world;
+    baseWalk = {...world, ...walking, walkways: [...(walking.walkways ?? []), ...(addJetty ? [JETTY.walkway] : [])]};
+    beds = id === 'home' || deferred ? [] : (sleepers ?? (world.sleepSpots ? resolveSleepSpots(baseWalk, world.props ?? [], geometry(baseWalk).walkable, sleepHalfWidths(),
+      {spots: world.sleepSpots, avoid: world.sleepAvoid ?? [], warn: false}) : [])).map(({x, y, pose, r, flip, tree, approach}) => ({x, y, pose, r, flip: Boolean(flip), tree, ...(approach?{approach}:{})}));
+    walkMap = beds.length ? {...baseWalk, obstacles: [...(baseWalk.obstacles ?? []), ...beds.map(enabled?homeSleeperFootprint:sleeperFootprint)]} : baseWalk;
+  }
   let NAV = null;
   const nav = () => {
     if(deferred)throw Error(`${id} layout is not ready`);
+    buildWalking();
     return NAV ??= createNavigation(walkMap, {cellSize: walking.navigationCellSize ?? 32});
   };
   const shoreFor = (x, y, reach = 280) => {const p = nav().nearest(x, y, reach); return p ? {x: Math.round(p[0]), y: Math.round(p[1])} : null;};
@@ -124,7 +133,7 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
   let FIELD = null;
   const field = () => FIELD ??= landDistance(landAt, W, H, world.origin);
   const spawn = harbor.spawn ?? world.zones?.plaza?.spawn ?? [W / 2, H / 2];
-  return {id, width: W, height: H, origin: world.origin ?? {x:0,y:0}, cx:(world.origin?.x ?? 0)+W/2, cy:(world.origin?.y ?? 0)+H/2, world, walk: walkMap, baseWalk, sleepers: beds, JETTY, HARBOR, spawn: {x: spawn[0], y: spawn[1]}, landAt, nav, shoreFor, boatSpots, field,
+  return {id, width: W, height: H, origin: world.origin ?? {x:0,y:0}, cx:(world.origin?.x ?? 0)+W/2, cy:(world.origin?.y ?? 0)+H/2, get world(){buildWalking();return world;}, get walk(){buildWalking();return walkMap;}, get baseWalk(){buildWalking();return baseWalk;}, get sleepers(){buildWalking();return beds;}, JETTY, HARBOR, spawn: {x: spawn[0], y: spawn[1]}, landAt, nav, shoreFor, boatSpots, field,
     art, sea, home: id === 'home', centre: centre ?? coastCentre(walking.coast)};
 }
 
@@ -185,7 +194,7 @@ export function prepareIslandMap(id){
   const theme=themeOfIsland(id);
   if(!pendingScenes.has(theme))pendingScenes.set(theme,outlinedScenes[theme].load().then(()=>{
     // Keep coastline/harbour references held by sailing and scenery consumers.
-    Object.assign(MAPS.get(theme),makeMap(theme,READY[theme]??READY.bog));
+    Object.defineProperties(MAPS.get(theme),Object.getOwnPropertyDescriptors(makeMap(theme,READY[theme]??READY.bog)));
     VERSION++;
     loadedScenes.add(theme);
   }).catch(error=>{pendingScenes.delete(theme);throw error;}));

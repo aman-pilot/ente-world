@@ -146,19 +146,21 @@ export function prerenderArt() {
       const home = JSON.stringify(packHomeScene(await bakeHomeScene(root)));
       homeURL = config.base + `${DIRECTORY}/home-${hash(home)}.json`;
       this.emitFile({type:'asset',fileName:homeURL.slice(config.base.length),source:home});
-      const community=await readFile(path.join(root,'assets/world/themes/community/scene-pack.json'),'utf8');
+      // The source packs store serialized JSON. Emit the original bytes so browser
+      // fetches, content hashes and decoding stay identical.
+      const community=JSON.parse(await readFile(path.join(root,'assets/world/themes/community/scene-pack.json'),'utf8'));
       communityURL=config.base+`${DIRECTORY}/community-${hash(community)}.json`;
       this.emitFile({type:'asset',fileName:communityURL.slice(config.base.length),source:community});
-      const pink=await readFile(path.join(root,'assets/world/themes/pink/scene-pack.json'),'utf8');
+      const pink=JSON.parse(await readFile(path.join(root,'assets/world/themes/pink/scene-pack.json'),'utf8'));
       pinkURL=config.base+`${DIRECTORY}/pink-${hash(pink)}.json`;
       this.emitFile({type:'asset',fileName:pinkURL.slice(config.base.length),source:pink});
-      const bog=await readFile(path.join(root,'assets/world/themes/bog-arena/scene-pack.json'),'utf8');
+      const bog=JSON.parse(await readFile(path.join(root,'assets/world/themes/bog-arena/scene-pack.json'),'utf8'));
       bogURL=config.base+`${DIRECTORY}/bog-${hash(bog)}.json`;
       this.emitFile({type:'asset',fileName:bogURL.slice(config.base.length),source:bog});
-      const library=await readFile(path.join(root,'assets/world/themes/library/scene-pack.json'),'utf8');
+      const library=JSON.parse(await readFile(path.join(root,'assets/world/themes/library/scene-pack.json'),'utf8'));
       libraryURL=config.base+`${DIRECTORY}/library-${hash(library)}.json`;
       this.emitFile({type:'asset',fileName:libraryURL.slice(config.base.length),source:library});
-      const snow=await readFile(path.join(root,'assets/world/themes/snow/scene-pack.json'),'utf8');
+      const snow=JSON.parse(await readFile(path.join(root,'assets/world/themes/snow/scene-pack.json'),'utf8'));
       snowURL=config.base+`${DIRECTORY}/snow-${hash(snow)}.json`;
       this.emitFile({type:'asset',fileName:snowURL.slice(config.base.length),source:snow});
       for (const src of new Set(entries.map(e => e.src).filter(src => /\.(svg|png)$/.test(src) && !sizes[src]))) {
