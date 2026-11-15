@@ -126,7 +126,7 @@ export async function collectPlacedArt(root) {
 }
 
 export function prerenderArt() {
-  let config, manifestURL, manifest, entries, sheetBytes, homeURL, pinkURL, libraryURL, bogURL, duckPartsURL, islandsURL;
+  let config, manifestURL, manifest, entries, sheetBytes, homeURL, pinkURL, libraryURL, bogURL, communityURL, duckPartsURL, islandsURL;
   const previousDetail=new Map();
   return {
     name: 'prerender-island-art', apply: 'build',
@@ -146,6 +146,9 @@ export function prerenderArt() {
       const home = JSON.stringify(packHomeScene(await bakeHomeScene(root)));
       homeURL = config.base + `${DIRECTORY}/home-${hash(home)}.json`;
       this.emitFile({type:'asset',fileName:homeURL.slice(config.base.length),source:home});
+      const community=await readFile(path.join(root,'assets/world/themes/community/scene-pack.json'),'utf8');
+      communityURL=config.base+`${DIRECTORY}/community-${hash(community)}.json`;
+      this.emitFile({type:'asset',fileName:communityURL.slice(config.base.length),source:community});
       const pink=await readFile(path.join(root,'assets/world/themes/pink/scene-pack.json'),'utf8');
       pinkURL=config.base+`${DIRECTORY}/pink-${hash(pink)}.json`;
       this.emitFile({type:'asset',fileName:pinkURL.slice(config.base.length),source:pink});
@@ -407,6 +410,7 @@ export function prerenderArt() {
     transform(code, id) {
       if(id.endsWith('/world/prop-outlines/bog-scene.js'))return {code:lazyPinkScene(code,bogURL),map:null};
       if(id.endsWith('/world/prop-outlines/library-scene.js'))return {code:lazyPinkScene(code,libraryURL),map:null};
+      if(id.endsWith('/world/prop-outlines/community-scene.js'))return {code:lazyPinkScene(code,communityURL).replaceAll('Rosybutton','Campfire Commons'),map:null};
       if(id.endsWith('/world/prop-outlines/pink-scene.js'))return {code:lazyPinkScene(code,pinkURL),map:null};
       if(id.endsWith('/world/home/placements.js'))return {code:indexHomeGeometry(code),map:null};
       if(id.endsWith('/app/home-head-start.js'))return {code:code.replaceAll('__HOME_SCENE_URL__',JSON.stringify(homeURL)),map:null};

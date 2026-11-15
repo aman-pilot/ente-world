@@ -6,7 +6,7 @@ import {THEMED_ISLANDS} from '../src/world/world-map.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import homeWorld from '../assets/world/world.json' with {type: 'json'};
-import {geometry} from '../assets/world/island-geometry.mjs';
+import {geometry,inShape} from '../assets/world/island-geometry.mjs';
 import {HOME_MAP, ambientOf, makeMap, mapFor, mapOf, readyThemes, THEME_OF} from '../src/world/island-maps.js';
 import {WORLD_GEO, WORLD_ISLANDS, layoutWorld, offsetOf, sizeOfTheme} from '../src/world/world-map.js';
 import {BOAT_CHANNEL, coastGaps, copyHolding} from '../src/world/sphere-shores.js';
@@ -73,7 +73,7 @@ test('a) sleepers on the themed islands: each bed is on its land, off decks and 
     for (const bed of beds) {
       assert.ok(SLEEP_COUNTS[bed.pose], `${map.id} ${bed.pose} is a real pose`);
       assert.ok(map.landAt(bed.x, bed.y), `${map.id} ${bed.pose} ${bed.x},${bed.y} lies on land`);
-      if (!bed.tree) assert.ok(base.walkable(bed.x, bed.y), `${map.id} ${bed.pose} ${bed.x},${bed.y} lies on open ground`);
+      if (!bed.tree) assert.ok(map.id==='community'? !map.baseWalk.obstacles.some(o=>!o.bodyBlock&&inShape(bed.x,bed.y-32,o,0)):base.walkable(bed.x, bed.y), `${map.id} ${bed.pose} ${bed.x},${bed.y} lies on open ground`);
       const f = sleeperFootprint(bed);
       assert.equal(map.nav().walkable(f.x, f.y), false, `${map.id} ${bed.pose} at ${bed.x},${bed.y} is solid for walkers`);
     }

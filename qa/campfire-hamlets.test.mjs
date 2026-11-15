@@ -27,5 +27,5 @@ test('Campfire walks every bridge, painted path end, prop and approved sleeper w
 });
 test('Campfire arched bridges land on dry path ends and allow boats through their water',()=>{
  const m=makeMap('community',{world,walk,harbor:read(D+'harbor.json')});
- for(const b of plan.crossings){assert.equal(b.boatPassUnder,true);const x=(b.a[0]+b.b[0])/2,y=(b.a[1]+b.b[1])/2;assert(!m.landAt(x,y),b.name+' water remains sailable');assert(canSail(x,y,'isle-250'),b.name+' full boat fits under the arch');const n=m.nav();assert(n.walkable(...b.a),b.name+' first landing');assert(n.walkable(...b.b),b.name+' second landing');}
+ for(const b of plan.crossings){assert.equal(b.boatPassUnder,true);const x=(b.a[0]+b.b[0])/2,y=(b.a[1]+b.b[1])/2;assert(!m.landAt(x,y),b.name+' water remains sailable');assert(canSail(x,y,'isle-250'),b.name+' full boat fits under the arch');const n=m.nav();const w=world.walkways.find(w=>w.id===b.id);assert(n.walkable(...(w.approachA??b.a)),b.name+' first approach');assert(n.walkable(...(w.approachB??b.b)),b.name+' second approach');}
 });

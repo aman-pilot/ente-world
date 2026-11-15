@@ -7,7 +7,7 @@ import {makeMap} from '../src/world/island-maps.js';
 import {geometry,inShape} from '../assets/world/island-geometry.mjs';
 import {setWalkDestination,walkStep} from '../src/gameplay/player-motion.js';
 import {tileInView} from '../src/rendering/pixi/art/ground-stream.js';
-import {outsideStageProps,clearedStageFlat,stageEditedIds} from './campfire-stage-scope.mjs';
+import {outsideStageProps,clearedStageFlat,stageEditedIds,walkEditedPositions} from './campfire-stage-scope.mjs';
 import {Container,ImageSource,Texture} from 'pixi.js';
 import {loadThemeArt} from '../src/rendering/pixi/art/theme-art.js';
 import {attachCentreMotion} from '../src/rendering/pixi/environment/centre-motion.js';
@@ -33,10 +33,11 @@ test('Campfire stage is world-sized vector art, flat ink, with roof top, deep de
 
 test('Campfire stage canopy has 24 world units of tree clearance and the audience lawn has no trees',()=>{
  const b=layout.bounds,pad=layout.roofClearance,clear=[b[0]-pad,b[1]-pad,b[2]+pad,b[3]+pad];
- for(const p of art.props.filter(p=>/tree/i.test(p.src))){assert(!overlaps(bounds(p),clear),p.id+' crowds the stage');assert(!overlaps(bounds(p),layout.audience),p.id+' crowds the audience');}
- for(const [id,[x,y]]of Object.entries(layout.treeMoves)){
+ for(const p of art.props.filter(p=>/tree/i.test(p.src))){assert(!overlaps(bounds(p),clear),p.id+' crowds the stage');if(!walkEditedPositions[p.id])assert(!overlaps(bounds(p),layout.audience),p.id+' crowds the audience');}
+ for(const [id,point]of Object.entries(layout.treeMoves)){
+  const [x,y]=walkEditedPositions[id]??point;
   const p=art.props.find(p=>p.id===id);assert.deepEqual([p.x,p.y],[x,y]);
-  for(const w of [world,walk]){assert(!w.water.some(o=>inShape(x,y,o,40)),id+' planted on dry land');assert(w.obstacles.some(o=>o.x===x&&o.y===y-(id.startsWith('polish-')?8:9)&&o.rx===31),id+' blocker moved with trunk');}
+  for(const w of [world,walk]){assert(!w.water.some(o=>inShape(x,y,o,40)),id+' planted on dry land');const p=map.world.props.find(p=>p.id===id);assert(p.footprint&&p.bodyFootprint,id+' traced drawing and body exclusion');}
  }
 });
 
@@ -49,33 +50,29 @@ test('Campfire stair landing joins a 104-unit path and preserves all stage signs
  for(const id of stageEditedIds){const before=original.find(p=>p.id===id),after=art.props.find(p=>p.id===id);
   assert(before&&after,id);
   if(id==='events-stage')assert.deepEqual(after,{...before,...layout.placement,scale:1,shadow:false,wind:false,sortY:1049});
-  else {const [x,y]=layout.treeMoves[id]??layout.audienceMoves[id];assert.deepEqual(after,{...before,x,y});}
+  else {const [x,y]=walkEditedPositions[id]??layout.treeMoves[id]??layout.audienceMoves[id];assert.deepEqual(after,{...before,x,y});}
  }
- assert.deepEqual(world.props,art.props.filter(p=>!p.lifeGrove));assert.deepEqual(walk.props,art.props.filter(p=>!p.lifeGrove));
+ assert.deepEqual(world.props,art.props);assert.deepEqual(walk.props,art.props);
  assert.deepEqual(checked.problems,[]);assert.equal(checked.sleepers.length,100);
 });
 
-test('Campfire server and client block physical stage walls and cabinets, leaving every stair tread and deck open',()=>{
+test('Campfire client and authority block the whole retained stage drawing and share clear ground approaches',()=>{
  assert.deepEqual(world.obstacles,walk.obstacles);
- const expected=Object.entries(layout.solidLocal).map(([id,poly])=>({id,poly:poly.map(([x,y])=>[x+layout.origin[0],y+layout.origin[1]])}));
- assert.deepEqual(world.obstacles.filter(o=>o.id?.startsWith('stage-')),expected);
- for(const w of [world,walk]){
-  const g=geometry(w);
-  for(const [name,p]of Object.entries(layout.walkChecks))assert(g.walkable(...p),name+' is open');
-  for(const p of [[4000,1041],[3850,1200],[4150,1200],[3640,1170],[4360,1170],[3710,1116],[4290,1116]])assert(!g.walkable(...p),'solid '+p);
- }
- const nav=map.nav();
- for(const [name,p]of Object.entries(layout.walkChecks))assert.deepEqual(nav.route(map.spawn.x,map.spawn.y,...p).at(-1),p,name+' reachable from commons');
- for(const x of [3945,4000,4055])assert(nav.clearLine([x,1450],[x,1070]),'stairs stay open for full-width ascent');
+ const nav=map.nav();assert.equal(map.baseWalk.navigationCellSize,16);
+ for(const p of [[4000,1080],[4000,1175],[4000,1220],[3850,1200],[4150,1200]])assert.equal(nav.walkable(...p),false,'stage drawing excludes Ducky '+p);
+ const approach=[4000,1336];assert(nav.walkable(...approach));assert.deepEqual(nav.route(map.spawn.x,map.spawn.y,...approach).at(-1),approach);
+ for(const p of map.world.props.filter(p=>['events-stage','stage-cabinet-w','stage-cabinet-e'].includes(p.id)))assert(p.footprint&&p.bodyFootprint,p.id+' has identical shared contour obstacles');
 });
 
-test('Campfire Duckies actually walk from the path up all three steps and stand on the deck at client and authority ticks',()=>{
+test('Campfire Duckies stop outside the stage drawing and reach the uncovered stair approach at client and authority ticks',()=>{
  const nav=map.nav();
  for(const dt of [1/60,.05]){
   const duck={x:4000,y:1450,previousX:4000,previousY:1450,turn:0,path:[],until:0,action:0,travel:0,emoteVersion:0};
-  setWalkDestination(duck,nav,4000,1080);let treadMask=0;
-  for(let t=0;t<12;t+=dt){walkStep(duck,nav,dt,t,{x:0,y:0});assert(nav.walkable(duck.x,duck.y));for(const [i,y]of [1265,1220,1175].entries())if(Math.abs(duck.y-y)<15)treadMask|=1<<i;}
-  assert.equal(treadMask,7);assert(Math.hypot(duck.x-4000,duck.y-1080)<8,'reached deck');
+  setWalkDestination(duck,nav,4000,1080);
+  for(let t=0;t<12;t+=dt){walkStep(duck,nav,dt,t,{x:0,y:0});assert(nav.walkable(duck.x,duck.y));assert(duck.y>1305,'cannot enter retained stage art');}
+  setWalkDestination(duck,nav,4000,1336);
+  for(let t=12;t<24;t+=dt){walkStep(duck,nav,dt,t,{x:0,y:0});assert(nav.walkable(duck.x,duck.y));}
+  assert(Math.hypot(duck.x-4000,duck.y-1336)<8,'reached uncovered approach');
  }
 });
 

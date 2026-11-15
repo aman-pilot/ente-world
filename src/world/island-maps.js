@@ -1,6 +1,8 @@
 import {outlineBogProps,loadBogScene,bogSceneReady} from './prop-outlines/bog-scene.js';
 import librarySleepers from '../../assets/world/themes/library/sleepers.json' with {type:'json'};
 import {outlineLibraryProps,loadLibraryScene,librarySceneReady} from './prop-outlines/library-scene.js';
+import communitySleepers from '../../assets/world/themes/community/sleepers.json' with {type:'json'};
+import {outlineCommunityProps,loadCommunityScene,communitySceneReady} from './prop-outlines/community-scene.js';
 import pinkSleepers from '../../assets/world/themes/pink/sleepers.json' with {type:'json'};
 import {hasPropOutlines,propObstacles} from './prop-outlines/islands.js';
 import {outlinePinkProps,loadPinkScene,pinkSceneReady} from './prop-outlines/pink-scene.js';
@@ -29,12 +31,13 @@ const trimHome = w => ({...w, islets: w.islets.filter(a => ![3930, 3340, 2290, 5
 
 export function makeMap(id, {world, walk = null, harbor, art = null, sea = null, centre = null, addJetty = true, sleepers = null}) {
   const liveBog=art==='/pixi-art/themes/bog-arena/art.json';
-  const enabled=liveBog||hasPropOutlines(id === 'pink' ? 'sunset' : id === 'library' ? 'isle-251' : id) && id !== 'home';
-  const scene=liveBog?{ready:bogSceneReady,outline:outlineBogProps}:id==='library'?{ready:librarySceneReady,outline:outlineLibraryProps}: {ready:pinkSceneReady,outline:outlinePinkProps};
+  const enabled=liveBog||hasPropOutlines(id === 'pink' ? 'sunset' : id === 'library' ? 'isle-251' : id === 'community' ? 'isle-250' : id) && id !== 'home';
+  const scene=liveBog?{ready:bogSceneReady,outline:outlineBogProps}:id==='library'?{ready:librarySceneReady,outline:outlineLibraryProps}:id==='community'?{ready:communitySceneReady,outline:outlineCommunityProps}: {ready:pinkSceneReady,outline:outlinePinkProps};
   const deferred=enabled&&!scene.ready();
   if(enabled&&!deferred){
     if(id==='pink')sleepers??=pinkSleepers;
     if(id==='library'&&world.sleepSpots)sleepers??=librarySleepers;
+    if(id==='community')sleepers??=communitySleepers;
     const props=scene.outline(liveBog?world.props:world.props??[]);
     world={...world,props};
     const ids=new Set(props.map(p=>p.id));
@@ -84,7 +87,7 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
   }
   const baseWalk = {...world, ...walking, walkways: [...(walking.walkways ?? []), ...(addJetty ? [JETTY.walkway] : [])]};
   const beds = id === 'home' || deferred ? [] : (sleepers ?? (world.sleepSpots ? resolveSleepSpots(baseWalk, world.props ?? [], geometry(baseWalk).walkable, sleepHalfWidths(),
-    {spots: world.sleepSpots, avoid: world.sleepAvoid ?? [], warn: false}) : [])).map(({x, y, pose, r, flip, tree}) => ({x, y, pose, r, flip: Boolean(flip), tree}));
+    {spots: world.sleepSpots, avoid: world.sleepAvoid ?? [], warn: false}) : [])).map(({x, y, pose, r, flip, tree, approach}) => ({x, y, pose, r, flip: Boolean(flip), tree, ...(approach?{approach}:{})}));
   const walkMap = beds.length ? {...baseWalk, obstacles: [...(baseWalk.obstacles ?? []), ...beds.map(enabled?homeSleeperFootprint:sleeperFootprint)]} : baseWalk;
   let NAV = null;
   const nav = () => {
@@ -170,7 +173,7 @@ export function registerMap(theme, data) {
 }
 for (const [theme, data] of Object.entries(READY ?? {})) if (THEME_IDS.includes(theme) && theme !== 'home') registerMap(theme, data);
 
-const outlinedScenes={bog:{ready:bogSceneReady,load:loadBogScene},'bog-arena':{ready:bogSceneReady,load:loadBogScene},pink:{ready:pinkSceneReady,load:loadPinkScene},library:{ready:librarySceneReady,load:loadLibraryScene}};
+const outlinedScenes={bog:{ready:bogSceneReady,load:loadBogScene},'bog-arena':{ready:bogSceneReady,load:loadBogScene},pink:{ready:pinkSceneReady,load:loadPinkScene},library:{ready:librarySceneReady,load:loadLibraryScene},community:{ready:communitySceneReady,load:loadCommunityScene}};
 const loadedScenes=new Set(Object.entries(outlinedScenes).filter(([,scene])=>scene.ready()).map(([theme])=>theme));
 const pendingScenes=new Map();
 export const islandMapReady=id=>!outlinedScenes[themeOfIsland(id)]||loadedScenes.has(themeOfIsland(id));

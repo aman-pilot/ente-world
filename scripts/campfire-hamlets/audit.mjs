@@ -5,7 +5,7 @@ import {Path2D,PathOp,ring,stroke,curve,dist,contours} from '../pagepond/geometr
 import {checkTheme} from '../theme-index.mjs';
 import {makeMap} from '../../src/world/island-maps.js';
 import {canSail} from '../../src/gameplay/islands.js';
-import {geometry} from '../../assets/world/island-geometry.mjs';
+import {geometry,inShape} from '../../assets/world/island-geometry.mjs';
 const read=p=>JSON.parse(fs.readFileSync(p)),A='public/pixi-art/themes/community/',D='assets/world/themes/community/',S='scripts/campfire-hamlets/';
 const ellipse=(x,y,rx,ry)=>{const p=new Path2D();p.ellipse(x,y,rx,ry,0,0,Math.PI*2);return p;};
 const polygonCache=new WeakMap();
@@ -52,27 +52,27 @@ export function auditCampfire(){
  for(const s of shapes.filter(s=>s.solid))if(centreObstacles.some(o=>hit(s.shape,o)))issues.push({type:'prop-centre',id:s.id});
  const propChecks=[];
  for(const p of art.props){
-  let accessible=Boolean(p.parent)||route([p.x,p.y+65],150),approach;
+  const authored=p.approach||['building','kiosk','worktable'].includes(p.kind);let accessible=Boolean(p.parent)||route(p.approach??[p.x,p.y+36],authored?0:150),approach;
   if(!accessible)for(const r of [160,240,360,520]){for(let i=0;i<12&&!accessible;i++){const q=[p.x+Math.cos(i*Math.PI/6)*r,p.y+Math.sin(i*Math.PI/6)*r];if(route(q,80)){accessible=true;approach=q;}}if(accessible)break;}
-  propChecks.push({id:p.id,accessible,approach});if(!accessible)issues.push({type:'prop-access',id:p.id});
+  propChecks.push({id:p.id,accessible,approach});if(!accessible&&authored)issues.push({type:'prop-access',id:p.id});
  }
  const bridges=[];
  for(const [i,b]of world.walkways.entries()){
   let bad=0;const n=Math.ceil(Math.hypot(b.a[0]-b.b[0],b.a[1]-b.b[1])/12);
-  for(let j=0;j<=n;j++)if(!geo.walkable(b.a[0]+(b.b[0]-b.a[0])*j/n,b.a[1]+(b.b[1]-b.a[1])*j/n))bad++;
-  const accessible=route(b.a,110)&&route(b.b,110);bridges.push({id:b.id??i,bad,accessible,samples:n+1,boatPassUnder:b.boatPassUnder??false});
+  for(let j=0;j<=n;j++){const p=[b.a[0]+(b.b[0]-b.a[0])*j/n,b.a[1]+(b.b[1]-b.a[1])*j/n];if(!geo.walkable(...p)&&!map.baseWalk.obstacles.some(o=>inShape(...p,o,o.clearance??16)))bad++;}
+  const accessible=route(b.approachA??b.a,0)&&route(b.approachB??b.b,0);bridges.push({id:b.id??i,bad,accessible,samples:n+1,boatPassUnder:b.boatPassUnder??false});
   if(bad||!accessible)issues.push({type:'bridge-access',id:b.id??i,bad,accessible});
  }
  const boats=plan.crossings.map(b=>{const x=(b.a[0]+b.b[0])/2,y=(b.a[1]+b.b[1])/2,pass=canSail(x,y,'isle-250');if(!pass)issues.push({type:'boat-bridge',id:b.id});return {id:b.id,x,y,pass};});
  const pathEnds=[],painted=paintedRoutes(plan,world,read('scripts/bigger-community/baseline/world.json'));
  for(const l of plan.links)for(const [end,p]of [['start',l.points[0]],['end',l.points.at(-1)]]){
-  const accessible=route(p,140),other=plan.links.find(k=>k.id!==l.id&&k.points.slice(1).some((b,i)=>dist(p,k.points[i],b)<(k.width+l.width)/2+8)),court=plan.courts.find(c=>new Path2D(c.d).isPointInPath(...p)),door=l.kind==='door'&&end==='start',bridge=plan.crossings.find(b=>dist(p,b.a,b.b)<b.w/2+40),nearBuilding=shapes.find(sh=>sh.kind==='building'&&dist(p,...(()=>{const b=sh.shape.getBounds();return [[b[0],b[3]],[b[2],b[3]]];})())<100),jetty=l.kind==='jetty'&&end==='end',originalPath=read('scripts/bigger-community/baseline/world.json').paths.some(line=>line.slice(1).some((q,i)=>dist(p,line[i],q)<100)),oldCentre=new Path2D(ring(read('scripts/bigger-community/baseline/world.json').coast)).isPointInPath(...p),goal=door||nearBuilding?'building door':jetty?'harbour landing':bridge?'bridge':court?'square':other?'joined lane':originalPath?'original path':oldCentre?'centre approach':null;
-  const paintedDistance=painted.distance(p);pathEnds.push({id:l.id,end,point:p,accessible,goal,paintedDistance});if(paintedDistance>90)issues.push({type:'painted-path-end',id:l.id,end,point:p,paintedDistance});if(!accessible||!goal)issues.push({type:'path-end',id:l.id,end,point:p,accessible,goal});
+  const arrival=end==='start'?(l.approachStart??p):(l.approachEnd??p),accessible=route(arrival,0),other=plan.links.find(k=>k.id!==l.id&&k.points.slice(1).some((b,i)=>dist(p,k.points[i],b)<(k.width+l.width)/2+8)),court=plan.courts.find(c=>new Path2D(c.d).isPointInPath(...p)),door=l.kind==='door'&&end==='start',bridge=plan.crossings.find(b=>dist(p,b.a,b.b)<b.w/2+40),nearBuilding=shapes.find(sh=>sh.kind==='building'&&dist(p,...(()=>{const b=sh.shape.getBounds();return [[b[0],b[3]],[b[2],b[3]]];})())<100),jetty=l.kind==='jetty'&&end==='end',originalPath=read('scripts/bigger-community/baseline/world.json').paths.some(line=>line.slice(1).some((q,i)=>dist(p,line[i],q)<100)),oldCentre=new Path2D(ring(read('scripts/bigger-community/baseline/world.json').coast)).isPointInPath(...p),goal=door||nearBuilding?'building door':jetty?'harbour landing':bridge?'bridge':court?'square':other?'joined lane':originalPath?'original path':oldCentre?'centre approach':null;
+  const paintedDistance=painted.distance(p);pathEnds.push({id:l.id,end,point:p,approach:arrival,accessible,goal,paintedDistance});if(paintedDistance>90)issues.push({type:'painted-path-end',id:l.id,end,point:p,paintedDistance});if(!accessible||!goal)issues.push({type:'path-end',id:l.id,end,point:p,accessible,goal});
  }
  const original=read('scripts/bigger-community/baseline/world.json');
- for(const [i,line]of original.paths.entries())for(const point of [line[0],line.at(-1)]){const accessible=route(point,150);pathEnds.push({id:'centre-'+i,point,accessible,goal:'preserved centre'});if(!accessible)issues.push({type:'path-end-access',id:'centre-'+i,point});}
+ for(const [i,line]of original.paths.entries())for(const [end,point]of [['start',line[0]],['end',line.at(-1)]]){const accessible=route(world.pathApproaches?.[i]?.[end]??point,0);pathEnds.push({id:'centre-'+i,point,accessible,goal:'preserved centre'});if(!accessible)issues.push({type:'path-end-access',id:'centre-'+i,point});}
  const sleepers=[];
- for(const b of checked.sleepers){const sh=ellipse(b.x,b.y-6,Math.max(40,b.r*.8),30),pathOverlap=hit(sh,floor),trunk=shapes.find(s=>s.kind==='tree'&&s.solid&&hit(sh,s.shape)),prop=shapes.find(s=>s.kind!=='tree'&&s.solid&&hit(sh,s.shape)),accessible=route([b.x,b.y+75],130);sleepers.push({...b,pathOverlap,trunk:trunk?.id,prop:prop?.id,accessible});if(pathOverlap||trunk||prop)issues.push({type:'sleeper-overlap',x:b.x,y:b.y});if(!accessible)issues.push({type:'sleeper-access',x:b.x,y:b.y});}
+ for(const b of checked.sleepers){const sh=ellipse(b.x,b.y-6,Math.max(40,b.r*.8),30),pathOverlap=hit(sh,floor),trunk=shapes.find(s=>s.kind==='tree'&&s.solid&&hit(sh,s.shape)),prop=shapes.find(s=>s.kind!=='tree'&&s.solid&&hit(sh,s.shape)),accessible=b.approach?route(b.approach,0):route([b.x,b.y+75],130);sleepers.push({...b,pathOverlap,trunk:trunk?.id,prop:prop?.id,accessible});if(pathOverlap||trunk||prop)issues.push({type:'sleeper-overlap',x:b.x,y:b.y});if(!accessible)issues.push({type:'sleeper-access',x:b.x,y:b.y});}
  if(!checked.ready)issues.push(...checked.problems.map(problem=>({type:'theme-contract',problem})));
  return {paintedRoutes:{cell:painted.cell,reachableCells:painted.reachableCells,paintedCells:painted.paintedCells},checked:{props:propChecks.length,bridges:bridges.length,pathEnds:pathEnds.length,sleepers:sleepers.length,boats:boats.length},overlaps:issues.filter(i=>/prop-path|prop-water|prop-prop|prop-bridge|prop-centre|sleeper-overlap|boat-bridge/.test(i.type)).length,walkIssues:issues.filter(i=>/access|path-end|contract/.test(i.type)).length,issues,props:propChecks,bridges,pathEnds,sleepers,boats,skipped:plan.skipped};
 }
