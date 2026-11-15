@@ -1,3 +1,4 @@
+import {readArtFrame} from '../art/pixel-residency.js';
 import {Container, Graphics} from 'pixi.js';
 
 const INK = 0x232323, SHADE = 0xc9d6e6, PUFF_SECONDS = .85;
@@ -147,8 +148,11 @@ function acquireCrown(texture, region = null, key = '', ink = 8, depthWidth) {
     canvas.width = canvas.height = 192;
     const ctx = canvas.getContext('2d', {willReadFrequently: true}), f = texture.frame, r = texture.source.resolution;
     const ink=texture.trim??{x:0,y:0,width:texture.width,height:texture.height};
-    ctx.drawImage(resource, f.x * r, f.y * r, f.width * r, f.height * r,
+    const frame=resource?null:readArtFrame(texture);
+    if(!resource&&!frame)throw Error('Snow frame unavailable');
+    ctx.drawImage(resource??frame, resource?f.x*r:0,resource?f.y*r:0,resource?f.width*r:frame.width,resource?f.height*r:frame.height,
       ink.x/texture.width*192,ink.y/texture.height*192,ink.width/texture.width*192,ink.height/texture.height*192);
+    if(frame)frame.width=frame.height=1;
     sampled = texture.width > 2 && texture.height > 2;
     profile = snowCrownProfile(ctx.getImageData(0, 0, 192, 192).data, 192, 192, texture.width, texture.height, region);
   } catch {  }

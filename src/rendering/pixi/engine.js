@@ -1,3 +1,4 @@
+import {installPixelRecovery} from './art/pixel-residency.js';
 import {createIslandPrefetch} from './art/island-prefetch.js';
 import {selectIslandTier} from '../../app/ducky-prefetch.js';
 import {swapIslandDetail,detailZoomLimit} from './art/island-detail.js';
@@ -190,6 +191,11 @@ export class PixiIsland {
       if (this.disposed) { this.app.destroy({removeView:true,releaseGlobalResources:false}, {children: true}); return; }
       this.initialized = true;
       this.canvas = this.app.canvas;
+      this.cleanups.push(installPixelRecovery(this.app.renderer,{
+        lost:()=>{this.contextRecovering=true;cancelAnimationFrame(this.raf);this.audio.suspend();},
+        restored:()=>{if(this.disposed)return;this.contextRecovering=false;this.lastFrame=performance.now();this.audio.resume();this.raf=requestAnimationFrame(time=>this.tick(time));},
+        failed:error=>{if(!this.disposed)this.onError(error);},
+      }));
       this.canvas.tabIndex = 0;
       this.canvas.setAttribute('role', 'application');
       this.updateControlLabel();
@@ -269,7 +275,6 @@ export class PixiIsland {
         lease.count++;return Promise.resolve(lease.texture);
       };
       this.resize(true);
-      this.listen(this.canvas, 'webglcontextlost', event => {event.preventDefault(); cancelAnimationFrame(this.raf); this.audio.suspend(); this.onError();});
       const homeMeshEntry=await groundMeshEntry('home');
       const tiles = HOME_TILES;
       this.homeGround = new Container({label: 'Home ground'}); this.ground.addChild(this.homeGround);
@@ -1654,7 +1659,7 @@ export class PixiIsland {
   }
 
   tick(now,{forceRender=false}={}) {
-    if (this.disposed || (document.hidden&&!forceRender)) return;
+    if (this.disposed || this.contextRecovering || (document.hidden&&!forceRender)) return;
     const elapsed = Math.max(0, now - this.lastFrame);
     const dt = Math.min(.1, elapsed / 1000);
     this.frameTimes.push(elapsed);

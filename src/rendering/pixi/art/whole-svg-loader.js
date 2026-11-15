@@ -1,3 +1,4 @@
+import {cacheBackedPixels} from './pixel-residency.js';
 import {headStartJSON,takeHomeBitmap,homeHeadStartActive,prepareHomeGround} from '../../../app/home-head-start.js';
 import {loadRasterDetail} from './raster-detail.js';
 import {selectIslandTier} from '../../../app/ducky-prefetch.js';
@@ -63,7 +64,7 @@ export function createWholeSVGLoader({queue = createArtQueue(), getManifest=load
         const resource=(await takeHomeBitmap(tier.sheet))??await decodeBitmap(await sheetBlob(tier.sheet,options.priority,options.signal),{premultiplyAlpha:'premultiply'});
         const source=new ImageSource({resource,resolution:1,autoGenerateMipmaps:!(tier.padding||tier.group?.includes('/ground/')),alphaMode:'premultiplied-alpha'});
         source.autoGarbageCollect=false;source.label=tier.sheet;source._sourceOrigin=tier.sheet;
-        source.once('destroy',()=>resource.close?.());held.source=source;
+        cacheBackedPixels(source,async()=>decodeBitmap(await fetchBlob(tier.sheet),{premultiplyAlpha:'premultiply'}));held.source=source;
         if(blobs.get(tier.sheet)?.signal===options.signal)blobs.delete(tier.sheet);
         return source;
       })().catch(error=>{
@@ -94,7 +95,9 @@ export function createWholeSVGLoader({queue = createArtQueue(), getManifest=load
         await mapArtInFrames(result.sheets,async(sheet,i)=>{
           const key=`raster-detail:${++detailSerial}`,resource=result.bitmaps[i];
           const source=new ImageSource({resource,resolution:1,autoGenerateMipmaps:!sheet.ground,alphaMode:'premultiplied-alpha'});
-          source.autoGarbageCollect=false;source.label=key;source._sourceOrigin=key;source.once('destroy',()=>resource.close());
+          source.autoGarbageCollect=false;source.label=key;source._sourceOrigin=key;
+          if(result.reloads?.[i])cacheBackedPixels(source,result.reloads[i]);
+          else source.once('destroy',()=>resource.close());
           const held={source,count:0,pins:1,promise:Promise.resolve(source)};sheets.set(key,held);installed.push([key,held]);
           await mapArtInFrames(sheet.frames,p=>detail.set(p.src,{scale:p.scale,sheet:key,url:key,group:`svg/${sheet.ground?'ground':'props'}/0`,
             padding:p.padding,width:Math.ceil(p.w*p.scale),height:Math.ceil(p.h*p.scale),
