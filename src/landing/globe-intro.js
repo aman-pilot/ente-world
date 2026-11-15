@@ -449,6 +449,11 @@ export async function createGlobeIntro(canvas, {home, ext = 'webp', neighbours =
   return {total, draw, resize, still, progress, timing:T, land:F.land, homeOnScreen, homeReady, destroy() {
     if (disposed) return;
     disposed = true; opened?.(); opened = null;
+    // free everything once the canvas has left the page (the game took over). If it is still on the page, a
+    // remount draws a new globe on this same canvas (React StrictMode in dev), so this one is simply dropped
+    setTimeout(() => {if (!canvas.isConnected) release();}, 0);
+  }};
+  function release() {
     scene.traverse(object => {
       object.geometry?.dispose();
       for (const material of [object.material].flat().filter(Boolean)) material.dispose();
@@ -459,5 +464,5 @@ export async function createGlobeIntro(canvas, {home, ext = 'webp', neighbours =
     images.forEach(image => {image?.close?.(); if (image instanceof HTMLCanvasElement) image.width = image.height = 1;});
     textures.clear(); scene.clear();
     renderer.dispose(); renderer.forceContextLoss(); canvas.width = canvas.height = 1;
-  }};
+  }
 }
