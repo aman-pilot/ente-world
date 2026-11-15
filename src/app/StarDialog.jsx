@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 
+// Signed in but no star on ente/ente yet: Ducky holds the top of the box, one plain title, three actions.
 export default function StarDialog({onClose, onConfirm}) {
   const dialog = useRef(null);
   const [checking, setChecking] = useState(false);
@@ -17,7 +18,7 @@ export default function StarDialog({onClose, onConfirm}) {
         throw new Error(result.error || 'Could not check your star. Please try again.');
       }
       if (result.canPlay) onConfirm();
-      else setError('No star found yet. Star ente/ente with the GitHub account you used to sign in, then try again.');
+      else setError('No star found yet. Star ente/ente with the account you signed in with.');
     } catch (error) {
       setError(error.message || 'Could not check your star. Please try again.');
     } finally {
@@ -30,17 +31,23 @@ export default function StarDialog({onClose, onConfirm}) {
     return () => element.close();
   }, []);
 
-  return <dialog ref={dialog} className="pixi-star-dialog" aria-labelledby="star-title"
-    aria-describedby="star-description" onClose={onClose}>
-    <h2 id="star-title">Star Ente to join the island</h2>
-    <p id="star-description">You’re signed in! Playing is available to people who have starred
-      {' '}<strong>ente/ente</strong> on GitHub. Give it a star, then come back and check again.</p>
-    {error && <p role="alert">{error}</p>}
-    <div className="pixi-star-actions">
-      <a href="https://github.com/ente/ente" target="_blank" rel="noopener noreferrer">Star ente/ente ↗</a>
-      <button onClick={retry} disabled={checking}>{checking ? 'Checking…' : 'I’ve starred it — check again'}</button>
-      {signInRequired && <a href="/auth/github/start">Sign in again</a>}
-      <button onClick={onClose}>Keep watching</button>
+  return <dialog ref={dialog} className="star-box" aria-labelledby="star-title"
+    onClose={event => {if (!event.currentTarget.open) onClose();}} onKeyDown={event => event.stopPropagation()}>
+    <div className="star-box-wrap">
+      <div className="star-box-duck" aria-hidden="true">
+        <img src="/guest/ducky-peek-body.webp" width="1024" height="640" alt=""/>
+        <img className="star-box-beak" src="/guest/ducky-peek-beak.webp" width="176" height="89" alt=""/>
+        <span className="star-box-eye star-box-eye-l"/><span className="star-box-eye star-box-eye-r"/>
+      </div>
+      <div className="star-box-card" tabIndex={-1} autoFocus>
+        <h2 id="star-title">Star Ente to join the island</h2>
+        {error && <p className="star-box-error" role="alert">{error}</p>}
+        <a className="star-box-btn star-box-go" href="https://github.com/ente/ente" target="_blank" rel="noopener noreferrer">Star ente/ente</a>
+        <button className="star-box-btn star-box-check" type="button" onClick={retry} disabled={checking}>{checking ? 'Checking…' : 'I’ve starred it, let me in'}</button>
+        {signInRequired && <a className="star-box-btn star-box-check" href="/auth/github/start">Sign in again</a>}
+        <button className="star-box-watch" type="button" onClick={onClose}>Keep watching</button>
+      </div>
+      <div className="star-box-duck star-box-wings" aria-hidden="true"><img src="/guest/ducky-peek-wings.webp" width="1024" height="640" alt=""/></div>
     </div>
   </dialog>;
 }

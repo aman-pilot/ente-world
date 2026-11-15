@@ -1,0 +1,129 @@
+@font-face {
+  font-family: 'Fredoka';
+  font-weight: 700;
+  font-display: swap;
+  src: url('/guest/fredoka-700.woff2') format('woff2');
+}
+.pixi-page-guest {
+  --guest-ink: #332b23;
+  --guest-cream: #fff4d8;
+  --guest-green: #58cc02;
+  --guest-green-deep: #46a302;
+  --guest-ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+.pixi-page-guest .pixi-ente-logo { width: 77px; height: 24px; padding: 8px 12px; box-sizing: content-box; border: 0; border-radius: 12px; background: #332b23; box-shadow: none; }
+.guest-panel {
+  position: fixed;
+  z-index: 5;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--guest-cream);
+  background: radial-gradient(circle 360px at 50% 55%, rgb(12 26 56 / 30%), rgb(12 26 56 / 0));   /* the world stays in full colour; only the buttons get a soft scrim */
+  transition: opacity 200ms ease-out, translate 200ms ease-out;
+}
+.guest-panel[data-leaving="true"] { opacity: 0; translate: 0 24px; pointer-events: none; }
+.guest-stack { position: relative; width: min(540px, calc(100% - 32px)); padding-block: 64px; text-align: center; }
+.guest-action { position: relative; isolation: isolate; margin-top: 112px; }
+.guest-duck-rise { position: absolute; z-index: -1; width: 200px; left: 50%; bottom: calc(100% - 15px); margin-left: -100px; transform-origin: 50% 100%; pointer-events: none; }
+.guest-duck { position: relative; }
+.guest-duck > img, .guest-wings img { display: block; width: 100%; height: auto; }
+.guest-duck-wings { z-index: 1; }
+.guest-duck { transform-origin: 50% 100%; will-change: transform; }
+.guest-face { position: absolute; inset: 0; will-change: transform; }
+.guest-beak { position: absolute; left: 41.31%; top: 50.78%; width: 17.19%; height: auto; }
+.guest-eye { position: absolute; top: 48.91%; width: 5.08%; aspect-ratio: 52 / 51; margin: -2.49% 0 0 -2.54%; border-radius: 50%; background: #372515; }
+.guest-eye-left { left: 40.58%; }
+.guest-eye-right { left: 58.54%; }
+.guest-play {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border: 0;
+  background: var(--guest-green);
+  box-shadow: 0 9px 0 var(--guest-green-deep);
+  color: #fff;
+  text-decoration: none;
+  font: 700 32px/1.2 'Fredoka', system-ui, sans-serif;
+  transition: transform 160ms var(--guest-ease), box-shadow 160ms var(--guest-ease), background-color 150ms ease;
+}
+.guest-play { position: relative; width: 100%; min-height: 96px; padding: 20px 24px; border-radius: 28px; text-transform: uppercase; box-shadow: 0 9px 0 var(--guest-green-deep), 0 18px 20px -10px rgb(0 0 0 / 28%); }   /* shadow falls only below: upward it darkened Ducky's body behind the button (two yellows) */
+.guest-play svg { width: 36px; height: 36px; flex-shrink: 0; }
+.guest-play:active { transform: translateY(9px); box-shadow: 0 0 0 var(--guest-green-deep); transition-duration: 60ms; }
+.guest-duck-rise { transition: translate 160ms var(--guest-ease); }
+.guest-action:has(.guest-play:active) .guest-duck-rise { translate: 0 9px; transition-duration: 60ms; }
+.guest-watch { transition: transform 160ms var(--guest-ease), box-shadow 160ms var(--guest-ease); }
+.guest-watch:active { transform: translateY(7px); box-shadow: 0 0 0 var(--guest-cream); transition-duration: 60ms; }
+.guest-secondary { margin-top: 28px; }
+.guest-watch { box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 72px; padding: 16px 24px; border: 3px solid var(--guest-cream); border-radius: 28px; background: rgb(0 0 0 / 35%); box-shadow: 0 7px 0 var(--guest-cream), 0 8px 24px rgb(0 0 0 / 28%); color: var(--guest-cream); font: 700 24px/1 'Fredoka', system-ui, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+.guest-watch svg { width: 28px; height: 28px; flex-shrink: 0; }
+:is(.guest-play, .guest-watch):focus-visible { outline: 3px solid var(--guest-cream); outline-offset: 6px; }
+.guest-play[aria-disabled="true"] { cursor: not-allowed; }
+@media (max-width: 899px) {
+  .pixi-page-guest .pixi-ente-logo { width: 58px; height: 18px; padding: 11px 9px; border-radius: 8px; }
+  .guest-stack { width: calc(100% - 32px); max-width: 480px; }
+  .guest-action { margin-top: 72px; }
+  .guest-duck-rise { width: 120px; margin-left: -60px; bottom: calc(100% - 9px); }
+  .guest-play:active, .guest-play:hover:active { transform: translateY(7px); }
+  .guest-action:has(.guest-play:active) .guest-duck-rise { translate: 0 7px; }
+  .guest-play { min-height: 72px; padding: 16px; border-radius: 22px; gap: 12px; font-size: clamp(18px, 5.6vw, 26px); box-shadow: 0 7px 0 var(--guest-green-deep); }
+  .guest-play svg { width: 28px; height: 28px; }
+  .guest-watch { min-height: 60px; border-radius: 22px; font-size: clamp(16px, 4.8vw, 20px); box-shadow: 0 6px 0 var(--guest-cream); }
+  .guest-watch:active { transform: translateY(6px); }
+  .guest-secondary { margin-top: 24px; }
+}
+@media (max-height: 500px) {
+  .guest-stack { padding-block: 44px 16px; }
+  .guest-play { min-height: 60px; font-size: 22px; }
+  .guest-duck-rise { width: 120px; margin-left: -60px; bottom: calc(100% - 9px); }
+  .guest-secondary { margin-top: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guest-panel[data-plain] .guest-duck-rise:not(.guest-duck-wings) .guest-duck { animation: none; }
+  .guest-duck, .guest-duck-rise { transition: none; }
+  .guest-play, .guest-watch { transition: transform 160ms var(--guest-ease), box-shadow 160ms var(--guest-ease); }
+}
+@media (max-width: 599px) {
+  .guest-panel { place-items: start center; }
+  /* the Play button's centre sits at 58% of the screen height: 30 title + 20 gap + 72 for Ducky + half of 64 */
+  .guest-stack { width: min(343px, calc(100vw - 40px)); padding-block: 0 max(24px, env(safe-area-inset-bottom)); margin-top: calc(58svh - 154px); }
+  .guest-play { min-height: 64px; }
+  .guest-watch { min-height: 52px; }
+  .guest-secondary { margin-top: 16px; }
+  .guest-duck-rise { width: 112px; margin-left: -56px; }
+}
+
+/* the landing's end screen: the map under a 60% overlay, Ente World on top, the two buttons, no motion */
+/* opens out from the feather's impact, under the burst, with a soft feathered edge */
+/* arrives in one beat under the blast: the landing drives --dim (the 60% overlay) and --pop (Ducky and the buttons); fully in by 2.6 s whatever happens */
+@property --dim { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --pop { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --dpop { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --wpop { syntax: '<number>'; inherits: true; initial-value: 0; }
+.guest-panel[data-plain] { background: rgb(10 22 40 / calc(.6 * var(--dim))); animation: guest-open 1ms 2.6s forwards; }
+.guest-panel[data-plain] .guest-stack { padding-block: 0; margin-top: 0; }
+/* in order, each on a real spring from 60% (the landing drives --pop, then --wpop 120 ms later); no animated blur */
+.guest-panel[data-plain] .guest-action { opacity: min(1, calc(var(--pop) * 1.25)); transform: scale(calc(.5 + .5 * var(--pop))); transform-origin: 50% 70%; }
+.guest-panel[data-plain] .guest-secondary { opacity: min(1, calc(var(--wpop) * 1.25)); transform: scale(calc(.5 + .5 * var(--wpop))); }
+@keyframes guest-open { to { --dim: 1; --pop: 1; --dpop: 1; --wpop: 1; } }
+/* Ducky is the character moment: ~1.5x bigger than in the game's panel, with its own little overshoot pop */
+.guest-panel[data-plain] .guest-duck-rise { width: 300px; margin-left: -150px; bottom: calc(100% - 22px); scale: var(--dpop); }
+.guest-panel[data-plain] .guest-title + .guest-action { margin-top: 168px; }
+/* the end screen is never dead still: Ducky breathes (the wings stay planted on the button) and blinks (GuestPanel.jsx) */
+.guest-panel[data-plain] .guest-duck-rise:not(.guest-duck-wings) .guest-duck { animation: guest-breathe 3.4s cubic-bezier(.45, 0, .55, 1) 2.8s infinite alternate; }   /* starts after the landing's one full-sharpness redraw (~2.4 s after the hit) */
+@keyframes guest-breathe { to { scale: 1.012 1.03; } }
+.guest-panel[data-plain] .guest-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }   /* no Ente World text on the end screen; kept for screen readers */
+@media (max-width: 599px) {
+  .guest-panel[data-plain] { place-items: center; }
+  .guest-panel[data-plain] .guest-title + .guest-action { margin-top: 96px; }
+  .guest-panel[data-plain] .guest-duck-rise { width: 150px; margin-left: -75px; bottom: calc(100% - 11px); }
+}
+/* Watch as a guest on the landing: the clouds close in over the end screen, so the dimmed map stays as it is and only
+   Ducky and the buttons fade (the whole panel fading flashed the bright map before the clouds covered it) */
+.guest-panel[data-plain][data-leaving="true"] { opacity: 1; translate: none; }
+.guest-panel[data-plain][data-leaving="true"] .guest-stack { opacity: 0; transition: opacity 200ms cubic-bezier(.4, 0, 1, 1); }
+.guest-panel[data-plain][data-leaving="true"] .guest-duck-rise:not(.guest-duck-wings) { translate: 0 70%; transition: translate 220ms cubic-bezier(.7, 0, .84, 0); }   /* Ducky ducks behind the button */
+.guest-panel[data-plain][data-leaving="true"] .guest-stack { transition-delay: 120ms; }
