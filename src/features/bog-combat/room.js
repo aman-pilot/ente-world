@@ -14,6 +14,8 @@ export class BogCombatRoom {
   get id(){return this.client.id;}
   get tick(){return this.client.snapshot?.tick??-1;}
   get player(){return this.client.predicted;}
+  // the feather chip reads this: your balance after the ticket (the island's count is not here while you play)
+  get karma(){return this.client.self?.karma??0;}
   get totals(){const p=this.client.self;return p?{stats:{...p.stats},medalCase:{...p.medalCase}}:null;}
   navHere(){return this.client.nav;}
   setAlpha(alpha){this.alpha=Math.max(0,Math.min(1,alpha));}
