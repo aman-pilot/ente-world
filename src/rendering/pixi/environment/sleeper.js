@@ -173,12 +173,19 @@ export function createSleeper(sleep, seed = 0) {
       devil.addChild(tail,left,right);duck.addChildAt(devil,0);
     }
     if(devil)devil.visible=Boolean(replacement);
-    const shades=appearance?.shades?.sleep.get(`${name}-shades.svg`);
-    if(shades&&!karmaShades){
-      karmaShades=new Sprite({texture:shades,label:'Sleeping Karma sunglasses'});
+  }
+  function setShades(entry){
+    const frame=entry?.frames['0']?.find(f=>f.visible),nod=name==='nod';
+    if(frame&&!karmaShades){
+      karmaShades=new Sprite({texture:Assets.get(frame.url),label:'Sleeping Karma sunglasses'});
+      karmaShades.anchor.set(.5,.5);
+      karmaShades.position.set(nod?262.5:210.5,nod?385:384);
+      karmaShades.rotation=(nod?-13:5)*DEG;
+      karmaShades.scale.set(nod?1.35:1.2);
       duck.addChild(karmaShades);
     }
-    if(karmaShades)karmaShades.visible=Boolean(shades);
+    if(karmaShades){karmaShades.visible=Boolean(frame);if(frame)karmaShades.texture=Assets.get(frame.url);}
   }
-  return {root, update, setCap, setAppearance, poke, pose: name, flip, snowSurfaces};
+
+  return {root, update, setCap, setAppearance, setShades, poke, pose: name, flip, snowSurfaces};
 }

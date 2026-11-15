@@ -84,12 +84,11 @@ test('real rigs share red textures, morph in red, keep every emote and restore y
  Graphics.prototype.fill=function(style){const list=fills.get(this)??[];list.push(typeof style==='number'?style:style?.color);fills.set(this,list);return original.fill.call(this,style);};
  const texture=(width=80,height=110)=>{const t=new Texture({source:new TextureSource({width,height})});owned.push(t);return t;};
  const look={body:0xEF5144,belly:0xFF9C90,horn:texture(),tail:texture(205,232),textures:new Map()};
- const privateTextures=new Map(['lens.svg','bridge.svg','nod-shades.svg','wing-shades.svg'].map(file=>[file,texture()]));
- const privateLook={textures:privateTextures,shades:{lens:privateTextures.get('lens.svg'),bridge:privateTextures.get('bridge.svg'),sleep:privateTextures}};
+ const privateLook={textures:new Map(),outfit:{shades:6}};
  for(const file of fs.readdirSync(base))look.textures.set(file,texture());
  try{
   const karma=await createDuck({outfit:{},seed:1}),evil=await createDuck({outfit:{},seed:7}),peer=await createDuck({outfit:{},seed:9});rigs.push(karma,evil,peer);
-  evil.setAppearance(look);peer.setAppearance(look);karma.setAppearance(privateLook);
+  await evil.setAppearance(look);await peer.setAppearance(look);await karma.setAppearance(privateLook);
   const firstMorph=descendants(direction(evil)).find(n=>n.label==='body-0').children.find(n=>n instanceof Graphics);
   assert.equal(fills.get(firstMorph).at(-3),0xEF5144,'appearance repaints the visible morph before the next frame');
   const bodies=new Map();
@@ -103,17 +102,12 @@ test('real rigs share red textures, morph in red, keep every emote and restore y
    assert.equal(nodes.find(n=>n.label==='tail-0').children[0].visible,false);
    const horns=nodes.find(n=>n.label==='Evil devil horns');assert.ok(horns.visible);assert.equal(horns.children.length,2);assert.equal(horns.children[0].texture,look.horn);
    assert.ok(!descendants(karma.root).some(n=>n.label==='Evil devil horns'));
-   const privateView=direction(karma),privateNodes=descendants(privateView),shades=privateNodes.find(n=>n.label==='Karma sunglasses');
-   const hasEyes=Math.abs(angle)<=90;
-   assert.equal(shades.visible,hasEyes);
-   for(const eye of privateNodes.filter(n=>n.label?.startsWith('eye-'))){
-    assert.equal(eye.visible,false,'Karma eyes are replaced, including after a blink');
-    const lens=privateNodes.find(n=>n.label===`Karma lens ${eye.label}`);
-    assert.equal(lens.x,eye.x);assert.equal(lens.y,eye.y);assert.equal(lens.rotation,eye.rotation);
-    assert.equal(lens.scale.y,1,'glasses never squash with blinking eyes');
-   }
+   const privateNodes=descendants(direction(karma));
+   const shades=privateNodes.find(n=>n.label==='shades-15');
+   assert.ok(shades?.visible,'Karma uses outfit option 6 in every facing');
+   assert.ok(!privateNodes.some(n=>n.label==='Karma sunglasses'));
+   for(const eye of privateNodes.filter(n=>n.label?.startsWith('eye-')))assert.equal(eye.visible,false);
    assert.ok(privateNodes.find(n=>n.label==='tail-0').children[0].visible,'Karma keeps the original tail');
-   assert.ok(!descendants(evil.root).some(n=>n.label==='Karma sunglasses'));
    const karmaBody=descendants(direction(karma)).find(n=>n.label==='body-0'),karmaMorph=karmaBody.children.find(n=>n instanceof Graphics);
    assert.ok(fills.get(karmaMorph).includes(0xFFD525));assert.ok(!fills.get(karmaMorph).includes(0xEF5144));
    bodies.set(angle,{view,horns,count:nodes.length});
@@ -122,26 +116,23 @@ test('real rigs share red textures, morph in red, keep every emote and restore y
    for(let frame=0;frame<40;frame++)rig.update(1/60,{action,speed:action===1?275:0,turn:Math.PI/2,time:6+frame/60});
    if(action===7){const sleep=descendants(rig.root).find(n=>n.label?.startsWith('Sleeping Ducky'));assert.ok(sleep.visible);if(rig===karma)assert.ok(descendants(sleep).find(n=>n.label==='Sleeping Karma sunglasses').visible);else assert.ok(descendants(sleep).some(n=>n instanceof Sprite&&[look.textures.get('nod-duck.svg'),look.textures.get('wing-duck.svg')].includes(n.texture)));}
   }
-  for(let angle=-180;angle<=180;angle+=5){
-   for(let frame=0;frame<90;frame++)karma.update(1/60,{turn:angle*Math.PI/180,action:3,time:7+frame/60});
-   const nodes=descendants(direction(karma));
-   for(const eye of nodes.filter(n=>n.label?.startsWith('eye-'))){
-    const lens=nodes.find(n=>n.label===`Karma lens ${eye.label}`);
-    assert.equal(lens.x,eye.x);assert.equal(lens.y,eye.y);assert.equal(lens.rotation,eye.rotation);
-   }
-  }
-  karma.setAppearance(null);karma.update(1/60,{turn:0,reducedMotion:true});
-  assert.equal(descendants(direction(karma)).find(n=>n.label==='Karma sunglasses').visible,false);
-  assert.ok(descendants(direction(karma)).filter(n=>n.label?.startsWith('eye-')).every(n=>n.visible));
+  await karma.setOutfit({shades:1,cap:3});
+  karma.update(1/60,{turn:0,reducedMotion:true});
+  assert.ok(descendants(direction(karma)).some(n=>n.label==='shades-15'));
+  assert.ok(!descendants(direction(karma)).some(n=>n.label==='shades-1'));
+  await karma.setAppearance(null);karma.update(1/60,{turn:0,reducedMotion:true});
+  assert.ok(!descendants(direction(karma)).some(n=>n.label==='shades-15'));
+  const ownShades=manifest.wardrobe.find(e=>e.slot==='shades'&&e.index===1).id;
+  assert.ok(descendants(direction(karma)).some(n=>n.label===ownShades),'leaving Bog restores latest player choice');
   for(const angle of manifest.views.map(v=>v.angle)){
    for(let i=0;i<180;i++)evil.update(1/60,{turn:angle*Math.PI/180});
    const now=direction(evil),old=bodies.get(angle);assert.equal(now,old.view);assert.equal(descendants(now).length,old.count);assert.equal(descendants(now).find(n=>n.label==='Evil devil horns'),old.horns);
   }
-  evil.setAppearance(privateLook);evil.update(1/60,{turn:0,reducedMotion:true});
+  await evil.setAppearance(privateLook);evil.update(1/60,{turn:0,reducedMotion:true});
   assert.equal(descendants(direction(evil)).find(n=>n.label==='Evil devil horns').visible,false);
-  assert.ok(descendants(direction(evil)).find(n=>n.label==='Karma sunglasses').visible);
+  assert.ok(descendants(direction(evil)).find(n=>n.label==='shades-15').visible);
   evil.setAppearance(look);
-  evil.setAppearance(null);evil.update(1/60,{turn:Math.PI/4});
+  await evil.setAppearance(null);evil.update(1/60,{turn:Math.PI/4});
   assert.equal(descendants(direction(evil)).find(n=>n.label==='Evil devil horns').visible,false);
   assert.equal(descendants(direction(evil)).find(n=>n.label==='tail-0').children[0].visible,true);
   assert.ok(descendants(direction(peer)).find(n=>n.label==='Evil devil horns').visible);
