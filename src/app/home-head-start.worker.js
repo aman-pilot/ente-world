@@ -21,6 +21,7 @@ self.onmessage=async({data:{id,kind,url,options}})=>{
       transfer=[...value.chunks.flatMap(c=>[c.positions.buffer,c.colors.buffer,c.indices.buffer,...(c.uv?[c.uv.buffer]:[])]),...(value.strokeMaskPixels?[value.strokeMaskPixels.buffer]:[])];
     }else if(kind==='warm'){
       const {dpr,width,height,sceneURL,groundURL}=options;
+      for(const [url,value] of options.seed??[])if(!json.has(url))json.set(url,Promise.resolve(value));
       const scene=read(sceneURL).then(data=>{for(const name of ['solo','room'])scenes.set(sceneURL+':'+name,unpackHomeScene(data,name));});scene.catch(()=>{});
       const ground=groundURL?read(groundURL):Promise.resolve({});ground.catch(()=>{});
       const indexURL=(await read('/art-prerender/islands.json')).url,index=await read(indexURL);

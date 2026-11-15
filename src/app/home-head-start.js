@@ -35,7 +35,8 @@ export function startHomeHeadStart({guest=false}={}){
   if(started||!sceneURL||typeof Worker!=='function'||(!guest&&remembered()&&remembered()!=='home'))return;
   started=true;const current=++generation;
   // Planning, JSON parsing, mesh expansion and image decoding all stay in the worker.
-  planning=request('warm',null,{sceneURL,groundURL,dpr:Math.min(devicePixelRatio||1,2),width:innerWidth,height:innerHeight})
+  planning=Promise.all([...json].map(async([url,value])=>{try{return [url,await value];}catch{return null;}}))
+    .then(seed=>current===generation?request('warm',null,{seed:seed.filter(Boolean),sceneURL,groundURL,dpr:Math.min(devicePixelRatio||1,2),width:innerWidth,height:innerHeight}):null)
     .then(plan=>{if(current!==generation)return;for(const [url,value] of plan.json??[])if(!json.has(url))json.set(url,Promise.resolve(value));const jobs=[
       ...plan.sheets.map(url=>once(bitmaps,url,()=>request('bitmap',url))),
       ...(plan.mesh?[once(meshes,plan.mesh.url,()=>request('mesh',plan.mesh.url,plan.mesh))]:[]),

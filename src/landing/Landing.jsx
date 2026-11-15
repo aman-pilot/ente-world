@@ -19,7 +19,7 @@ export default function LandingGate() {
   const [signInAvailable, setSignInAvailable] = useState(false);
   useEffect(() => {
     initialSession
-      .then(s => { setSignInAvailable(!!s.signInAvailable); setMode(s.user || returning ? 'game' : 'landing');})
+      .then(s => {setSignInAvailable(!!s.signInAvailable); setMode(s.user || returning ? 'game' : 'landing');})
       .catch(() => {if (!returning) setMode('landing');});
   }, []);
   if (mode === 'game') return <Suspense fallback={<div className="landing-boot"/>}><PixiPage/></Suspense>;
@@ -223,7 +223,7 @@ export function Landing({signInAvailable, onWatch}) {
       globe?.homeReady.then(() => {const again = () => {if (!cancelled && done) globe.still();}; again(); later(again, 450);});
       setPanel(true);
       warmSignInCache();
-      // fetch the game code quietly once the landing has settled: download only (rel=prefetch), nothing runs, so the
+      // fetch the game code quietly once the landing has settled: download only, nothing runs, so the
       // end screen never freezes while the game code is evaluated (importing it here froze the end screen for 0.5 s)
       later(warmSignInCache, 1500);
     };
