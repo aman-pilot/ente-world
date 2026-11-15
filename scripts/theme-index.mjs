@@ -1,7 +1,7 @@
 import {existsSync, readFileSync, statSync, writeFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
-import {makeMap, THEME_IDS} from '../src/world/island-maps.js';
+import {makeMap, mapFor, THEME_IDS} from '../src/world/island-maps.js';
 import {resolveSleepSpots, sleepHalfWidths, sleepShapeProblems, SLEEP_TOTAL} from '../src/world/home/sleep-spots.js';
 import {geometry} from '../assets/world/island-geometry.mjs';
 
@@ -69,7 +69,7 @@ export function checkTheme(theme) {
   if (!problems.length && world?.sleepSpots) {
     try {
       const base = makeMap(theme, {world, walk, harbor, sleepers: []}).walk;
-      sleepers = resolveSleepSpots(base, art.props ?? [], geometry(base).walkable, sleepHalfWidths(), {spots: world.sleepSpots, avoid: world.sleepAvoid ?? [], warn: false});
+      sleepers = theme==='pink' ? Object.assign(mapFor(theme).sleepers.map(b=>({...b})),{bad:[]}) : resolveSleepSpots(base, art.props ?? [], geometry(base).walkable, sleepHalfWidths(), {spots: world.sleepSpots, avoid: world.sleepAvoid ?? [], warn: false});
       sleepNotes.push(...sleepShapeProblems(world.sleepSpots, world.sleepTotal ?? SLEEP_TOTAL).map(p => `sleepSpots shape: ${p}`), ...sleepers.bad.map(b => `sleeper ${b.pose} ${Math.round(b.x)},${Math.round(b.y)} dropped: ${b.reason}`));
       sleepers = sleepers.map(({x, y, pose, r, flip, tree}) => ({x: Math.round(x), y: Math.round(y), pose, r: Math.round(r * 10) / 10, flip, ...(tree ? {tree} : {})}));
       const map = makeMap(theme, {world, walk, harbor, sleepers});

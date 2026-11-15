@@ -9,11 +9,11 @@
    "height": 386.4,
    "base": [
     6842.2,
-    -78.0
+    -78
    ],
    "footprintScale": 1.0204081632653061,
    "door": [
-    6842.2,
+    6694.2,
     -29.02
    ],
    "shadowWidth": 165.6
@@ -49,7 +49,7 @@
    ],
    "footprintScale": 0.9281678773204196,
    "door": [
-    5657.8,
+    5749.8,
     -29.248
    ],
    "shadowWidth": 165.6
@@ -59,7 +59,7 @@
    "hamlet": "chirrup",
    "src": "hamlets/chirrup/dovecote-workplace.svg",
    "width": 340,
-   "oldWidth": 322.0,
+   "oldWidth": 322,
    "height": 487.826,
    "base": [
     5641.62,
@@ -100,10 +100,10 @@
    ],
    "footprintScale": 1.0459099416492348,
    "door": [
-    -1294.8,
+    -1162.8,
     2492.904
    ],
-   "shadowWidth": 171.0
+   "shadowWidth": 171
   },
   {
    "id": "hamlet-petalpatch-pink-rose-cottage",
@@ -121,7 +121,7 @@
     -657.75,
     2403.004
    ],
-   "shadowWidth": 171.0
+   "shadowWidth": 171
   },
   {
    "id": "hamlet-ribbonwick-house-cream-bow",
@@ -129,7 +129,7 @@
    "src": "hamlets/ribbonwick/house-cream-bow.svg",
    "width": 460,
    "oldWidth": 432.9,
-   "height": 644.0,
+   "height": 644,
    "base": [
     1327.9,
     -92.15
@@ -147,7 +147,7 @@
    "src": "hamlets/ribbonwick/house-lilac-bow.svg",
    "width": 460,
    "oldWidth": 432.9,
-   "height": 644.0,
+   "height": 644,
    "base": [
     -19.55,
     -92.15
@@ -165,14 +165,14 @@
    "src": "hamlets/ribbonwick/house-rose-bow.svg",
    "width": 460,
    "oldWidth": 432.9,
-   "height": 644.0,
+   "height": 644,
    "base": [
     662.95,
     -312.5
    ],
    "footprintScale": 1.0626010626010627,
    "door": [
-    662.95,
+    546.95,
     -261.495
    ],
    "shadowWidth": 165.6
@@ -205,8 +205,8 @@
    ],
    "footprintScale": 0.9700176366843033,
    "door": [
-    7397.2,
-    4781.521
+    7249.2,
+    4929.521
    ],
    "shadowWidth": 158.4
   },
@@ -233,7 +233,7 @@
    "hamlet": "teacup",
    "src": "hamlets/teacup/house-rose-bow.svg",
    "width": 460,
-   "oldWidth": 504.0,
+   "oldWidth": 504,
    "height": 488.656,
    "base": [
     6634.6,
@@ -251,7 +251,7 @@
    "hamlet": "teacup",
    "src": "hamlets/teacup/workplace-teacup-cafe.svg",
    "width": 510,
-   "oldWidth": 588.0,
+   "oldWidth": 588,
    "height": 440.057,
    "base": [
     6708.4,
@@ -266,7 +266,7 @@
    "hamlet": "tutu-tides",
    "src": "hamlets/tutu-tides/cottage-buttercream.svg",
    "width": 460,
-   "oldWidth": 462.0,
+   "oldWidth": 462,
    "height": 420.97,
    "base": [
     4552.6,
@@ -284,7 +284,7 @@
    "hamlet": "tutu-tides",
    "src": "hamlets/tutu-tides/cottage-heart.svg",
    "width": 450,
-   "oldWidth": 448.0,
+   "oldWidth": 448,
    "height": 455.625,
    "base": [
     3536.76,
@@ -295,14 +295,14 @@
     3536.76,
     5795.404
    ],
-   "shadowWidth": 162.0
+   "shadowWidth": 162
   },
   {
    "id": "hamlet-tutu-tides-cottage-lilac",
    "hamlet": "tutu-tides",
    "src": "hamlets/tutu-tides/cottage-lilac.svg",
    "width": 450,
-   "oldWidth": 448.0,
+   "oldWidth": 448,
    "height": 492.188,
    "base": [
     4962.75,
@@ -313,14 +313,14 @@
     4962.75,
     6026.344
    ],
-   "shadowWidth": 162.0
+   "shadowWidth": 162
   },
   {
    "id": "hamlet-tutu-tides-tutu-tailor-workshop",
    "hamlet": "tutu-tides",
    "src": "hamlets/tutu-tides/tutu-tailor-workshop.svg",
    "width": 520,
-   "oldWidth": 644.0,
+   "oldWidth": 644,
    "height": 412.609,
    "base": [
     4048.6,
@@ -337,7 +337,7 @@
    "hamlet": "chirrup",
    "src": "hamlets/chirrup/birdhouse-dovecote.svg",
    "width": 94,
-   "oldWidth": 84.0,
+   "oldWidth": 84,
    "height": 139.657,
    "base": [
     5803.4,
@@ -385,8 +385,8 @@
    "oldWidth": 89.6,
    "height": 145.6,
    "base": [
-    5879.0,
-    -211.0
+    5879,
+    -211
    ],
    "footprintScale": 1.09375,
    "door": null,
@@ -398,7 +398,7 @@
    "src": "hamlets/ribbonwick/flower-between-houses.svg",
    "width": 126,
    "oldWidth": 136.5,
-   "height": 108.0,
+   "height": 108,
    "base": [
     1031.5,
     -380.75
@@ -428,7 +428,7 @@
    "src": "hamlets/ribbonwick/flower-house-west.svg",
    "width": 117,
    "oldWidth": 126.75,
-   "height": 108.0,
+   "height": 108,
    "base": [
     -276.95,
     -306.65
@@ -443,7 +443,7 @@
    "src": "hamlets/ribbonwick/flower-workshop-back.svg",
    "width": 99,
    "oldWidth": 107.25,
-   "height": 108.0,
+   "height": 108,
    "base": [
     1873.9,
     1.45
@@ -551,7 +551,7 @@
    "height": 120.558,
    "base": [
     4384.6,
-    5755.0
+    5755
    ],
    "footprintScale": 0.8970099667774086,
    "door": null,

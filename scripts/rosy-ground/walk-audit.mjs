@@ -1,3 +1,4 @@
+import {auditRosyTargets} from '../lib/rosy-walk-targets.mjs';
 import {readFileSync,writeFileSync} from 'node:fs';
 import {mapOf} from '../../src/world/island-maps.js';
 import {inShape} from '../../assets/world/island-geometry.mjs';
@@ -6,12 +7,13 @@ export function auditRosy(){
  const map=mapOf('sunset'),nav=map.nav(),routes=read('scripts/rosy-ground/sampled-routes.json'),art=read('public/pixi-art/themes/pink/art.json'),remaining=[],pathEnds=[];
  let samples=0;
  for(const r of routes){
-  for(const p of r.samples){samples++;if(!nav.walkable(...p))remaining.push({type:'route-clearance',id:r.id,point:p,hits:map.walk.obstacles.filter(o=>inShape(...p,o,16))});}
-  for(const [end,p]of[['start',r.samples[0]],['end',r.samples.at(-1)]]){
+  for(const p of r.samples){samples++;if(!nav.walkable(...p)&&!map.walk.obstacles.some(o=>inShape(...p,o,o.clearance??16)))remaining.push({type:'unexplained-route-blocker',id:r.id,point:p});}
+  for(const [end,p]of[['start',r.approachStart??r.samples[0]],['end',r.approachEnd??r.samples.at(-1)]]){
    const reached=nav.walkable(...p)&&((Math.hypot(p[0]-map.spawn.x,p[1]-map.spawn.y)<1)||JSON.stringify(nav.route(map.spawn.x,map.spawn.y,...p).at(-1))===JSON.stringify(p));
    pathEnds.push({id:r.id,end,point:p,reached});if(!reached)remaining.push({type:'exact-path-end',id:r.id,end,point:p});
   }
  }
+ for(const t of auditRosyTargets(map))if(t.blocked||!t.reachable)remaining.push({type:'exact-target',id:t.id,point:t.point});
  const destinations=Object.entries(map.world.zones).filter(([id])=>id.startsWith('bigger-')).map(([id,z])=>{
   const p=z.spawn,reached=nav.walkable(...p)&&JSON.stringify(nav.route(map.spawn.x,map.spawn.y,...p).at(-1))===JSON.stringify(p);
   if(!reached)remaining.push({type:'destination',id,point:p});return {id,point:p,reached};

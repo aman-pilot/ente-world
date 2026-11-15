@@ -113,7 +113,7 @@
         "asset": "tree-4",
         "src": "/pixi-art/plants/tree-4.svg",
         "x": 7250,
-        "y": 3670,
+        "y": 3654,
         "width": 200,
         "height": 280,
         "scale": 1.06,
@@ -130,7 +130,7 @@
         ],
         "footprint": {
           "x": 7250,
-          "y": 3665,
+          "y": 3649,
           "rx": 27.6,
           "ry": 18
         }
@@ -1485,7 +1485,7 @@
         "asset": "tree-3",
         "src": "/pixi-art/plants/tree-3.svg",
         "x": 7330,
-        "y": -600,
+        "y": -552,
         "width": 300,
         "height": 380,
         "scale": 0.96,
@@ -1502,7 +1502,7 @@
         ],
         "footprint": {
           "x": 7330,
-          "y": -605,
+          "y": -557,
           "rx": 25,
           "ry": 16.3
         }
@@ -1512,7 +1512,7 @@
         "name": "Rosy tree-1",
         "asset": "tree-1",
         "src": "/pixi-art/plants/tree-1.svg",
-        "x": 7550,
+        "x": 7358,
         "y": -520,
         "width": 260,
         "height": 360,
@@ -1529,7 +1529,7 @@
           10.5
         ],
         "footprint": {
-          "x": 7550,
+          "x": 7358,
           "y": -525,
           "rx": 27.3,
           "ry": 17.9
@@ -1680,8 +1680,8 @@
         "name": "Rosy bush-3",
         "asset": "bush-3",
         "src": "/pixi-art/plants/bush-3.svg",
-        "x": 7690,
-        "y": -400,
+        "x": 7578,
+        "y": -384,
         "width": 116,
         "height": 104,
         "scale": 0.9,
@@ -1697,8 +1697,8 @@
           7.2
         ],
         "footprint": {
-          "x": 7690,
-          "y": -405,
+          "x": 7578,
+          "y": -389,
           "rx": 38.6,
           "ry": 17.1
         }
@@ -1708,7 +1708,7 @@
         "name": "Rosy bush-1",
         "asset": "bush-1",
         "src": "/pixi-art/plants/bush-1.svg",
-        "x": 7870,
+        "x": 7918,
         "y": -300,
         "width": 130,
         "height": 100,
@@ -1725,7 +1725,7 @@
           7.5
         ],
         "footprint": {
-          "x": 7870,
+          "x": 7918,
           "y": -305,
           "rx": 45.2,
           "ry": 17.9
@@ -2157,7 +2157,7 @@
         "asset": "tree-5",
         "src": "/pixi-art/plants/tree-5.svg",
         "x": 9270,
-        "y": 1010,
+        "y": 994,
         "width": 150,
         "height": 380,
         "scale": 1,
@@ -2174,7 +2174,7 @@
         ],
         "footprint": {
           "x": 9270,
-          "y": 1005,
+          "y": 989,
           "rx": 26,
           "ry": 17
         }
@@ -2185,7 +2185,7 @@
         "asset": "tree-2",
         "src": "/pixi-art/plants/tree-2.svg",
         "x": 9530,
-        "y": 1090,
+        "y": 1058,
         "width": 180,
         "height": 360,
         "scale": 0.98,
@@ -2202,7 +2202,7 @@
         ],
         "footprint": {
           "x": 9530,
-          "y": 1085,
+          "y": 1053,
           "rx": 25.5,
           "ry": 16.7
         }
@@ -2213,7 +2213,7 @@
         "asset": "bush-2",
         "src": "/pixi-art/plants/bush-2.svg",
         "x": 9420,
-        "y": 1010,
+        "y": 994,
         "width": 168,
         "height": 110,
         "scale": 0.92,
@@ -2230,7 +2230,7 @@
         ],
         "footprint": {
           "x": 9420,
-          "y": 1005,
+          "y": 989,
           "rx": 57.2,
           "ry": 17.5
         }
@@ -2241,7 +2241,7 @@
         "asset": "bush-1",
         "src": "/pixi-art/plants/bush-1.svg",
         "x": 9370,
-        "y": 1150,
+        "y": 1230,
         "width": 130,
         "height": 100,
         "scale": 1,
@@ -2258,7 +2258,7 @@
         ],
         "footprint": {
           "x": 9370,
-          "y": 1145,
+          "y": 1225,
           "rx": 48.1,
           "ry": 19
         }
@@ -2324,8 +2324,8 @@
         "name": "Rosy bush-1",
         "asset": "bush-1",
         "src": "/pixi-art/plants/bush-1.svg",
-        "x": 9270,
-        "y": 1220,
+        "x": 9286,
+        "y": 1236,
         "width": 130,
         "height": 100,
         "scale": 0.95,
@@ -2341,8 +2341,8 @@
           7.6
         ],
         "footprint": {
-          "x": 9270,
-          "y": 1215,
+          "x": 9286,
+          "y": 1231,
           "rx": 45.7,
           "ry": 18.1
         }
@@ -3080,8 +3080,8 @@
         "name": "Rosy bush-4",
         "asset": "bush-4",
         "src": "/pixi-art/plants/bush-4.svg",
-        "x": -70,
-        "y": 1490,
+        "x": -54,
+        "y": 1474,
         "width": 140,
         "height": 100,
         "scale": 0.9,
@@ -3097,8 +3097,8 @@
           7.2
         ],
         "footprint": {
-          "x": -70,
-          "y": 1485,
+          "x": -54,
+          "y": 1469,
           "rx": 46.6,
           "ry": 17.1
         }
@@ -3136,8 +3136,8 @@
         "name": "Rosy tree-1",
         "asset": "tree-1",
         "src": "/pixi-art/plants/tree-1.svg",
-        "x": 430,
-        "y": 1080,
+        "x": 350,
+        "y": 1016,
         "width": 260,
         "height": 360,
         "scale": 1,
@@ -3153,8 +3153,8 @@
           10
         ],
         "footprint": {
-          "x": 430,
-          "y": 1075,
+          "x": 350,
+          "y": 1011,
           "rx": 26,
           "ry": 17
         }
@@ -3164,8 +3164,8 @@
         "name": "Rosy tree-5",
         "asset": "tree-5",
         "src": "/pixi-art/plants/tree-5.svg",
-        "x": 1060,
-        "y": 1480,
+        "x": 996,
+        "y": 1688,
         "width": 150,
         "height": 380,
         "scale": 0.95,
@@ -3181,8 +3181,8 @@
           9.5
         ],
         "footprint": {
-          "x": 1060,
-          "y": 1475,
+          "x": 996,
+          "y": 1683,
           "rx": 24.7,
           "ry": 16.1
         }
@@ -4033,7 +4033,7 @@
         "asset": "bush-1",
         "src": "/pixi-art/plants/bush-1.svg",
         "x": 2050,
-        "y": 3780,
+        "y": 3796,
         "width": 130,
         "height": 100,
         "scale": 0.94,
@@ -4050,7 +4050,7 @@
         ],
         "footprint": {
           "x": 2050,
-          "y": 3775,
+          "y": 3791,
           "rx": 45.2,
           "ry": 17.9
         }
@@ -4173,7 +4173,7 @@
         "asset": "bush-4",
         "src": "/pixi-art/plants/bush-4.svg",
         "x": 3850,
-        "y": 4150,
+        "y": 4134,
         "width": 140,
         "height": 100,
         "scale": 0.95,
@@ -4190,7 +4190,7 @@
         ],
         "footprint": {
           "x": 3850,
-          "y": 4145,
+          "y": 4129,
           "rx": 49.2,
           "ry": 18.1
         }
@@ -4340,8 +4340,8 @@
         "name": "Rosy tree-2",
         "asset": "tree-2",
         "src": "/pixi-art/plants/tree-2.svg",
-        "x": 3180,
-        "y": 5990,
+        "x": 3356,
+        "y": 5734,
         "width": 180,
         "height": 360,
         "scale": 0.96,
@@ -4357,8 +4357,8 @@
           9.6
         ],
         "footprint": {
-          "x": 3180,
-          "y": 5985,
+          "x": 3356,
+          "y": 5729,
           "rx": 25,
           "ry": 16.3
         }
@@ -4676,8 +4676,8 @@
         "name": "Rosy bush-4",
         "asset": "bush-4",
         "src": "park/bush-4.svg",
-        "x": 2180,
-        "y": -350,
+        "x": 2164,
+        "y": -318,
         "width": 140,
         "height": 100,
         "scale": 0.9,
@@ -4693,8 +4693,8 @@
           7.2
         ],
         "footprint": {
-          "x": 2180,
-          "y": -355,
+          "x": 2164,
+          "y": -323,
           "rx": 46.6,
           "ry": 17.1
         }
@@ -4816,7 +4816,7 @@
         "name": "Rosy bush-3",
         "asset": "bush-3",
         "src": "park/bush-3.svg",
-        "x": 2580,
+        "x": 2676,
         "y": -260,
         "width": 116,
         "height": 104,
@@ -4833,7 +4833,7 @@
           6.9
         ],
         "footprint": {
-          "x": 2580,
+          "x": 2676,
           "y": -265,
           "rx": 36.9,
           "ry": 16.3
@@ -4844,7 +4844,7 @@
         "name": "Rosy tree-4",
         "asset": "tree-4",
         "src": "park/tree-4.svg",
-        "x": 2490,
+        "x": 2378,
         "y": 150,
         "width": 200,
         "height": 280,
@@ -4861,7 +4861,7 @@
           9.4
         ],
         "footprint": {
-          "x": 2490,
+          "x": 2378,
           "y": 145,
           "rx": 24.4,
           "ry": 16
@@ -4928,8 +4928,8 @@
         "name": "Rosy bush-2",
         "asset": "bush-2",
         "src": "park/bush-2.svg",
-        "x": 2730,
-        "y": 190,
+        "x": 2746,
+        "y": 174,
         "width": 168,
         "height": 110,
         "scale": 0.9,
@@ -4945,8 +4945,8 @@
           7.2
         ],
         "footprint": {
-          "x": 2730,
-          "y": 185,
+          "x": 2746,
+          "y": 169,
           "rx": 55.9,
           "ry": 17.1
         }
@@ -5264,8 +5264,8 @@
         "name": "Rosy tree-4",
         "asset": "tree-4",
         "src": "/pixi-art/plants/tree-4.svg",
-        "x": 4270,
-        "y": 70,
+        "x": 4302,
+        "y": 86,
         "width": 200,
         "height": 280,
         "scale": 0.93,
@@ -5281,8 +5281,8 @@
           9.3
         ],
         "footprint": {
-          "x": 4270,
-          "y": 65,
+          "x": 4302,
+          "y": 81,
           "rx": 24.2,
           "ry": 15.8
         }
@@ -5376,8 +5376,8 @@
         "name": "Rosy bush-3",
         "asset": "bush-3",
         "src": "/pixi-art/plants/bush-3.svg",
-        "x": 4170,
-        "y": 190,
+        "x": 4218,
+        "y": 174,
         "width": 116,
         "height": 104,
         "scale": 0.9,
@@ -5393,8 +5393,8 @@
           7.2
         ],
         "footprint": {
-          "x": 4170,
-          "y": 185,
+          "x": 4218,
+          "y": 169,
           "rx": 38.6,
           "ry": 17.1
         }
@@ -5741,7 +5741,7 @@
         "asset": "tree-1",
         "src": "/pixi-art/plants/tree-1.svg",
         "x": 8100,
-        "y": -220,
+        "y": -236,
         "width": 260,
         "height": 360,
         "scale": 0.93,
@@ -5758,7 +5758,7 @@
         ],
         "footprint": {
           "x": 8100,
-          "y": -225,
+          "y": -241,
           "rx": 24.2,
           "ry": 15.8
         }
@@ -5852,8 +5852,8 @@
         "name": "Rosy bush-1",
         "asset": "bush-1",
         "src": "/pixi-art/plants/bush-1.svg",
-        "x": 8020,
-        "y": -30,
+        "x": 7988,
+        "y": -14,
         "width": 130,
         "height": 100,
         "scale": 0.9,
@@ -5869,8 +5869,8 @@
           7.2
         ],
         "footprint": {
-          "x": 8020,
-          "y": -35,
+          "x": 7988,
+          "y": -19,
           "rx": 43.3,
           "ry": 17.1
         }
@@ -6020,7 +6020,7 @@
         "name": "Rosy bush-4",
         "asset": "bush-4",
         "src": "/pixi-art/plants/bush-4.svg",
-        "x": 8080,
+        "x": 8064,
         "y": 330,
         "width": 140,
         "height": 100,
@@ -6037,7 +6037,7 @@
           6.9
         ],
         "footprint": {
-          "x": 8080,
+          "x": 8064,
           "y": 325,
           "rx": 44.5,
           "ry": 16.3
@@ -6049,7 +6049,7 @@
         "asset": "tree-4",
         "src": "/pixi-art/plants/tree-4.svg",
         "x": 9400,
-        "y": 1380,
+        "y": 1396,
         "width": 200,
         "height": 280,
         "scale": 0.93,
@@ -6066,7 +6066,7 @@
         ],
         "footprint": {
           "x": 9400,
-          "y": 1375,
+          "y": 1391,
           "rx": 24.2,
           "ry": 15.8
         }
@@ -6077,7 +6077,7 @@
         "asset": "bush-3",
         "src": "/pixi-art/plants/bush-3.svg",
         "x": 8830,
-        "y": 1420,
+        "y": 1404,
         "width": 116,
         "height": 104,
         "scale": 0.88,
@@ -6094,7 +6094,7 @@
         ],
         "footprint": {
           "x": 8830,
-          "y": 1415,
+          "y": 1399,
           "rx": 37.8,
           "ry": 16.7
         }
@@ -6105,7 +6105,7 @@
         "asset": "bush-4",
         "src": "/pixi-art/plants/bush-4.svg",
         "x": 8980,
-        "y": 1540,
+        "y": 1556,
         "width": 140,
         "height": 100,
         "scale": 0.9,
@@ -6122,7 +6122,7 @@
         ],
         "footprint": {
           "x": 8980,
-          "y": 1535,
+          "y": 1551,
           "rx": 46.6,
           "ry": 17.1
         }
@@ -6469,7 +6469,7 @@
         "asset": "bush-2",
         "src": "/pixi-art/plants/bush-2.svg",
         "x": 8140,
-        "y": 2190,
+        "y": 2174,
         "width": 168,
         "height": 110,
         "scale": 0.9,
@@ -6486,7 +6486,7 @@
         ],
         "footprint": {
           "x": 8140,
-          "y": 2185,
+          "y": 2169,
           "rx": 55.9,
           "ry": 17.1
         }
@@ -6860,8 +6860,8 @@
         "name": "Rosy tree-5",
         "asset": "tree-5",
         "src": "/pixi-art/plants/tree-5.svg",
-        "x": 8840,
-        "y": 2660,
+        "x": 8776,
+        "y": 2772,
         "width": 150,
         "height": 380,
         "scale": 0.93,
@@ -6877,8 +6877,8 @@
           9.3
         ],
         "footprint": {
-          "x": 8840,
-          "y": 2655,
+          "x": 8776,
+          "y": 2767,
           "rx": 24.2,
           "ry": 15.8
         }
@@ -7056,8 +7056,8 @@
         "name": "Rosy tree-1",
         "asset": "tree-1",
         "src": "/pixi-art/plants/tree-1.svg",
-        "x": -780,
-        "y": 1290,
+        "x": -684,
+        "y": 1274,
         "width": 260,
         "height": 360,
         "scale": 0.93,
@@ -7073,8 +7073,8 @@
           9.3
         ],
         "footprint": {
-          "x": -780,
-          "y": 1285,
+          "x": -684,
+          "y": 1269,
           "rx": 24.2,
           "ry": 15.8
         }
@@ -7141,7 +7141,7 @@
         "asset": "bush-1",
         "src": "/pixi-art/plants/bush-1.svg",
         "x": -750,
-        "y": 1430,
+        "y": 1446,
         "width": 130,
         "height": 100,
         "scale": 0.9,
@@ -7158,7 +7158,7 @@
         ],
         "footprint": {
           "x": -750,
-          "y": 1425,
+          "y": 1441,
           "rx": 43.3,
           "ry": 17.1
         }
@@ -7588,7 +7588,7 @@
         "name": "Rosy bush-3",
         "asset": "bush-3",
         "src": "/pixi-art/plants/bush-3.svg",
-        "x": -530,
+        "x": -514,
         "y": 3290,
         "width": 116,
         "height": 104,
@@ -7605,7 +7605,7 @@
           7
         ],
         "footprint": {
-          "x": -530,
+          "x": -514,
           "y": 3285,
           "rx": 37.8,
           "ry": 16.7
@@ -7616,8 +7616,8 @@
         "name": "Rosy tree-4",
         "asset": "tree-4",
         "src": "/pixi-art/plants/tree-4.svg",
-        "x": -360,
-        "y": 3930,
+        "x": -232,
+        "y": 3722,
         "width": 200,
         "height": 280,
         "scale": 0.95,
@@ -7633,8 +7633,8 @@
           9.5
         ],
         "footprint": {
-          "x": -360,
-          "y": 3925,
+          "x": -232,
+          "y": 3717,
           "rx": 24.7,
           "ry": 16.1
         }
@@ -7757,7 +7757,7 @@
         "asset": "tree-4",
         "src": "/pixi-art/plants/tree-4.svg",
         "x": 1810,
-        "y": 3870,
+        "y": 3886,
         "width": 200,
         "height": 280,
         "scale": 0.93,
@@ -7774,7 +7774,7 @@
         ],
         "footprint": {
           "x": 1810,
-          "y": 3865,
+          "y": 3881,
           "rx": 24.2,
           "ry": 15.8
         }
@@ -7784,8 +7784,8 @@
         "name": "Rosy tree-5",
         "asset": "tree-5",
         "src": "/pixi-art/plants/tree-5.svg",
-        "x": 2020,
-        "y": 3850,
+        "x": 1972,
+        "y": 4010,
         "width": 150,
         "height": 380,
         "scale": 0.92,
@@ -7801,8 +7801,8 @@
           9.2
         ],
         "footprint": {
-          "x": 2020,
-          "y": 3845,
+          "x": 1972,
+          "y": 4005,
           "rx": 23.9,
           "ry": 15.6
         }
@@ -7868,8 +7868,8 @@
         "name": "Rosy bush-3",
         "asset": "bush-3",
         "src": "/pixi-art/plants/bush-3.svg",
-        "x": 2430,
-        "y": 4000,
+        "x": 2414,
+        "y": 3984,
         "width": 116,
         "height": 104,
         "scale": 0.88,
@@ -7885,8 +7885,8 @@
           7
         ],
         "footprint": {
-          "x": 2430,
-          "y": 3995,
+          "x": 2414,
+          "y": 3979,
           "rx": 37.8,
           "ry": 16.7
         }
@@ -8428,8 +8428,8 @@
         "name": "Rosy tree-1",
         "asset": "tree-1",
         "src": "/pixi-art/plants/tree-1.svg",
-        "x": 4130,
-        "y": 6500,
+        "x": 4402,
+        "y": 6452,
         "width": 260,
         "height": 360,
         "scale": 0.94,
@@ -8445,8 +8445,8 @@
           9.4
         ],
         "footprint": {
-          "x": 4130,
-          "y": 6495,
+          "x": 4402,
+          "y": 6447,
           "rx": 24.4,
           "ry": 16
         }
@@ -8513,7 +8513,7 @@
         "asset": "bush-1",
         "src": "/pixi-art/plants/bush-1.svg",
         "x": 4110,
-        "y": 6900,
+        "y": 6884,
         "width": 130,
         "height": 100,
         "scale": 0.9,
@@ -8530,7 +8530,7 @@
         ],
         "footprint": {
           "x": 4110,
-          "y": 6895,
+          "y": 6879,
           "rx": 43.3,
           "ry": 17.1
         }
@@ -8540,8 +8540,8 @@
         "name": "Rosy bush-2",
         "asset": "bush-2",
         "src": "/pixi-art/plants/bush-2.svg",
-        "x": 4320,
-        "y": 6790,
+        "x": 4432,
+        "y": 6774,
         "width": 168,
         "height": 110,
         "scale": 0.9,
@@ -8557,8 +8557,8 @@
           7.2
         ],
         "footprint": {
-          "x": 4320,
-          "y": 6785,
+          "x": 4432,
+          "y": 6769,
           "rx": 55.9,
           "ry": 17.1
         }
@@ -8568,8 +8568,8 @@
         "name": "Rosy bush-3",
         "asset": "bush-3",
         "src": "/pixi-art/plants/bush-3.svg",
-        "x": 4420,
-        "y": 6710,
+        "x": 4436,
+        "y": 6726,
         "width": 116,
         "height": 104,
         "scale": 0.9,
@@ -8585,8 +8585,8 @@
           7.2
         ],
         "footprint": {
-          "x": 4420,
-          "y": 6705,
+          "x": 4436,
+          "y": 6721,
           "rx": 38.6,
           "ry": 17.1
         }
@@ -9100,8 +9100,8 @@
         "name": "Rosy tree-5",
         "asset": "tree-5",
         "src": "/pixi-art/plants/tree-5.svg",
-        "x": 4200,
-        "y": -150,
+        "x": 4408,
+        "y": -390,
         "width": 150,
         "height": 380,
         "scale": 0.91,
@@ -9117,8 +9117,8 @@
           9.1
         ],
         "footprint": {
-          "x": 4200,
-          "y": -155,
+          "x": 4408,
+          "y": -395,
           "rx": 23.7,
           "ry": 15.5
         }
@@ -9128,8 +9128,8 @@
         "name": "Rosy tree-2",
         "asset": "tree-2",
         "src": "/pixi-art/plants/tree-2.svg",
-        "x": 4380,
-        "y": -300,
+        "x": 4428,
+        "y": -412,
         "width": 180,
         "height": 360,
         "scale": 0.92,
@@ -9145,8 +9145,8 @@
           9.2
         ],
         "footprint": {
-          "x": 4380,
-          "y": -305,
+          "x": 4428,
+          "y": -417,
           "rx": 23.9,
           "ry": 15.6
         }
@@ -9212,7 +9212,7 @@
         "name": "Rosy bush-3",
         "asset": "bush-3",
         "src": "/pixi-art/plants/bush-3.svg",
-        "x": 4130,
+        "x": 4162,
         "y": 20,
         "width": 116,
         "height": 104,
@@ -9229,7 +9229,7 @@
           7
         ],
         "footprint": {
-          "x": 4130,
+          "x": 4162,
           "y": 15,
           "rx": 37.8,
           "ry": 16.7
@@ -9465,7 +9465,7 @@
         "asset": "bush-3",
         "src": "/pixi-art/plants/bush-3.svg",
         "x": 8440,
-        "y": 430,
+        "y": 414,
         "width": 116,
         "height": 104,
         "scale": 0.88,
@@ -9482,7 +9482,7 @@
         ],
         "footprint": {
           "x": 8440,
-          "y": 425,
+          "y": 409,
           "rx": 37.8,
           "ry": 16.7
         }
@@ -9605,7 +9605,7 @@
         "asset": "tree-4",
         "src": "/pixi-art/plants/tree-4.svg",
         "x": 7750,
-        "y": 2220,
+        "y": 2204,
         "width": 200,
         "height": 280,
         "scale": 0.93,
@@ -9622,7 +9622,7 @@
         ],
         "footprint": {
           "x": 7750,
-          "y": 2215,
+          "y": 2199,
           "rx": 24.2,
           "ry": 15.8
         }
@@ -10584,8 +10584,8 @@
         "name": "Rosy tree-2",
         "asset": "tree-2",
         "src": "/pixi-art/plants/tree-2.svg",
-        "x": 3880,
-        "y": 6510,
+        "x": 3864,
+        "y": 6574,
         "width": 180,
         "height": 360,
         "scale": 0.91,
@@ -10601,8 +10601,8 @@
           9.1
         ],
         "footprint": {
-          "x": 3880,
-          "y": 6505,
+          "x": 3864,
+          "y": 6569,
           "rx": 23.7,
           "ry": 15.5
         }
@@ -10612,7 +10612,7 @@
         "name": "Rosy bush-4",
         "asset": "bush-4",
         "src": "/pixi-art/plants/bush-4.svg",
-        "x": 3770,
+        "x": 3786,
         "y": 6970,
         "width": 140,
         "height": 100,
@@ -10629,7 +10629,7 @@
           7.2
         ],
         "footprint": {
-          "x": 3770,
+          "x": 3786,
           "y": 6965,
           "rx": 46.6,
           "ry": 17.1
@@ -10668,7 +10668,7 @@
         "name": "Rosy bush-4",
         "asset": "bush-4",
         "src": "/pixi-art/plants/bush-4.svg",
-        "x": 4230,
+        "x": 4166,
         "y": 6610,
         "width": 140,
         "height": 100,
@@ -10685,7 +10685,7 @@
           7.2
         ],
         "footprint": {
-          "x": 4230,
+          "x": 4166,
           "y": 6605,
           "rx": 46.6,
           "ry": 17.1

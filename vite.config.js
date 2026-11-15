@@ -8,6 +8,7 @@ import {pruneUnusedArt} from './scripts/vite-prune-art.mjs';
 
 export default defineConfig({
   appType: 'mpa',
+  build: {target:'esnext'},
   plugins: [react(), productionSignIn(), groundMesh(), prerenderArt(), pruneUnusedArt(), {
     name: 'share-theme-walk-data',
     apply: 'build',
