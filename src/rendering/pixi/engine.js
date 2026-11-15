@@ -1,3 +1,4 @@
+import {installPixelRecovery} from './art/pixel-residency.js';
 import {createIslandPrefetch} from './art/island-prefetch.js';
 import {selectIslandTier} from '../../app/ducky-prefetch.js';
 import {swapIslandDetail,detailZoomLimit} from './art/island-detail.js';
@@ -190,6 +191,11 @@ export class PixiIsland {
       if (this.disposed) { this.app.destroy({removeView:true,releaseGlobalResources:false}, {children: true}); return; }
       this.initialized = true;
       this.canvas = this.app.canvas;
+      this.cleanups.push(installPixelRecovery(this.app.renderer,{
+        lost:()=>{this.contextRecovering=true;cancelAnimationFrame(this.raf);this.audio.suspend();},
+        restored:()=>{if(this.disposed)return;this.contextRecovering=false;this.lastFrame=performance.now();this.audio.resume();cancelAnimationFrame(this.raf);this.raf=requestAnimationFrame(time=>this.scene.visible?this.tick(time):this.renderArrival(time));},
+        failed:error=>{if(!this.disposed)this.onError(error);},
+      }));
       this.canvas.tabIndex = 0;
       this.canvas.setAttribute('role', 'application');
       this.updateControlLabel();
@@ -269,7 +275,6 @@ export class PixiIsland {
         lease.count++;return Promise.resolve(lease.texture);
       };
       this.resize(true);
-      this.listen(this.canvas, 'webglcontextlost', event => {event.preventDefault(); cancelAnimationFrame(this.raf); this.audio.suspend(); this.onError();});
       const homeMeshEntry=await groundMeshEntry('home');
       const tiles = HOME_TILES;
       this.homeGround = new Container({label: 'Home ground'}); this.ground.addChild(this.homeGround);
@@ -448,7 +453,7 @@ export class PixiIsland {
 
 
   renderArrival(now) {
-    if(this.disposed||!this.arrivalScene)return;
+    if(this.disposed||this.contextRecovering||!this.arrivalScene)return;
     const dt=Math.min(.1,Math.max(0,now-this.lastFrame)/1000),t=now/1000;
     this.lastFrame=now;
     const player=this.player ?? this.initialSpawn;
@@ -1171,7 +1176,7 @@ export class PixiIsland {
       // Landing pins can go once all live frames hold their detail sheets.
       state.lease.releaseLanding?.();
       if(this.destinationArt&&this.destinationArt!==mapId)return;
-      this.islandPrefetch??=createIslandPrefetch({getIndex:getIslandIndex,islands:WORLD_ISLANDS,prepareData:prepareIslandMap,
+      this.islandPrefetch??=createIslandPrefetch({getIndex:getIslandIndex,islands:WORLD_ISLANDS,
         distance:(a,b)=>{const p=offsetOf(a.id,b.id);return p.x*p.x+p.y*p.y;},
         selectTier:(data,id)=>selectIslandTier(data,id,this.app.renderer.resolution,this.width,this.height)});
       if(this.artShown===mapId&&!this.trip&&this.player?.mode!=='sailing')this.islandPrefetch.resume(id);
@@ -1654,7 +1659,7 @@ export class PixiIsland {
   }
 
   tick(now,{forceRender=false}={}) {
-    if (this.disposed || (document.hidden&&!forceRender)) return;
+    if (this.disposed || this.contextRecovering || (document.hidden&&!forceRender)) return;
     const elapsed = Math.max(0, now - this.lastFrame);
     const dt = Math.min(.1, elapsed / 1000);
     this.frameTimes.push(elapsed);

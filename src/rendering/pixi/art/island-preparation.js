@@ -1,3 +1,4 @@
+import {prepareArtPixels} from './pixel-residency.js';
 import {Texture} from 'pixi.js';
 import {recoverArt, finalTextureSource, isArtPlaceholder, ART_TIMEOUT_MS} from './art-recovery.js';
 
@@ -121,6 +122,7 @@ export async function uploadIsland(renderer, roots, {sources = [], requiredRoots
     for(const current of required)if(!warmed.has(current))pending.add(current);
     if(source.destroyed||warmed.has(source))continue;
     source.autoGarbageCollect=false;
+    await prepareArtPixels(source,renderer);
     await recoverArt(()=>{
       if(renderer.texture.bindSource)renderer.texture.bindSource(source);
       else renderer.texture.initSource(source);

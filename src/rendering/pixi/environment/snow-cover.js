@@ -62,7 +62,7 @@ function releaseGeometry() {
 export function snowCrownProfile(pixels, w, h, sourceWidth, sourceHeight, region = null) {
   const tops = new Float32Array(w); tops.fill(-1);
   let left = w, right = -1;
-  for (let x = 0; x < w; x++) for (let y = Math.max(0, Math.floor((region?.[2] || 0) * h)); y < h; y++) if (pixels[(y * w + x) * 4 + 3] > 96) {
+  for (let x = 0; x < w; x++) for (let y = Math.max(0, Math.floor((region?.[2] || 0) * h)); y < h; y++) if ((pixels.length===w*h?pixels[y*w+x]:pixels[(y*w+x)*4+3]) > 96) {
     tops[x] = y / h * sourceHeight; left = Math.min(left, x); right = Math.max(right, x); break;
   }
   if (right - left < 3) return null;
@@ -143,14 +143,20 @@ function acquireCrown(texture, region = null, key = '', ink = 8, depthWidth) {
   if (existing) {existing.users++; return existing;}
   let profile = null, sampled = false;
   try {
-    const resource = texture.source.resource, canvas = document.createElement('canvas');
-    canvas.width = canvas.height = 192;
-    const ctx = canvas.getContext('2d', {willReadFrequently: true}), f = texture.frame, r = texture.source.resolution;
-    const ink=texture.trim??{x:0,y:0,width:texture.width,height:texture.height};
-    ctx.drawImage(resource, f.x * r, f.y * r, f.width * r, f.height * r,
-      ink.x/texture.width*192,ink.y/texture.height*192,ink.width/texture.width*192,ink.height/texture.height*192);
-    sampled = texture.width > 2 && texture.height > 2;
-    profile = snowCrownProfile(ctx.getImageData(0, 0, 192, 192).data, 192, 192, texture.width, texture.height, region);
+    let pixels=texture.artAlphaSample;
+    if(!pixels){
+      const resource=texture.source.resource,canvas=document.createElement('canvas');
+      canvas.width=canvas.height=192;
+      try{
+        const ctx=canvas.getContext('2d',{willReadFrequently:true}),f=texture.frame,r=texture.source.resolution;
+        const ink=texture.trim??{x:0,y:0,width:texture.width,height:texture.height};
+        ctx.drawImage(resource,f.x*r,f.y*r,f.width*r,f.height*r,
+          ink.x/texture.width*192,ink.y/texture.height*192,ink.width/texture.width*192,ink.height/texture.height*192);
+        pixels=ctx.getImageData(0,0,192,192).data;
+      }finally{canvas.width=canvas.height=1;}
+    }
+    sampled=texture.width>2&&texture.height>2;
+    profile=snowCrownProfile(pixels,192,192,texture.width,texture.height,region);
   } catch {  }
   const caps = [];
   if (profile) for (let stage = 1; stage <= 4; stage++) caps.push(drawSnowCap(profile, stage, ink, depthWidth));

@@ -23,5 +23,12 @@ export async function loadRasterDetail(spec,{signal,fetcher=fetch,decode=createI
  let plan;
  try{plan=await sheetsPromise;const failed=results.find(r=>r.status==='rejected');if(failed)throw failed.reason;signal?.throwIfAborted();}
  catch(error){for(const r of results)if(r.status==='fulfilled')r.value.close();throw error;}
- return {sheets:plan.sheets,bitmaps:results.map(r=>r.value)};
+ const reloads=results.map((_,i)=>async()=>{
+  const url=spec.rasterPack?.url??spec.raster[i];
+  const response=await fetcher(url,{priority:'high'});if(!response.ok)throw Error(`Detail recovery HTTP ${response.status}`);
+  let blob=await response.blob();
+  if(spec.rasterPack){const [offset,length]=spec.rasterPack.ranges[i];blob=blob.slice(offset,offset+length,'image/webp');}
+  return decode(blob,{premultiplyAlpha:'premultiply'});
+ });
+ return {sheets:plan.sheets,bitmaps:results.map(r=>r.value),reloads};
 }

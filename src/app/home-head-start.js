@@ -61,7 +61,12 @@ export function warmSignInCache() {
   startHomeHeadStart();
   for (const url of globalThis.__EW_GAME ?? []) {
     if (codeWarm.has(url)) continue;
-    const job=fetch(url,{priority:'low'}).then(r=>{if(!r.ok)throw Error(r.status);return r.arrayBuffer();}).catch(()=>{codeWarm.delete(url);});
+    const job=fetch(url,{priority:'low'}).then(async r=>{
+      if(!r.ok)throw Error(r.status);
+      const reader=r.body?.getReader();
+      if(reader){try{while(!(await reader.read()).done){}}finally{reader.releaseLock();}}
+      else await r.arrayBuffer();
+    }).catch(()=>{codeWarm.delete(url);});
     codeWarm.set(url,job);
   }
 }

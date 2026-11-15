@@ -7,7 +7,12 @@ export const prefetchAllowed=(connection=globalThis.navigator?.connection)=>!con
 export function createIslandPrefetch({getIndex,selectTier,islands,prepareData=async()=>{},allowed=prefetchAllowed,distance=(a,b)=>(a.x-b.x)**2+(a.y-b.y)**2,fetchBytes=async(url,signal)=>{
   const response=await fetch(url,{priority:'low',signal});
   if(!response.ok)throw Error(`Island prefetch HTTP ${response.status}`);
-  await response.arrayBuffer();
+  // Drain into the HTTP cache without allocating a sheet-sized ArrayBuffer.
+  if(response.body?.getReader){
+    const reader=response.body.getReader();
+    try{while(!(await reader.read()).done){signal?.throwIfAborted();}}
+    finally{reader.releaseLock();}
+  }else await response.arrayBuffer();
 },idle=callback=>globalThis.requestIdleCallback?requestIdleCallback(callback,{timeout:2000}):setTimeout(callback,100)}={}) {
   const done=new Set();let current,paused=true,scheduled=false,running=false,controller,dead=false,generation=0;
   const schedule=()=>{

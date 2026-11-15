@@ -12,11 +12,11 @@ const SHARP = 1.25;   // the authored boat drawing scale (views.json resolution)
 const art = (src, resolution = SHARP) => ({src, data: {resolution, autoGenerateMipmaps: true}});
 // The 48-direction atlas is drawn small to stay in budget, so it reads soft up close. Boats on screen use a full-sharpness
 // picture of just the directions in use, loaded on first use; the atlas frame stands in until it arrives.
-const SHARP_KEEP = 12;
+const SHARP_KEEP = 12, SHARP_IDLE_MS=10000;
 const textureFiles = new WeakMap();
-function createSharpCache({load=file=>Assets.load(art(DIR+file)),unload=file=>Assets.unload(DIR+file),now=()=>performance.now()}={}) {
+function createSharpCache({load=file=>Assets.load({src:DIR+file+'?boatSharp=1',data:{resolution:SHARP,autoGenerateMipmaps:true,prerenderSource:DIR+file}}),unload=file=>Assets.unload(DIR+file+'?boatSharp=1'),now=()=>performance.now()}={}) {
   const cache = new Map(), unloading = new Map();
-  let sweptAt = -Infinity;
+  let sweptAt = -Infinity, timer;
   const drop = file => {
     cache.delete(file);
     // a reload of the same file waits for this unload, so it never gets the texture being destroyed
@@ -24,15 +24,20 @@ function createSharpCache({load=file=>Assets.load(art(DIR+file)),unload=file=>As
     unloading.set(file,done);
   };
   const sweep = t => {
-    if (cache.size <= SHARP_KEEP || t-sweptAt < 500) return;
-    sweptAt = t;
-    const idle = [...cache].filter(([,e])=>e.texture&&t-e.used>2000).sort((a,b)=>a[1].used-b[1].used);
-    for (const [file] of idle.slice(0,cache.size-SHARP_KEEP)) drop(file);
+    if(t-sweptAt<500)return;
+    sweptAt=t;
+    const idle=[...cache].filter(([,e])=>e.texture&&t-e.used>2000).sort((a,b)=>a[1].used-b[1].used);
+    for(const [file,e]of idle)if(t-e.used>SHARP_IDLE_MS||cache.size>SHARP_KEEP)drop(file);
+  };
+  const schedule=()=>{
+    if(timer)return;
+    timer=setTimeout(()=>{timer=null;sweep(now());if(cache.size)schedule();},1000);
+    timer.unref?.();
   };
   return {
-    get(texture) {
+    get(texture,visible=true) {
       const file = texture && textureFiles.get(texture);
-      if (!file) return texture;
+      if (!file||!visible) return texture;
       const t = now();
       let entry = cache.get(file);
       if (!entry) {
@@ -43,7 +48,7 @@ function createSharpCache({load=file=>Assets.load(art(DIR+file)),unload=file=>As
         }).catch(()=>{if(cache.get(file)===entry)cache.delete(file);});
       }
       entry.used = t;
-      sweep(t);
+      sweep(t);schedule();
       return entry.texture&&!entry.texture.destroyed ? entry.texture : texture;
     },
   };
@@ -112,9 +117,9 @@ export function loadBoatViews() {
         return best;
       },
       // the picture to draw for a view: the sharp one once it has loaded, else the atlas frame
-      best(v, texture = v.texture) {return sharp.get(texture);},
-      apply(sprite, v, scaleMul = 1, texture = v.texture) {
-        texture = sharp.get(texture);
+      best(v, texture = v.texture,visible=true) {return sharp.get(texture,visible);},
+      apply(sprite, v, scaleMul = 1, texture = v.texture,visible=true) {
+        texture = sharp.get(texture,visible);
         sprite.texture = texture;
         sprite.anchor.set(v.anchor[0], v.anchor[1]);
         const k = v.width / texture.width * scaleMul;
