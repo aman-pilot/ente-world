@@ -81,7 +81,8 @@ export function createBogCombat({blockers=getBogBlockers(),bounds=BOG_COMBAT.bou
     p.lives=Math.max(0,p.lives-1);p.out=p.lives===0;p.comebackReady=true;p.lastTaggedBy=shot.owner;p.alive=false;p.pace=0;p.heading=null;p.path=[];p.travel=0;p.respawnAt=state.time+RULES.respawnDelay;p.input=idle();p.action=0;p.streak=0;
     const owner=state.players.get(shot.owner);state.scores[shot.team]+=RULES.tagPoints;
     let medals=[];
-    if(owner&&(owner.bot||!p.bot)){owner.stats.tags++;owner.stats.score+=RULES.tagScore;owner.streak++;owner.stats.bestStreak=Math.max(owner.stats.bestStreak,owner.streak);
+    // every tag counts, bots included (boss): a quiet match full of bots still scores
+    if(owner){owner.stats.tags++;owner.stats.score+=RULES.tagScore;owner.streak++;owner.stats.bestStreak=Math.max(owner.stats.bestStreak,owner.streak);
       if(!owner.bot){owner.stats.medals++;
       medals=tagMedals({owner,victim:p,players:state.players.values(),time:state.time,distance:RULES.range-shot.left+Math.hypot(point.x-shot.x,point.y-shot.y),scores:state.scores,inBonusZone:isBonusZone(p)});save(owner);}
     }

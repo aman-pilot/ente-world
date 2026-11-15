@@ -16,6 +16,7 @@ export default function BogReview(){
  const inspect=new URLSearchParams(location.search).has('inspect');
  useEffect(()=>{
   let cancelled=false,installation;
+  document.getElementById('boot-sky')?.remove();   // the landing intro's sky layer from index.html, which only the landing clears
   const game=new PixiIsland({onError:e=>{globalThis.bogReviewError=String(e);if(!cancelled)setError(String(e));}});
   globalThis.bogGame=game;
   const camera=(x,y,zoom=.65)=>{
@@ -24,6 +25,7 @@ export default function BogReview(){
   globalThis.bogCamera=camera;
   (async()=>{
    await game.mount(host.current);if(cancelled)return;
+   if(bots>0)game.canvas.style.opacity='0';   // the bot match fades in on the match itself (BogDemo), not on the dock first
    installation=installBogEnvironment();
    game.switchIsland(installation.islandId);
    const dock=installation.map.HARBOR.land;
@@ -61,6 +63,7 @@ export default function BogReview(){
  };
  return <main style={{position:'fixed',inset:0,background:'#6ec9de'}}>
   <div ref={host} style={{width:'100%',height:'100%'}}/>
+  <style>{'body:has(.bog-hud) nav[aria-label="Bog environment review"]{display:none!important}'}</style>
   <nav aria-label="Bog environment review" style={{position:'absolute',left:12,top:12,display:'flex',gap:5,flexWrap:'wrap',maxWidth:900,font:'12px system-ui'}}>
    <button onClick={()=>globalThis.bogCamera?.(4200,4170,.1)}>Whole island</button>
    {Object.entries(BOG_AREAS).map(([name,a])=><button key={name} onClick={()=>globalThis.bogCamera?.(a.x,name==='mid'?2050:a.y,.65)}>{name}</button>)}

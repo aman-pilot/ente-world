@@ -8,7 +8,7 @@ import {createBotPoofs} from '../src/features/bog-combat/bot-poof.js';
 import {createBotNavigation} from '../src/features/bog-combat/bot-navigation.js';
 import {createBogCombat} from '../src/features/bog-combat/sim.js';
 import {BOG_COMBAT} from '../src/features/bog-combat/config.js';
-import {RULES,emptyStats} from '../src/features/bog-combat/rules.js';
+import {RULES,emptyStats,BOG_BOT_NAMES} from '../src/features/bog-combat/rules.js';
 import {tagMedals} from '../src/features/bog-combat/medals.js';
 import {BOG_ISLAND,teamCounts} from '../src/features/bog-combat/entry.js';
 import {mapOf} from '../src/world/island-maps.js';
@@ -38,7 +38,7 @@ test('live lobby starts six balanced, plain-name bots with no accounts, payments
   assert.deepEqual(lobby.notes.at(-1).counts,{karma:0,evil:0});assert.ok(service.timer);
   const at=service.arena.state.time;service.step();assert.ok(service.arena.state.time>at,'bots run with no human fighter');
   for(const bot of bots(service)){
-   assert.match(bot.name,/^Bog Bot [1-6]$/);assert.equal(bot.karma,0);assert.equal(bot.lives,5);assert.equal(owner.karma.bogEntry(bot.profile),null);
+   assert.ok(BOG_BOT_NAMES.includes(bot.name));assert.equal(new Set(bots(service).map(p=>p.name)).size,bots(service).length);assert.equal(bot.karma,0);assert.equal(bot.lives,5);assert.equal(owner.karma.bogEntry(bot.profile),null);
   }
   assert.equal(owner.karma.balance(p.account),5,'only the human visit pays');
   assert.equal(owner.sql.exec('SELECT * FROM bog_profiles').toArray().length,0);
@@ -89,13 +89,12 @@ test('bot tags use real five-life knockouts and hidden respawns, then renew with
  }finally{stop(owner);}
 });
 
-test('bot combat grants no bot medals and cannot farm saved human tags, medals or best streak',()=>{
+test('bot combat grants no bot medals, and a human tag on a bot counts like any tag',()=>{
  const saves=[],sim=createBogCombat({...BOG_COMBAT,onStats:(...args)=>saves.push(args)});
  const human=sim.join({id:'human',team:'karma'}),bot=sim.join({id:'bot',team:'evil'});bot.bot=true;
- hit(sim,bot,human.id);assert.deepEqual(human.stats,emptyStats());assert.deepEqual(human.medalCase,{});assert.equal(human.streak,0);
- assert.equal(saves.length,0);assert.deepEqual(sim.state.events.at(-1).medals,[]);
+ hit(sim,bot,human.id);assert.equal(human.stats.tags,1);assert.equal(human.stats.score,RULES.tagScore);assert.equal(human.streak,1);
  hit(sim,human,bot.id);assert.equal(bot.stats.tags,1);assert.equal(bot.stats.medals,0);assert.deepEqual(bot.medalCase,{});
- sim.leave(bot.id);sim.leave(human.id);assert.ok(saves.every(([id,stats])=>id==='human'&&stats.tags===0&&stats.medals===0));
+ sim.leave(bot.id);sim.leave(human.id);assert.ok(saves.every(([id])=>id==='human'),'only humans are saved');
  const owner={id:'owner',team:'karma',stats:{tags:1},medalCase:{},lastTagAt:-Infinity,streak:1},victim={id:'victim',team:'evil'};
  const medals=tagMedals({owner,victim,players:[{...owner,alive:true},{...victim,alive:false},{id:'extra-bot',bot:true,team:'evil',alive:true}],time:0,distance:0});
  assert.ok(!medals.includes('clutch'),'bots cannot satisfy a saved medal condition');
@@ -144,7 +143,8 @@ test('live bot paths spread bounded work across ticks, clear actual obstacles an
 test('six normal bots play real combat on the live map, stay walkable and keep bounded slots',()=>{
  const sim=createBogCombat(BOG_COMBAT),fill=createBogBots(sim,BOG_COMBAT,{random:seeded(97)});fill.sync();
  let tags=0;const timings=[];
- for(let i=0;i<7200;i++){
+ // up to five minutes: with three hits a heart a team can take longer to land its first tag
+ for(let i=0;i<18000&&!(i>=7200&&sim.state.scores.karma>0&&sim.state.scores.evil>0);i++){
   const start=performance.now();fill.step();const elapsed=performance.now()-start;timings.push(elapsed);sim.step(1/60);
   if(sim.state.events.length)tags++;
   if(i%60===0)for(const p of sim.state.players.values())assert.ok(BOG_COMBAT.navigation.walkable(p.x,p.y),p.name);
@@ -168,7 +168,8 @@ test('ten ducks run the normal shared brain and real simulation for three minute
   timings.push(performance.now()-start);
   if(tick%60===0)for(const p of sim.state.players.values())assert.ok(BOG_COMBAT.navigation.walkable(p.x,p.y));
  }
- assert.equal(sim.state.players.size,10);assert.ok(sim.state.scores.karma>=10&&sim.state.scores.evil>=10,'both teams find real fights');
+ assert.equal(sim.state.players.size,10);// three hits a heart: fewer knockouts in three minutes than the old one-hit rule
+ assert.ok(sim.state.scores.karma>=5&&sim.state.scores.evil>=5,'both teams find real fights');
  assert.ok([...sim.state.players.values()].every(p=>p.stats.medals===0));
  timings.sort((a,b)=>a-b);
  console.log(`Bog 10-duck AI + sim CPU: mean ${(timings.reduce((a,b)=>a+b,0)/timings.length).toFixed(3)} ms, P95 ${timings[Math.floor(timings.length*.95)].toFixed(3)} ms, P99 ${timings[Math.floor(timings.length*.99)].toFixed(3)} ms, max ${timings.at(-1).toFixed(3)} ms`);

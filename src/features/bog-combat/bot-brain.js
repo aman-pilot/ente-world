@@ -40,9 +40,11 @@ export function createBotController(sim,combat,{random=Math.random,showcase=fals
       const dx=enemy.x-p.x+(enemy.input?.x??0)*(enemy.pace??0)*lead,dy=enemy.y-p.y+(enemy.input?.y??0)*(enemy.pace??0)*lead,d=Math.hypot(dx,dy);
       b.point.x=dx;b.point.y=dy;const angle=movementFacing(b.point),aim=facingVector(angle,b.aim);
       const cross=dx*aim.y-dy*aim.x;
-      if(Math.abs(cross)>(hero?16:24)){x=Math.sign(cross)*aim.y;y=-Math.sign(cross)*aim.x;}
+      const aimTolerance=hero?22:showcase&&p.team==='karma'?30:19;
+      // Keep aligning until a shot is possible, even inside stopping distance.
+      if(Math.abs(cross)>=aimTolerance){x=Math.sign(cross)*aim.y;y=-Math.sign(cross)*aim.x;}
       else if(p.facing!==angle||d>330){x=aim.x;y=aim.y;}
-      fire=Math.abs(cross)<(hero?22:showcase&&p.team==='karma'?30:19);
+      fire=Math.abs(cross)<aimTolerance;
       if(fire){x=aim.x;y=aim.y;}
       if(hero&&d<190&&!fire)run=true;
       if(sim.state.time>b.pause&&random()<.008)b.pause=sim.state.time+.12+random()*.25;

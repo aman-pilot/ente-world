@@ -40,14 +40,18 @@ export default function BogDemo({engine,combat,count}){
  },[demo,engine]);
  useEffect(()=>{
   const timer=setInterval(()=>{
-   if(mode==='area'||(engine.bogCombat&&!engine.bogCombat.room.demoSpectator&&mode==='action'))return;
+   // the player has joined a team: the game's own camera follows their Ducky, so the demo stops steering it
+   if(mode==='area'||(engine.bogCombat&&!engine.bogCombat.room.demoSpectator))return;
    const focus=demo.sim.state.players.get(mode==='action'?demo.heroId:mode);
-   if(focus){engine.follow=false;engine.fitMode=false;engine.fly=null;Object.assign(engine.target,{x:focus.x,y:focus.y-90,zoom:.65});}
+   if(focus){engine.follow=false;engine.fitMode=false;engine.fly=null;Object.assign(engine.target,{x:focus.x,y:focus.y-90,zoom:.65});
+    // first frame: start right on the match (the page hides the dock view until now, so there is no jump across the island)
+    if(engine.canvas.style.opacity==='0'){Object.assign(engine.camera,{x:focus.x,y:focus.y-90,zoom:.65});engine.canvas.style.transition='opacity .25s';engine.canvas.style.opacity='1';}}
   },16);return()=>clearInterval(timer);
  },[mode,demo,engine]);
  const focused=snapshot?.players.find(p=>p.id===(mode==='action'||mode==='area'?demo.heroId:mode));
  return <>
-  <aside className="bog-combat-hud" aria-label="Local autoplay demo" style={picker?{left:'auto',right:16}:undefined}>
+  {/* while the player is in the dock or a match the page shows only what players see */}
+  <aside className="bog-combat-hud" aria-label="Local autoplay demo" hidden={picker}>
    <div className="bog-combat-score"><span>KARMA {snapshot?.scores.karma??0}</span><span>EVIL {snapshot?.scores.evil??0}</span></div>
    <p>LOCAL DEMO · {count} bots · {mode==='action'?'Following Ducky':mode==='area'?'Area camera':snapshot?.players.find(p=>p.id===mode)?.name}</p>
    {focused&&<><div className="bog-combat-lives" role="img" aria-label={`${focused.lives} lives left`}>{Array.from({length:RULES.lives},(_,i)=><span key={i} aria-hidden="true" className={i<focused.lives?'':'lost'}>♥</span>)}</div>{focused.alive&&focused.shieldUntil>snapshot.time&&<p>Hidden {Math.ceil(focused.shieldUntil-snapshot.time)}s</p>}</>}

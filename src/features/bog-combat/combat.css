@@ -35,7 +35,7 @@
 .bog-hud-hearts svg { width:28px; height:26px; }
 .bog-hud-hearts path { fill:#ff5f7a; stroke:var(--ink); stroke-width:2.6; stroke-linejoin:round; }
 .bog-hud-hearts .lost path { fill:#e9e1c6; }
-.bog-hud-hearts .half path { fill:url(#bog-heart-half); }
+.bog-hud-hearts .part path { fill:url(#bog-heart-part); }
 .bog-hud-bar .bog-combat-popper-icon { width:40px; height:28px; margin:0; }
 .bog-hud-paint { display:flex; gap:4px; }
 .bog-hud-paint i { width:10px; height:24px; border:2.5px solid var(--ink); border-radius:4px; background:#58cc02; }
@@ -148,7 +148,7 @@
 .bog-pick-join { width:320px; height:72px; margin-top:16px; font-size:24px !important; letter-spacing:.04em; text-transform:uppercase; }
 .bog-pick-karma .bog-pick-join { color:#3c8a02; } .bog-pick-evil .bog-pick-join { color:#c4306c; }
 .bog-pick-need { position:absolute; top:-40px; padding:4px 12px; border:3px solid var(--ink); border-radius:99px; background:#ffd84a; box-shadow:0 4px 0 var(--ink); color:var(--ink); font-size:14px; rotate:-4deg; white-space:nowrap; }
-.bog-pick-vs { position:absolute; left:50%; top:calc(100% - 432px); translate:-50% -50%; z-index:3; display:grid; place-items:center; width:120px; height:120px; border:5px solid var(--ink); border-radius:50%; background:#ffd84a; box-shadow:0 8px 0 var(--ink); color:var(--ink); font-size:46px; rotate:-8deg; animation:bog-vs-in 460ms cubic-bezier(.34,1.56,.64,1) 420ms backwards; }
+.bog-pick-vs { position:absolute; left:50%; top:calc(100% - 520px); translate:-50% -50%; z-index:3; display:grid; place-items:center; width:120px; height:120px; border:5px solid var(--ink); border-radius:50%; background:#ffd84a; box-shadow:0 8px 0 var(--ink); color:var(--ink); font-size:46px; rotate:-8deg; animation:bog-vs-in 460ms cubic-bezier(.34,1.56,.64,1) 420ms backwards; }
 .bog-pick > .bog-entry-status { position:absolute; left:0; right:0; bottom:16px; z-index:3; color:#fff; text-align:center; font:700 14px/1 'Fredoka',system-ui,sans-serif; }
 .bog-pick > .bog-entry-status button { height:32px; margin-left:8px; padding:0 12px; border-width:3px; font-size:13px; box-shadow:0 3px 0 var(--ink); }
 @keyframes bog-entry-in { from { opacity:0; scale:.96; } }

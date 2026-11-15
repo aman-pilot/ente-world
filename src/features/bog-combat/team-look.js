@@ -14,6 +14,6 @@ export function loadKarmaLook(){
  const urls=import.meta.glob('./assets/karma-ducky/*.svg',{query:'?url',import:'default',eager:true});
  return karmaLoading??=Promise.all(Object.entries(urls).map(async([file,url])=>[file.split('/').at(-1),await Assets.load(url)])).then(entries=>{
   const textures=new Map(entries);
-  return Object.freeze({textures,shades:{lens:textures.get('lens.svg'),bridge:textures.get('bridge.svg'),sleep:textures}});
+  return Object.freeze({textures,outfit:Object.freeze({shades:6})});
  }).catch(error=>{karmaLoading=null;throw error;});
 }

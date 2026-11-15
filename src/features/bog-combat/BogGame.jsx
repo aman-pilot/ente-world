@@ -5,7 +5,7 @@ import './combat.css';
 import BogTutorial from './Tutorial.jsx';
 import shieldArt from './assets/pickups/shield.svg?url';
 
-// a heart with Ducky's outline (combat.css colours it: full, half after one hit, lost)
+// a heart with Ducky's outline (combat.css colours it: full, emptying a third per hit, lost)
 const HEART='M14 24C6 18 2 14 2 8.5 2 5 4.7 2.5 8 2.5c2.5 0 4.6 1.4 6 3.6 1.4-2.2 3.5-3.6 6-3.6 3.3 0 6 2.5 6 6 0 5.5-4 9.5-12 15.5Z';
 const popperIcon=team=>`/pixi-art/themes/bog-arena/hud/${team==='karma'?'karma-padlock':'evil-rainbow'}-popper.svg`;
 
@@ -38,7 +38,7 @@ export default function BogGame({engine,team,name='Ducky',profile,accountId,navi
     const had=hadShield.current;hadShield.current=shieldLeft>0;
     if(had&&shieldLeft<=0&&self?.alive&&(self.hitShieldUntil??0)>(snapshot?.time??0)){setBlocked(true);const t=setTimeout(()=>setBlocked(false),900);return()=>clearTimeout(t);}
   },[shieldLeft>0]);
-  const mine=self?.team??team,lives=self?.lives??RULES.lives,hurt=self?.alive!==false&&(self?.hits??0)>0,ammo=self?.ammo??RULES.ammoCapacity,now=snapshot?.time??0;
+  const mine=self?.team??team,lives=self?.lives??RULES.lives,hits=self?.alive!==false?(self?.hits??0):0,hurt=hits>0,ammo=self?.ammo??RULES.ammoCapacity,now=snapshot?.time??0;
   const note=self?.out?'Out of lives! Paddling to an islet…':self?.alive===false?`Respawning in ${Math.max(1,Math.ceil(self.respawnAt-now))}…`
     :self?.shieldUntil>now?`Hidden ${Math.ceil(self.shieldUntil-now)}s`:self?.bushHidden?'Hidden in bush':null;
   // Game HUD: your score top left, the way out top right; hearts and paint at the bottom (no team score bar: boss)
@@ -52,8 +52,8 @@ export default function BogGame({engine,team,name='Ducky',profile,accountId,navi
       {self&&<BogTutorial identity={accountId??profile??'local'} self={self} engine={engine}/>}
       <div className="bog-hud-card bog-hud-bar">
         <div className="bog-hud-group"><small>Hearts</small>
-          <div className="bog-hud-hearts" role="img" aria-label={`${lives} of ${RULES.lives} hearts left${hurt?', one hit taken':''}`}><svg width="0" height="0" style={{position:'absolute'}}><linearGradient id="bog-heart-half"><stop offset=".5" stopColor="#ff5f7a"/><stop offset=".5" stopColor="#e9e1c6"/></linearGradient></svg>
-          {Array.from({length:RULES.lives},(_,i)=><svg key={i} aria-hidden="true" viewBox="0 0 28 26" className={i>=lives?'lost':hurt&&i===lives-1?'half':''}><path d={HEART}/></svg>)}</div></div>
+          <div className="bog-hud-hearts" role="img" aria-label={`${lives} of ${RULES.lives} hearts left${hurt?`, ${hits} of ${RULES.hitsPerHeart} hits taken`:''}`}><svg width="0" height="0" style={{position:'absolute'}}><linearGradient id="bog-heart-part"><stop offset={1-hits/RULES.hitsPerHeart} stopColor="#ff5f7a"/><stop offset={1-hits/RULES.hitsPerHeart} stopColor="#e9e1c6"/></linearGradient></svg>
+          {Array.from({length:RULES.lives},(_,i)=><svg key={i} aria-hidden="true" viewBox="0 0 28 26" className={i>=lives?'lost':hurt&&i===lives-1?'part':''}><path d={HEART}/></svg>)}</div></div>
         {(shieldLeft>0||blocked)&&<><span className="bog-hud-sep" aria-hidden="true"/>
           <div className={`bog-hud-group bog-hud-shield${blocked?' is-blocked':''}`} role="status"><small>Shield</small>
             <div className="bog-hud-ammo"><img src={shieldArt} alt="" aria-hidden="true"/><b>{blocked?'Blocked!':`${Math.ceil(shieldLeft)}s`}</b></div></div></>}

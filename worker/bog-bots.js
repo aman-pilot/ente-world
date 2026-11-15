@@ -1,11 +1,13 @@
 import {createBotBrain,createBotController,resetBotBrain} from '../src/features/bog-combat/bot-brain.js';
 import {isCombatHidden} from '../src/features/bog-combat/hide-bushes.js';
 
+import {BOG_BOT_NAMES} from '../src/features/bog-combat/rules.js';
+
 export const BOT_FILL=6;
 
 export function createBogBots(arena,combat,options={}){
  const controller=createBotController(arena,combat,options);
- const slots=Array.from({length:BOT_FILL},(_,i)=>({id:`bog-bot-${i+1}`,name:`Bog Bot ${i+1}`,brain:createBotBrain(i)}));
+ const slots=Array.from({length:BOT_FILL},(_,i)=>({id:`bog-bot-${i+1}`,name:BOG_BOT_NAMES[i],brain:createBotBrain(i)}));
  for(const slot of slots)controller.prepare(slot.brain);
  const departures=[];let serial=0;
  function remove(slot,poof=true){

@@ -8,7 +8,6 @@ import {OUTFIT_OPTIONS} from '../../gameplay/outfits.js';
 import {createSnowCover} from './environment/snow-cover.js';
 import {createKarmaQuiver} from './karma-quiver.js';
 import {rinkTilt} from '../../gameplay/rink-slide.js';
-import {createKarmaShades} from './karma-shades.js';
 
 export const duckAnimationNames=Object.freeze({0:'idle',1:'walk',2:'quack',3:'dance',4:'heart',5:'laugh',6:'wave',7:'sleep',8:'grumpy',9:'party'});
 const MANIFEST='/pixi-duck/manifest.json', SCALE=1/3, TAU=Math.PI*2, STUMBLE=.35;
@@ -160,7 +159,8 @@ export async function createDuck({outfit={cap:8,shades:1,acc:0,shoes:2},seed=0,i
   const views=data.views.map(makeView);art.addChild(views.find(v=>v.spec.angle===0).root);art.addChild(feedback.bubble,feedback.sleep);
   let appearance=null;
   function setAppearance(next=null){
-    if(disposed||appearance===next)return;appearance=next;
+    if(disposed||appearance===next)return;
+    appearance=next;
     nap.setAppearance?.(next);
     for(const view of views){
       view.morphWeight=undefined;
@@ -173,21 +173,23 @@ export async function createDuck({outfit={cap:8,shades:1,acc:0,shoes:2},seed=0,i
         const horns=new Container({label:'Evil devil horns'}),left=new Sprite(next.horn),right=new Sprite(next.horn),spade=new Sprite(next.tail);
         left.anchor.set(.35,.88);right.anchor.set(.35,.88);left.scale.x=-1;horns.addChild(left,right);
         view.body.addChildAt(horns,view.body.getChildIndex(view.bodyPart.joint));
-        spade.anchor.set(8/205,210/232);spade.scale.x=tail.side;
-        view.body.addChildAt(spade,view.body.getChildIndex(view.bodyPart.joint));
-        const tailOffset=Math.abs(view.spec.angle)===180?tail.side*100:0;
-        spade.position.set(tail.joint.x+tailOffset,tail.joint.y);
-        const radians=view.spec.angle*Math.PI/180,sin=Math.sin(radians),span=30+92*Math.abs(Math.cos(radians));
-        const positions=[-1,1].map(side=>({x:side*span,y:side*sin<0?-10*Math.abs(sin):0,k:side*sin<0?1-Math.abs(sin)*.22:1}));
+        spade.anchor.set(8/205,210/232);
+        const radians=view.spec.angle*Math.PI/180,sin=Math.sin(radians),back=Math.cos(radians)<0;
+        // The tail grows from the lower back, on top of the body in rear views.
+        const tailPose={x:-sin*(back?65:155),y:back?-125:-105,scaleX:(sin>0?-1:1)*(back?.65:1)};
+        if(back){spade.texture=next.textures.get('spade-tail-back.svg')??next.tail;view.body.addChild(spade);}
+        else view.body.addChildAt(spade,view.body.getChildIndex(view.bodyPart.joint));
+        spade.position.set(tailPose.x,tailPose.y);spade.scale.x=tailPose.scaleX;
+        const span=122-37*Math.abs(sin);
+        const positions=[-1,1].map(side=>({x:side*span,y:side*sin<0?-25*Math.pow(Math.abs(sin),8):0,k:side*sin<0?1-Math.abs(sin)*.22:1}));
         for(let i=0;i<2;i++){const horn=horns.children[i],p=positions[i];horn.position.set(p.x,p.y);horn.scale.set((i===0?-1:1)*p.k,p.k);}
         horns.position.set(tuft.joint.x-25,tuft.joint.y+27);
-        view.devil={horns,spade,tuft,tail,tailOffset,positions};
+        view.devil={horns,spade,tuft,tail,tailPose,positions};
       }
       if(view.devil){view.devil.horns.visible=Boolean(next?.horn);view.devil.spade.visible=Boolean(next?.tail);}
-      if(next?.shades&&!view.karmaShades)view.karmaShades=createKarmaShades(view,next.shades);
-      if(view.karmaShades)view.karmaShades.root.visible=Boolean(next?.shades);
     }
     if(current.root.visible)renderView(current,elapsed);
+    return applyOutfit();
   }
   const quivers=new Map();
   let karmaEnabled=false,karmaCount=0;
@@ -214,7 +216,12 @@ export async function createDuck({outfit={cap:8,shades:1,acc:0,shoes:2},seed=0,i
     return fx;
   }
   current.root.visible=true;current.root.alpha=1;
-  async function setOutfit(next){
+  function setOutfit(next){
+    outfit={...next};
+    return applyOutfit();
+  }
+  async function applyOutfit(){
+    const next={...outfit,...appearance?.outfit};
     const request=++outfitVersion;
     const keep=e=>OUTFIT_OPTIONS[e.slot]?.includes(e.index),swap=(slot,index)=>{const all=data.wardrobe.filter(e=>e.slot===slot),hit=all.find(e=>e.index===Number(index)||e.id===index);if(!hit||keep(hit))return hit;const kept=all.filter(keep);return kept[hit.index%kept.length];};
     const entries=Object.entries(next).filter(([slot])=>slot!=='acc'&&slot!=='accessory').map(([slot,index])=>swap(slot,index))
@@ -224,6 +231,7 @@ export async function createDuck({outfit={cap:8,shades:1,acc:0,shoes:2},seed=0,i
     if(disposed||request!==outfitVersion)return;
     snowCover.clear();
     clothing={...next};
+    nap.setShades(appearance?.outfit?.shades ? entries.find(e=>e.slot==='shades') : null);
     for(const view of views){
       view.morphWeight = undefined;
       for(const garment of view.garments){garment.mask?.destroy();garment.node.destroy({children:true});}
@@ -278,26 +286,25 @@ export async function createDuck({outfit={cap:8,shades:1,acc:0,shoes:2},seed=0,i
       part.gx=joint.x;part.gy=joint.y;
       if(part.role==='wing'){joint.rotation=side<0?p.wingL:p.wingR;joint.y+=Math.abs(p.sway)*10;}
       if(part.role==='foot'){const lift=side<0?p.footL:p.footR,step=side<0?p.stepL:p.stepR;joint.y-=lift;joint.x+=step*fwdX;joint.y+=step*fwdY;joint.rotation=-side*lift*.005;if(seated){joint.x+=fwdX*24;joint.y-=12;joint.rotation+=side*.12;}}
-      if(part.role==='eye'){joint.visible=!appearance?.shades&&currentAction!==5;joint.scale.y=Math.min(p.eye,blink);joint.x+=look.x;joint.y+=p.headY+look.y;joint.rotation=p.headTilt+turnLean*.6;}
+      if(part.role==='eye'){joint.visible=!appearance?.outfit?.shades&&currentAction!==5;joint.scale.y=Math.min(p.eye,blink);joint.x+=look.x;joint.y+=p.headY+look.y;joint.rotation=p.headTilt+turnLean*.6;}
       if(part.role==='beak'){joint.x+=look.x*1.15;joint.y+=p.headY+look.y;joint.rotation=p.headTilt+turnLean*.6;joint.scale.set(1+p.bill*.08,1+p.bill*1.8);}
       if(part.role==='tuft'){joint.y+=p.headY*.42;joint.rotation=p.headTilt+p.tail*.35;}
       if(part.role==='tail')joint.rotation=p.tail;
       if(part.role==='toe')joint.visible=!clothing.shoes&&currentAction!==1;
     }
     if(appearance?.horn&&view.devil){
-      const {horns,tuft,positions,spade,tail,tailOffset}=view.devil;
+      const {horns,tuft,positions,spade,tail,tailPose}=view.devil;
       horns.position.set(tuft.joint.x-25,tuft.joint.y+27);
       horns.rotation=tuft.joint.rotation;
-      const otherOffset=glide.other?.devil?.tailOffset??tailOffset;
-      spade.position.set(tail.joint.x+tailOffset+(otherOffset-tailOffset)*glide.w,tail.joint.y);
+      const otherPose=glide.other?.devil?.tailPose??tailPose;
+      spade.position.set(tailPose.x+(otherPose.x-tailPose.x)*glide.w,tailPose.y+(otherPose.y-tailPose.y)*glide.w);
       spade.rotation=tail.joint.rotation;
-      spade.scale.x=tail.side+((glide.other?.devil?.tail.side??tail.side)-tail.side)*glide.w;
+      spade.scale.x=tailPose.scaleX+(otherPose.scaleX-tailPose.scaleX)*glide.w;
       for(let i=0;i<2;i++){
         const horn=horns.children[i],p=positions[i],other=glide.other?.devil?.positions[i]??p,w=glide.w,k=p.k+(other.k-p.k)*w;
         horn.position.set(p.x+(other.x-p.x)*w,p.y+(other.y-p.y)*w);horn.scale.set((i===0?-1:1)*k,k);
       }
     }
-    if(appearance?.shades)view.karmaShades.update(turnAngle);
     const morphWeight = Math.round(glide.w * 128) / 128;
     if(view.morph && (view.morphWeight !== morphWeight || view.morphOther !== glide.other || view.morphSailing !== sailing)){
       view.morphWeight = morphWeight;
@@ -369,10 +376,10 @@ export async function createDuck({outfit={cap:8,shades:1,acc:0,shoes:2},seed=0,i
     for(const g of view.garments){for(const gh of g.ghosts.values())gh.visible=false;g.sprite.alpha=1;if(g.node.alpha<1){g.node.scale.set(Math.max(0,g.node.alpha));g.node.alpha=1;}else g.node.scale.set(1);}
     if (currentAction===5 || view.laughing) view.expressions.clear();
     view.laughing=currentAction===5;
-    if(currentAction===5&&!appearance?.shades)for(const eye of eyes){const {x,y}=eye.joint;view.expressions.moveTo(x-14,y).quadraticCurveTo(x,y-17,x+14,y).stroke({color:0x232323,width:5,cap:'round'});}
+    if(currentAction===5&&!appearance?.outfit?.shades)for(const eye of eyes){const {x,y}=eye.joint;view.expressions.moveTo(x-14,y).quadraticCurveTo(x,y-17,x+14,y).stroke({color:0x232323,width:5,cap:'round'});}
     if (p.angry>.02&&face || view.angry) view.brows.clear();
     view.angry=p.angry>.02&&face;
-    if(p.angry>.02&&face&&!appearance?.shades)for(const eye of eyes){const {x,y}=eye.joint;const side=eye.side;view.brows.moveTo(x-side*17,y-20).lineTo(x+side*14,y-9).stroke({color:0x232323,width:6,alpha:p.angry,cap:'round'});}
+    if(p.angry>.02&&face&&!appearance?.outfit?.shades)for(const eye of eyes){const {x,y}=eye.joint;const side=eye.side;view.brows.moveTo(x-side*17,y-20).lineTo(x+side*14,y-9).stroke({color:0x232323,width:6,alpha:p.angry,cap:'round'});}
   }
   function update(dt,{action=0,speed=0,turn=0,time,reducedMotion=false,emoteVersion,persistentSleep=false,jump=null,sailing:isSailing=false,seated:isSeated=false,ice=null}={}){
     if(disposed)return;dt=clamp(safe(dt),0,.1);elapsed+=dt;
