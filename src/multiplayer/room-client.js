@@ -1,3 +1,4 @@
+import {takeArrivalSocket} from '../app/arrival-start.js';
 import {DURATIONS, playEmote, playSailEmote, SAIL_EMOTES, startJump, setWalkDestination, walkStep} from '../gameplay/player-motion.js';
 import {CHAT_INTERVAL, chatText} from './chat.js';
 import {nearbyFriend} from './friends.js';
@@ -91,7 +92,8 @@ export class RoomClient {
     const url = new URL('/api/room', location.href);
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     url.searchParams.set('play', play ? '1' : '0');
-    const socket = this.socket = new WebSocket(url);
+    const held = play && !reconnecting ? takeArrivalSocket() : null;
+    const socket = this.socket = held?.socket ?? new WebSocket(url);
     let full = false;
     let pendingPing = null;
     socket.onopen = () => {
@@ -169,6 +171,10 @@ export class RoomClient {
       this.retryTimer = setTimeout(() => this.connect(this.wantsPlay, true),
         Math.min(5000, 350 * 2 ** (this.failures-1)));
     };
+    if (held) {
+      if (socket.readyState === 1) socket.onopen();
+      for (const event of held.messages) socket.onmessage(event);
+    }
   }
 
   snapshot({epoch,tick,players,self,online,islandId='home',boats=[]}) {

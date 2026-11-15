@@ -1,6 +1,7 @@
+import {headStartJSON} from '../../../app/home-head-start.js';
 // Fetch all sheets concurrently at foreground priority, without Wasm or SVG work.
 export async function loadRasterDetail(spec,{signal,fetcher=fetch,decode=createImageBitmap}={}){
- const sheetsPromise=fetcher(spec.plan,{signal,priority:'high'}).then(r=>{if(!r.ok)throw Error(`Detail plan HTTP ${r.status}`);return r.json();});
+ const sheetsPromise=fetcher===fetch?headStartJSON(spec.plan,{signal}):fetcher(spec.plan,{signal,priority:'high'}).then(r=>{if(!r.ok)throw Error(`Detail plan HTTP ${r.status}`);return r.json();});
  sheetsPromise.catch(()=>{});
  let packed;
  if(spec.rasterPack){

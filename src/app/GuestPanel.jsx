@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import './guest-panel.css';
+import {warmSignInCache} from './home-head-start.js';
 
 function GithubMark() {
   return <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .8a11.2 11.2 0 0 0-3.54 21.83c.56.1.77-.24.77-.54v-2.08c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.68.08-.68 1.13.08 1.73 1.16 1.73 1.16 1 1.72 2.63 1.22 3.27.94.1-.73.4-1.22.71-1.5-2.5-.28-5.13-1.25-5.13-5.57 0-1.23.44-2.23 1.16-3.02-.12-.28-.5-1.43.11-2.98 0 0 .95-.3 3.08 1.15a10.7 10.7 0 0 1 5.6 0c2.14-1.45 3.08-1.15 3.08-1.15.61 1.55.23 2.7.12 2.98.72.79 1.15 1.79 1.15 3.02 0 4.33-2.63 5.28-5.14 5.56.4.35.76 1.03.76 2.08v3.07c0 .3.2.65.77.54A11.2 11.2 0 0 0 12 .8Z"/></svg>;
@@ -73,6 +74,7 @@ export default function GuestPanel({signInAvailable, onWatch, plain = false}) {
   }
   // the landing: the cover closes in over the end screen first (the same clouds that open on the way back), then it leaves for GitHub
   const goWithClouds = event => {
+    warmSignInCache();
     markArrival();
     const href = event.currentTarget.getAttribute('href');
     if (!plain || !href || !window.EWArrival?.mount || event.metaKey || event.ctrlKey || event.shiftKey || matchMedia('(prefers-reduced-motion: reduce)').matches) return;

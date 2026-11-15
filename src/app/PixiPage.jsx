@@ -13,6 +13,8 @@ import IslandCamera from './IslandCamera.jsx';
 import WorldMap from './WorldMap.jsx';
 import BogEntry from '../features/bog-combat/BogEntry.jsx';
 import {BOG_COMBAT} from '../features/bog-combat/config.js';
+import {startHomeHeadStart,settleHomeHeadStart,finishHomeHeadStart} from './home-head-start.js';
+import {startupSession} from './arrival-start.js';
 import './pixi.css';
 import './star-dialog.css';
 
@@ -69,11 +71,10 @@ export default function PixiPage() {
 
   useEffect(() => {
     const abort = new AbortController();
-    const refresh = async () => {
+    const refresh = async (initial = false) => {
       try {
-        const response = await fetch('/api/session', {signal:abort.signal});
-        if (!response.ok) throw new Error('Session request failed');
-        setSession(await response.json());
+        const value = initial ? await startupSession(true) : await fetch('/api/session', {signal:abort.signal}).then(r => {if (!r.ok) throw Error('Session request failed'); return r.json();});
+        if (!abort.signal.aborted) setSession(value);
       } catch {
         if (!abort.signal.aborted) setSession({user:null, signInAvailable:false});
       }
@@ -84,7 +85,7 @@ export default function PixiPage() {
       url.searchParams.delete('auth');
       history.replaceState(history.state, '', url);
     }
-    let arrivalTimer;
+    let arrivalTimer, firstIsland = true;
     const client = new RoomClient(state => {
       setStatus(state);
       if (['connecting','reconnecting','expired','signed-out','spectators-full'].includes(state)) {
@@ -94,6 +95,9 @@ export default function PixiPage() {
       if (['expired','signed-out'].includes(state)) setSession(previous => previous && {...previous,user:null});
       if (['expired','signed-out','star-required'].includes(state)) refresh();
     }, (id,text) => island.current?.showChat(id,text), setOnline, setLatestJoin, state => {
+      if (firstIsland && state.islandId === 'home') startHomeHeadStart({guest:true});
+      firstIsland = false;
+      settleHomeHeadStart(state.islandId);
       setTravel(state);
       void island.current?.prepareIsland(state.islandId).catch(()=>{});
     }, setTravelNotice);
@@ -108,13 +112,13 @@ export default function PixiPage() {
       onError:() => setError(true),onInteriorChange:setIndoors,onGlobeChange:setGlobeOpen,onPhotoReady:()=>setCameraReady(true)});
     island.current = game;
     // the island's art is in once its canvas says ready (mount resolves earlier, while the art still streams in)
-    const drawnPoll = setInterval(() => {if (host.current?.querySelector('canvas[data-state="ready"]')) {clearInterval(drawnPoll); requestAnimationFrame(() => setWorldDrawn(true));}}, 150);
+    const drawnPoll = setInterval(() => {if (host.current?.querySelector('canvas[data-state="ready"]')) {clearInterval(drawnPoll); finishHomeHeadStart(); requestAnimationFrame(() => setWorldDrawn(true));}}, 150);
     game.mount(host.current).catch(error=>{console.error('Could not initialize world',error);setError(true);});
     if (offline) {
       setStatus('local');
     } else {
       client.connect();
-      refresh();
+      refresh(true);
     }
     return () => {
       abort.abort();

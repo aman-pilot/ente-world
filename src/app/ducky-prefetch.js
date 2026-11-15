@@ -8,14 +8,14 @@ const json = async url => {
 };
 // Viewport zoom is distinct from the camera's maximum zoom. A phone should
 // not preload the density chosen for a full-screen desktop viewport.
-export function selectIslandTier(data,id,dpr=Math.min(globalThis.devicePixelRatio||1,2),width=globalThis.innerWidth,height=globalThis.innerHeight){
+export function selectIslandTier(data,id,dpr=Math.min(globalThis.devicePixelRatio||1,2),width=globalThis.innerWidth,height=globalThis.innerHeight,cap=5.5*1000000){
   const tier=data.islands[id]?.[Math.min(3,Math.max(1,Math.ceil(dpr)))];
   if(!tier)return;
   const zoom=width>0&&height>0?Math.min(1.8,width/1500,height/1000):.65;
   const views=tier.views;
   const detail=views?.find(v=>v.zoom>=zoom)??views?.at(-1);
   const limit=v=>v.limits?.[views.indexOf(detail)]??v.sharpZoom;
-  const landing=data.version>=2?views.filter(v=>v.zoom<=zoom&&limit(v)>=v.zoom*2-1e-8&&v.bytes<=5.5*1000000).at(-1):detail;
+  const landing=data.version>=2?views.filter(v=>v.zoom<=zoom&&limit(v)>=v.zoom*2-1e-8&&v.bytes<=cap).at(-1):detail;
   const selected={...tier,...(landing??views?.[0])};
   return data.version>=2?{...selected,sharpZoom:limit(selected),rasterDetail:detail.rasterDetail,detail:detail.detail,detailBytes:detail.detailBytes,detailSharpZoom:detail.detailSharpZoom}:selected;
 }

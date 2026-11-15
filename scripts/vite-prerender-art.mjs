@@ -405,7 +405,8 @@ export function prerenderArt() {
       if(id.endsWith('/world/prop-outlines/library-scene.js'))return {code:lazyPinkScene(code,libraryURL),map:null};
       if(id.endsWith('/world/prop-outlines/pink-scene.js'))return {code:lazyPinkScene(code,pinkURL),map:null};
       if(id.endsWith('/world/home/placements.js'))return {code:indexHomeGeometry(code),map:null};
-      if(id.endsWith('/world/home/startup-scene.js'))return {code:`import {unpackHomeScene} from './scene-pack.js';const get=()=>(async()=>{const response=await fetch(${JSON.stringify(homeURL)});if(!response.ok)throw Error('Home layout unavailable');return response.json();})().catch(error=>{pending=undefined;throw error;});let pending=get();export const homeSceneData=()=>pending??=get();export async function loadHomeScene(room){const data=await homeSceneData();const scene=unpackHomeScene(data,room?'room':'solo');scene.beds.bad=scene.dropped;return scene;}`,map:null};
+      if(id.endsWith('/app/home-head-start.js'))return {code:code.replaceAll('__HOME_SCENE_URL__',JSON.stringify(homeURL)),map:null};
+      if(id.endsWith('/world/home/startup-scene.js'))return {code:`import {headStartJSON,headStartScene,homeHeadStartActive} from '../../app/home-head-start.js';import {arrivalPending} from '../../app/arrival.js';const get=()=>(async()=>{return headStartJSON(${JSON.stringify(homeURL)});})().catch(error=>{pending=undefined;throw error;});let pending=homeHeadStartActive()||arrivalPending()?undefined:get();export const homeSceneData=()=>pending??=get();export async function loadHomeScene(room){const scene=await headStartScene(${JSON.stringify(homeURL)},room);scene.beds.bad=scene.dropped;return scene;}`,map:null};
       if (id.endsWith('/art/whole-svg-loader.js')) return {code: code.replaceAll('__PRERENDER_ART_MANIFEST__', JSON.stringify(manifestURL)), map: null};
       if(id.endsWith('/assets/world/walk-world.json'))return shareHomeWalkOutlines(config.root,id);
     },

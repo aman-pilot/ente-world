@@ -2,22 +2,31 @@ import {lazy, Suspense, useEffect, useRef, useState} from 'react';
 import GuestPanel from '../app/GuestPanel.jsx';
 import './landing.css';
 import {imgExt} from './img-format.js';
+import {startHomeHeadStart,warmSignInCache,headStartJSON,settleHomeHeadStart} from '../app/home-head-start.js';
+import {arrivalPending} from '../app/arrival.js';
+import {startupSession,startArrivalSocket} from '../app/arrival-start.js';
 
-// The game only downloads once someone signs in or chooses to watch, so the landing opens fast.
-const PixiPage = lazy(() => import('../app/PixiPage.jsx'));
+// Signed-in returns start the game behind the existing cover while the session is checked.
+const returning = arrivalPending() || new URLSearchParams(location.search).has('auth');
+const initialSession = startupSession(); initialSession.catch(() => {});
+if (returning) {startArrivalSocket(id => {if (id === 'home') startHomeHeadStart({guest:true}); else settleHomeHeadStart(id);}); void headStartJSON('/art-prerender/islands.json').then(p => headStartJSON(p.url)).catch(() => {});}
+const loadGame = () => import('../app/PixiPage.jsx');
+const PixiPage = lazy(loadGame);
+if (returning) void loadGame();
 
 export default function LandingGate() {
-  const [mode, setMode] = useState('checking');
+  const [mode, setMode] = useState(returning ? 'game' : 'checking');
   const [signInAvailable, setSignInAvailable] = useState(false);
   useEffect(() => {
-    fetch('/api/session').then(r => r.ok ? r.json() : Promise.reject())
-      .then(s => {setSignInAvailable(!!s.signInAvailable); setMode(s.user || new URLSearchParams(location.search).has('auth') ? 'game' : 'landing');})
-      .catch(() => setMode('landing'));
+    initialSession
+      .then(s => {setSignInAvailable(!!s.signInAvailable); setMode(s.user || returning ? 'game' : 'landing');})
+      .catch(() => {if (!returning) setMode('landing');});
   }, []);
   if (mode === 'game') return <Suspense fallback={<div className="landing-boot"/>}><PixiPage/></Suspense>;
   // Watch as a guest: the GitHub-return cover closes in over the end screen, the game loads behind it, and it parts onto
   // Home the same way (PixiPage takes the cover over; no name tag for a guest)
   if (mode === 'landing') return <Landing signInAvailable={signInAvailable} onWatch={() => {
+    startHomeHeadStart({guest:true});
     if (!window.EWArrival?.mount) {setMode('game'); return;}
     window.EWArrival.mount('close', 'Flying to Home'); window.EWArrival.guest = true;
     setTimeout(() => setMode('game'), 760);
@@ -213,9 +222,10 @@ export function Landing({signInAvailable, onWatch}) {
       // (the trees and houses fade up over 400 ms after that, so it draws once more when they are fully in)
       globe?.homeReady.then(() => {const again = () => {if (!cancelled && done) globe.still();}; again(); later(again, 450);});
       setPanel(true);
-      // fetch the game code quietly once the landing has settled: download only (rel=prefetch), nothing runs, so the
+      warmSignInCache();
+      // fetch the game code quietly once the landing has settled: download only, nothing runs, so the
       // end screen never freezes while the game code is evaluated (importing it here froze the end screen for 0.5 s)
-      later(() => (window.__EW_GAME || []).forEach(href => {const l = document.createElement('link'); l.rel = 'prefetch'; l.href = href; if (href.endsWith('.css')) l.as = 'style'; else l.crossOrigin = 'anonymous'; document.head.append(l);}), 1500);
+      later(warmSignInCache, 1500);
     };
     const loop = now => {
       if (cancelled || done) return;
@@ -239,6 +249,7 @@ export function Landing({signInAvailable, onWatch}) {
     if (settled) {
       globeReady.then(() => !cancelled && finish());
       setPanel(true);
+      warmSignInCache();
       later(() => {const p = document.querySelector('.guest-panel[data-plain]'); p?.style.setProperty('--dim', 1); p?.style.setProperty('--pop', 1); p?.style.setProperty('--dpop', 1); p?.style.setProperty('--wpop', 1);}, 60);   // returning visitors: in place, no arrival
       return () => {cancelled = true; timers.forEach(clearTimeout); removeEventListener('resize', onResize); document.removeEventListener('visibilitychange', onShow); removeEventListener('focus', onShow); globe?.destroy();};
     }

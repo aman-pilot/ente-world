@@ -1,3 +1,4 @@
+import {headStartJSON,takeHomeBitmap,homeHeadStartActive,prepareHomeGround} from '../../../app/home-head-start.js';
 import {loadRasterDetail} from './raster-detail.js';
 import {selectIslandTier} from '../../../app/ducky-prefetch.js';
 import {createManifestParts} from './manifest-parts.js';
@@ -59,7 +60,7 @@ export function createWholeSVGLoader({queue = createArtQueue(), getManifest=load
     if(!held){
       held={count:0,pins:0,signal:options.signal};sheets.set(tier.sheet,held);
       held.promise=(async()=>{
-        const resource=await decodeBitmap(await sheetBlob(tier.sheet,options.priority,options.signal),{premultiplyAlpha:'premultiply'});
+        const resource=(await takeHomeBitmap(tier.sheet))??await decodeBitmap(await sheetBlob(tier.sheet,options.priority,options.signal),{premultiplyAlpha:'premultiply'});
         const source=new ImageSource({resource,resolution:1,autoGenerateMipmaps:!(tier.padding||tier.group?.includes('/ground/')),alphaMode:'premultiplied-alpha'});
         source.autoGarbageCollect=false;source.label=tier.sheet;source._sourceOrigin=tier.sheet;
         source.once('destroy',()=>resource.close?.());held.source=source;
@@ -110,7 +111,7 @@ export function createWholeSVGLoader({queue = createArtQueue(), getManifest=load
       const all=[...new Map(tiers.map(t=>[t.sheet??t.url,t])).values()],unique=all.filter(t=>t.sheet);
       signal?.throwIfAborted();
       // Launch every fetch before waiting for any decode or frame construction.
-      for(const tier of all)void sheetBlob(tier.sheet??tier.url,priority,signal).catch(()=>{});
+      for(const tier of all)if(!homeHeadStartActive())void sheetBlob(tier.sheet??tier.url,priority,signal).catch(()=>{});
       const held=unique.map(t=>{const h=ensureSheet(t,{priority,signal});h.pins++;return h;});
       await Promise.allSettled(held.map(h=>h.promise));
       const release=()=>{unique.forEach((tier,i)=>{held[i].pins--;freeSheet(tier,held[i]);});for(const tier of all)if(!tier.sheet)blobs.delete(tier.url);};
@@ -180,13 +181,14 @@ export function createWholeSVGLoader({queue = createArtQueue(), getManifest=load
             const fullHeight=(tier.height??Math.ceil(tier.h*tier.scale))+2*pad;
             const width=Math.ceil(tier.w*resolution)+2*groundPadding;
             const height=Math.ceil(tier.h*resolution)+2*groundPadding;
-            const blob=await sheetBlob(tier.url,priority,signal);blobs.delete(tier.url);
+            const prepared=await takeHomeBitmap(tier.url),blob=prepared??await sheetBlob(tier.url,priority,signal);blobs.delete(tier.url);
             // A source used by both a prop and the ground may have a padded
             // tier. Crop it during decode for an ordinary unpadded texture.
             const decodeOptions={premultiplyAlpha:'premultiply',resizeWidth:width,resizeHeight:height,resizeQuality:'high'};
-            bitmap=pad&&!groundPadding
+            try{bitmap=pad&&!groundPadding
               ?await decodeBitmap(blob,{...decodeOptions,crop:[pad,pad,fullWidth-2*pad,fullHeight-2*pad]})
               :await decodeBitmap(blob,decodeOptions);
+            }finally{prepared?.close();}
             const footprint=textureFootprint(key,resolution,groundPadding,{[key]:[tier.w,tier.h]});
             if(footprint.x||footprint.y||footprint.width!==width||footprint.height!==height){
               const full=bitmap;
@@ -246,15 +248,18 @@ extensions.remove(loadSvg);
 extensions.add(wholeSVGLoader);
 
 let islandIndex;
-const getIslandIndex=()=>islandIndex??=fetch('/art-prerender/islands.json',{cache:'no-cache'})
-  .then(r=>{if(!r.ok)throw Error('Island index unavailable');return r.json();})
-  .then(p=>fetch(p.url)).then(r=>{if(!r.ok)throw Error('Island index unavailable');return r.json();})
+const getIslandIndex=()=>islandIndex??=headStartJSON('/art-prerender/islands.json').then(p=>headStartJSON(p.url))
   .catch(e=>{islandIndex=undefined;throw e;});
 
+// The island first shows with a lighter set of sheets, then the detail sheets
+// replace it. The camera and its zoom limits still follow the full landing set.
+export const FIRST_SET_BYTES=3.5*1000000;
 export function createIslandPreparer({getIndex=getIslandIndex,getManifest=loadPrerenderManifest,
-  loader=wholeSVGLoader,renderDetail=loadRasterDetail,fetchGround=async url=>{
-    const response=await fetch(url);if(!response.ok)throw Error(`Landing ground HTTP ${response.status}`);await response.arrayBuffer();
-  },dpr=()=>Math.min(globalThis.devicePixelRatio||1,2)}={}) {
+  loader=wholeSVGLoader,renderDetail=loadRasterDetail,fetchGround=prepareHomeGround,dpr=()=>Math.min(globalThis.devicePixelRatio||1,2),
+  // A full landing set already in the browser cache (prefetched) is used as it is.
+  // The cache-only request fails when a file is not there.
+  cached=urls=>Promise.all(urls.map(url=>fetch(url,{cache:'only-if-cached',mode:'same-origin'}))).then(all=>all.every(r=>r.ok),()=>false),
+  fetchPlan=headStartJSON}={}) {
   const preparations=new Map();
   return function prepare(islandId,renderDPR=dpr()) {
     const key=islandId+':'+renderDPR;
@@ -265,6 +270,9 @@ export function createIslandPreparer({getIndex=getIslandIndex,getManifest=loadPr
       if(!tier)throw Error(`Unknown island ${islandId}`);
       const groundReady=Promise.all((tier.ground??[]).map(fetchGround));
       groundReady.catch(()=>{});
+      const lighter=index.version>=2&&tier.rasterDetail&&!tier.rasterDetail.overBudget?selectIslandTier(index,islandId,renderDPR,undefined,undefined,FIRST_SET_BYTES):null;
+      // Only pieces the detail sheets will replace may start lighter; the plan lists them.
+      const replaced=lighter?.bytes<tier.bytes?(islandId==='home'&&homeHeadStartActive()?Promise.resolve(false):cached(tier.webp)).then(have=>have?null:fetchPlan(tier.rasterDetail.plan)).then(plan=>plan&&new Set(plan.sheets.flatMap(s=>s.frames.map(f=>f.src)))).catch(()=>null):null;
       const manifest=await getManifest([],tier.manifest);
       const choose=urls=>{
         const set=new Set(urls),selected=new Map();
@@ -274,7 +282,11 @@ export function createIslandPreparer({getIndex=getIslandIndex,getManifest=loadPr
         }
         return selected;
       };
-      const landing=choose(tier.webp),detail=choose(tier.detail??tier.webp);
+      let landing=choose(tier.webp);const detail=choose(tier.detail??tier.webp),covered=await replaced;
+      if(covered){
+        const light=choose(lighter.webp);
+        landing=new Map([...landing].map(([src,t])=>[src,covered.has(src)&&light.has(src)?light.get(src):t]));
+      }
       const owner=Symbol(islandId);let svgRelease,svgActive=false;
       const activate=selected=>{
         const pinned=pinnedSheetTiers.get(manifest)??new Map(),planned=plannedSheetTiers.get(manifest)??new Map();
