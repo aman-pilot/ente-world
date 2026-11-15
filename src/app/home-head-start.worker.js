@@ -33,7 +33,9 @@ self.onmessage=async({data:{id,kind,url,options}})=>{
       if(covered){const light=choose(lighter.webp);selected=new Map([...selected].map(([src,t])=>[src,covered.has(src)&&light.has(src)?light.get(src):t]));}
       if(cancelled)throw Error('Home preparation cancelled');
       for(const url of tier.ground??[])void (url===groundURL?read(url):binary(url)).catch(()=>{});
-      value={indexURL,manifestURL:tier.manifest,planURL,sheets:[...new Set([...selected.values()].map(t=>t.sheet??t.url)),...((await ground).home?.waterMask?[(await ground).home.waterMask.url]:[])],mesh:(await ground).home};
+      await scene;
+      const shared=await Promise.all([...json].map(async([url,value])=>[url,await value]));
+      value={json:shared,indexURL,manifestURL:tier.manifest,planURL,sheets:[...new Set([...selected.values()].map(t=>t.sheet??t.url)),...((await ground).home?.waterMask?[(await ground).home.waterMask.url]:[])],mesh:(await ground).home};
     }else throw Error('Unknown preparation task');
     self.postMessage({id,value},transfer);
   }catch(error){self.postMessage({id,error:error.message});}

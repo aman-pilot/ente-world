@@ -13,7 +13,8 @@ import IslandCamera from './IslandCamera.jsx';
 import WorldMap from './WorldMap.jsx';
 import BogEntry from '../features/bog-combat/BogEntry.jsx';
 import {BOG_COMBAT} from '../features/bog-combat/config.js';
-import {settleHomeHeadStart,finishHomeHeadStart} from './home-head-start.js';
+import {startHomeHeadStart,settleHomeHeadStart,finishHomeHeadStart} from './home-head-start.js';
+import {startupSession} from './arrival-start.js';
 import './pixi.css';
 import './star-dialog.css';
 
@@ -70,11 +71,10 @@ export default function PixiPage() {
 
   useEffect(() => {
     const abort = new AbortController();
-    const refresh = async () => {
+    const refresh = async (initial = false) => {
       try {
-        const response = await fetch('/api/session', {signal:abort.signal});
-        if (!response.ok) throw new Error('Session request failed');
-        setSession(await response.json());
+        const value = initial ? await startupSession() : await fetch('/api/session', {signal:abort.signal}).then(r => {if (!r.ok) throw Error('Session request failed'); return r.json();});
+        if (!abort.signal.aborted) setSession(value);
       } catch {
         if (!abort.signal.aborted) setSession({user:null, signInAvailable:false});
       }
@@ -95,6 +95,7 @@ export default function PixiPage() {
       if (['expired','signed-out'].includes(state)) setSession(previous => previous && {...previous,user:null});
       if (['expired','signed-out','star-required'].includes(state)) refresh();
     }, (id,text) => island.current?.showChat(id,text), setOnline, setLatestJoin, state => {
+      if (state.islandId === 'home') startHomeHeadStart({guest:true});
       settleHomeHeadStart(state.islandId);
       setTravel(state);
       void island.current?.prepareIsland(state.islandId).catch(()=>{});
@@ -116,7 +117,7 @@ export default function PixiPage() {
       setStatus('local');
     } else {
       client.connect();
-      refresh();
+      refresh(true);
     }
     return () => {
       abort.abort();

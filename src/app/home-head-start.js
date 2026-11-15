@@ -36,7 +36,7 @@ export function startHomeHeadStart({guest=false}={}){
   started=true;const current=++generation;
   // Planning, JSON parsing, mesh expansion and image decoding all stay in the worker.
   planning=request('warm',null,{sceneURL,groundURL,dpr:Math.min(devicePixelRatio||1,2),width:innerWidth,height:innerHeight})
-    .then(plan=>{if(current!==generation)return;const jobs=[
+    .then(plan=>{if(current!==generation)return;for(const [url,value] of plan.json??[])if(!json.has(url))json.set(url,Promise.resolve(value));const jobs=[
       ...plan.sheets.map(url=>once(bitmaps,url,()=>request('bitmap',url))),
       ...(plan.mesh?[once(meshes,plan.mesh.url,()=>request('mesh',plan.mesh.url,plan.mesh))]:[]),
       // Detail often starts after reveal, when the preparation worker is gone.
@@ -51,4 +51,16 @@ export function settleHomeHeadStart(id){
   if(started&&worker)void headStartJSON(sceneURL).catch(()=>{});
   if(worker)void request('cancel').catch(()=>{});
   finishHomeHeadStart();
+}
+
+// Fetch only, so the game does not evaluate during the intro. Both calls share
+// their requests and the browser's HTTP cache survives the trip through GitHub.
+const codeWarm = new Map();
+export function warmSignInCache() {
+  startHomeHeadStart();
+  for (const url of globalThis.__EW_GAME ?? []) {
+    if (codeWarm.has(url)) continue;
+    const job=fetch(url,{priority:'low'}).then(r=>{if(!r.ok)throw Error(r.status);return r.arrayBuffer();}).catch(()=>{codeWarm.delete(url);});
+    codeWarm.set(url,job);
+  }
 }
