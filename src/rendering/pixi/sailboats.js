@@ -12,10 +12,10 @@ function drawBoat(heading) {
   const root = new Container({label: 'Moored boat'}), boat = new Sprite(Texture.EMPTY);
   boat.anchor.set(.5, .82);
   let applied;
-  const fit = v => {const view = v.pick(heading);if(view!==applied||boat.texture!==v.best(view)){v.apply(boat, view, BOAT_W / 255);applied=view;}};
+  const fit = (v,visible=false) => {const view = v.pick(heading);if(view!==applied||boat.texture!==v.best(view,view.texture,visible)){v.apply(boat, view, BOAT_W / 255,view.texture,visible);applied=view;}};
   if (boatViews) fit(boatViews); else prepareViews().then(v => v && !boat.destroyed && fit(v));
   root.addChild(boat);
-  return {root, boat,refreshViews:()=>boatViews&&fit(boatViews)};
+  return {root, boat,refreshViews:()=>boatViews&&fit(boatViews,true)};
 }
 
 const BORN = .4, BOB_PX = 10, DRIFT = .9, DRIFT_PX = 36;

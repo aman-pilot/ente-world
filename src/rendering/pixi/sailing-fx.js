@@ -137,14 +137,14 @@ export async function createSailingFX({water,objects}) {
           layer={boat:boatLayer,front};entry.layers.set(key,layer);
         }
         entry.activeLayers[entry.activeCount++]=layer;
-        views.apply(layer.boat,v);
+        views.apply(layer.boat,v,1,v.texture,root.visible);
         layer.boat.position.set(-v.seat.x,-v.seat.y);
         layer.boat.visible=true;layer.boat.alpha=weight;
         layer.boat.blendMode=blending?'add':'normal';
         layer.front.visible=Boolean(v.front);
         entry.hasFront ||= layer.front.visible;
         if (v.front) {
-          views.apply(layer.front,v,1,v.front);
+          views.apply(layer.front,v,1,v.front,root.visible);
           layer.front.position.copyFrom(layer.boat.position);
           layer.front.alpha=weight;layer.front.blendMode=blending?'add':'normal';
         }
