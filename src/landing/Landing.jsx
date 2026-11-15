@@ -251,7 +251,7 @@ export function Landing({signInAvailable, onWatch}) {
       setPanel(true);
       warmSignInCache();
       later(() => {const p = document.querySelector('.guest-panel[data-plain]'); p?.style.setProperty('--dim', 1); p?.style.setProperty('--pop', 1); p?.style.setProperty('--dpop', 1); p?.style.setProperty('--wpop', 1);}, 60);   // returning visitors: in place, no arrival
-      return () => {cancelled = true; timers.forEach(clearTimeout); removeEventListener('resize', onResize); document.removeEventListener('visibilitychange', onShow); removeEventListener('focus', onShow); globe?.destroy();};
+      return () => {cancelled = true; cancelAnimationFrame(frame); timers.forEach(clearTimeout); removeEventListener('resize', onResize); document.removeEventListener('visibilitychange', onShow); removeEventListener('focus', onShow); globe?.destroy();};
     }
 
     function titleAnimations() {

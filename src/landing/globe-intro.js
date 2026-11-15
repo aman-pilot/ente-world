@@ -30,6 +30,9 @@ function bezier(x1, y1, x2, y2) {
 }
 
 export async function createGlobeIntro(canvas, {home, ext = 'webp', neighbours = '/guest/globe-', feather = '/pixi-art/karma/golden-feather.svg'}) {
+  let disposed = false;
+  const textures = new Set();
+  const releaseTexture = t => {t.dispose(); t.image?.close?.();};
   const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
   // while it moves the globe draws at 1.5x (a retina screen at 2x is ~1.8x the pixels, which cost frames in the dive and
   // the blast on 120 Hz screens); once the end screen is still, still() redraws it once at full 2x sharpness
@@ -41,8 +44,11 @@ export async function createGlobeIntro(canvas, {home, ext = 'webp', neighbours =
   // pictures are decoded and flipped off the main thread (createImageBitmap), so swapping a big one in mid-flight costs
   // only the GPU copy, not a decode inside a frame; browsers without it fall back to a plain image
   const bitmaps = typeof createImageBitmap === 'function' && new THREE.ImageBitmapLoader().setOptions({imageOrientation:'flipY', premultiplyAlpha:'none'});
-  const fetchTex = url => bitmaps ? bitmaps.loadAsync(url).then(bm => {const t = new THREE.Texture(bm); t.flipY = false; t.needsUpdate = true; return t;}) : loader.loadAsync(url);
-  const prep = t => {t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); renderer.initTexture(t); return t;};
+  const fetchTex = url => (bitmaps ? bitmaps.loadAsync(url).then(bm => {const t = new THREE.Texture(bm); t.flipY = false; t.needsUpdate = true; return t;}) : loader.loadAsync(url)).then(t => {
+    if (disposed) {releaseTexture(t); throw Error('Intro disposed');}
+    textures.add(t); return t;
+  });
+  const prep = t => {if (disposed) throw Error('Intro disposed'); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); renderer.initTexture(t); return t;};
   const load = url => fetchTex(url).then(prep);
   // the opening stuttered (33-83 ms frames at 0.35-1 s) while full pictures were uploaded to the GPU.
   // Pictures that arrive early wait until the opening is over (OPENED on the globe clock, in the quiet beat between the title shimmer and the dive, while the globe is still
@@ -52,7 +58,7 @@ export async function createGlobeIntro(canvas, {home, ext = 'webp', neighbours =
   const openedP = new Promise(res => {opened = res;});
   // pictures that land before the intro has drawn its first frame upload straight away (the page's clouds still cover it)
   let drawing = false;
-  const inTurn = t => (queue = queue.then(() => drawing ? openedP : null).then(() => new Promise(r => requestAnimationFrame(() => r())))).then(() => prep(t));
+  const inTurn = t => (queue = queue.then(() => drawing ? openedP : null).then(() => new Promise(r => disposed ? r() : requestAnimationFrame(() => r())))).then(() => prep(t));
   // the golden feather: the thing you collect in the game leads you in
   // every picture is fetched at once (index.html already asked for them before any script ran), never one after another
   const [featherArt, cloudArt, [skyTex, groundTex]] = await Promise.all([
@@ -94,10 +100,11 @@ export async function createGlobeIntro(canvas, {home, ext = 'webp', neighbours =
     const m = decal(null, lon, lat, w, w * .75, 1.001);
     m.visible = false; m.material.opacity = 0; globe.add(m);
     islandTex(name).then(tex => {
+      if (disposed) return;
       if (!nearTex.includes(tex)) nearTex.push(tex);
-      if (spin) {tex = tex.clone(); tex.center.set(.5, .5); tex.rotation = spin; tex.needsUpdate = true; nearTex.push(tex);}
+      if (spin) {tex = tex.clone(); tex.center.set(.5, .5); tex.rotation = spin; tex.needsUpdate = true; nearTex.push(tex); textures.add(tex);}
       m.material.map = tex; m.material.needsUpdate = true; m.visible = true;
-      const t0 = performance.now(), fade = now => {m.material.opacity = Math.min(1, (now - t0) / 300); if (m.material.opacity < 1) requestAnimationFrame(fade);};
+      const t0 = performance.now(), fade = now => {if (disposed) return; m.material.opacity = Math.min(1, (now - t0) / 300); if (m.material.opacity < 1) requestAnimationFrame(fade);};
       requestAnimationFrame(fade);
     }).catch(() => {});
   });
@@ -230,6 +237,7 @@ export async function createGlobeIntro(canvas, {home, ext = 'webp', neighbours =
   const PATH_BASE = PATH.map(p => p.slice());
   let width = 1, height = 1, end = 1.5, touchdown = null, isPhone = false;   // touchdown: Home's spot on screen at the landing (NDC), per screen shape
   function resize() {
+    if (disposed) return;
     width = canvas.clientWidth || innerWidth; height = canvas.clientHeight || innerHeight;
     renderer.setSize(width, height, false);
     camera.aspect = width / height; camera.updateProjectionMatrix();
@@ -399,6 +407,7 @@ export async function createGlobeIntro(canvas, {home, ext = 'webp', neighbours =
     return z;
   }
   function draw(t) {
+    if (disposed) return;
     lastT = t; drawing = true;
     if (t >= OPENED && opened) {opened(); opened = null;}
     const tc = Math.min(t, total);
@@ -435,6 +444,19 @@ export async function createGlobeIntro(canvas, {home, ext = 'webp', neighbours =
   renderer.compile(scene, camera);   // build every shader now, not on the first frame of the intro
   let lastT = 0;
   // the end screen is always the last frame of the intro, so it never depends on which frame a hidden tab last drew
-  const still = () => {renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); resize(); draw(Math.max(lastT, total));};
-  return {total, draw, resize, still, progress, timing:T, land:F.land, homeOnScreen, homeReady, destroy() {renderer.dispose(); [skyTex, groundTex, propsTex, groundFull, skyFull, ...nearTex, ...cloudTex, featherTex, dotTex, starTex].forEach(x => x?.dispose());}};
+  const still = () => {if (disposed) return; renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); resize(); draw(Math.max(lastT, total));};
+  return {total, draw, resize, still, progress, timing:T, land:F.land, homeOnScreen, homeReady, destroy() {
+    if (disposed) return;
+    disposed = true; opened?.(); opened = null;
+    scene.traverse(object => {
+      object.geometry?.dispose();
+      for (const material of [object.material].flat().filter(Boolean)) material.dispose();
+    });
+    const all = new Set([...textures, skyTex, groundTex, propsTex, groundFull, skyFull, ...nearTex, ...cloudTex, featherTex, dotTex, starTex].filter(Boolean));
+    const images = new Set([...all].map(t => t.image));
+    all.forEach(t => t.dispose());
+    images.forEach(image => {image?.close?.(); if (image instanceof HTMLCanvasElement) image.width = image.height = 1;});
+    textures.clear(); scene.clear();
+    renderer.dispose(); renderer.forceContextLoss(); canvas.width = canvas.height = 1;
+  }};
 }
