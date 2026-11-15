@@ -2,14 +2,14 @@ import {lazy, Suspense, useEffect, useRef, useState} from 'react';
 import GuestPanel from '../app/GuestPanel.jsx';
 import './landing.css';
 import {imgExt} from './img-format.js';
-import {startHomeHeadStart,warmSignInCache,headStartJSON} from '../app/home-head-start.js';
+import {startHomeHeadStart,warmSignInCache,headStartJSON,settleHomeHeadStart} from '../app/home-head-start.js';
 import {arrivalPending} from '../app/arrival.js';
 import {startupSession,startArrivalSocket} from '../app/arrival-start.js';
 
 // Signed-in returns start the game behind the existing cover while the session is checked.
 const returning = arrivalPending() || new URLSearchParams(location.search).has('auth');
 const initialSession = startupSession(); initialSession.catch(() => {});
-if (returning) {startArrivalSocket(); void headStartJSON('/art-prerender/islands.json').then(p => headStartJSON(p.url)).catch(() => {});}
+if (returning) {startArrivalSocket(id => {if (id === 'home') startHomeHeadStart({guest:true}); else settleHomeHeadStart(id);}); void headStartJSON('/art-prerender/islands.json').then(p => headStartJSON(p.url)).catch(() => {});}
 const loadGame = () => import('../app/PixiPage.jsx');
 const PixiPage = lazy(loadGame);
 if (returning) void loadGame();

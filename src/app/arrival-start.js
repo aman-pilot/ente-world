@@ -12,12 +12,18 @@ export function startupSession() {
 // Buffer the first snapshot while the renderer module downloads and evaluates.
 // No player input is sent until RoomClient takes ownership.
 let early;
-export function startArrivalSocket() {
+export function startArrivalSocket(onIsland = () => {}) {
   if (early || !arrivalPending() || typeof WebSocket !== 'function') return;
   const url=new URL('/api/room?play=1',location.href);
   url.protocol=url.protocol==='https:'?'wss:':'ws:';
   const socket=new WebSocket(url), messages=[];
-  const record=event=>messages.push(event);
+  let named=false;
+  const record=event=>{
+    messages.push(event);
+    if (!named) {
+      try {const message=JSON.parse(event.data); if(message.type==='snapshot'&&message.islandId){named=true;onIsland(message.islandId);}} catch {/* RoomClient handles the protocol once mounted. */}
+    }
+  };
   socket.addEventListener('message',record);
   early={socket,messages,record};
 }
