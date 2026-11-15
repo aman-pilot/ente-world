@@ -6,7 +6,7 @@ export function createKarmaShades(view,art){
  bridge.anchor.set(0,.5);root.addChild(bridge);
  const lenses=eyes.map(eye=>{
   const sprite=new Sprite({texture:art.lens,label:`Karma lens ${eye.id}`});
-  sprite.anchor.set(.5,56/72);root.addChild(sprite);return {eye,sprite};
+  sprite.anchor.set(.5,35/72);root.addChild(sprite);return {eye,sprite};
  });
  const [left,right]=[...lenses].sort((a,b)=>a.eye.joint.rest.x-b.eye.joint.rest.x);
  view.body.addChild(root);
@@ -25,8 +25,8 @@ export function createKarmaShades(view,art){
   }
   bridge.visible=root.visible&&lenses.length===2&&left.sprite.visible&&right.sprite.visible;
   if(bridge.visible){
-   const ax=left.sprite.x+39*Math.sin(left.sprite.rotation),ay=left.sprite.y-39*Math.cos(left.sprite.rotation);
-   const bx=right.sprite.x+39*Math.sin(right.sprite.rotation),by=right.sprite.y-39*Math.cos(right.sprite.rotation),dx=bx-ax,dy=by-ay;
+   const ax=left.sprite.x+15*Math.sin(left.sprite.rotation),ay=left.sprite.y-15*Math.cos(left.sprite.rotation);
+   const bx=right.sprite.x+15*Math.sin(right.sprite.rotation),by=right.sprite.y-15*Math.cos(right.sprite.rotation),dx=bx-ax,dy=by-ay;
    bridge.position.set(ax,ay);
    bridge.rotation=Math.atan2(dy,dx);bridge.scale.set(Math.hypot(dx,dy)/100,1);
   }

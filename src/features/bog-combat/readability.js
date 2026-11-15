@@ -30,10 +30,13 @@ export function createBogReadability(rig) {
     glProgram:GlProgram.from({vertex:defaultFilterVert,fragment,name:'bog-white-sticker'}),
     padding:BOG_OUTLINE_PIXELS+1,resolution:'inherit',antialias:'inherit',
   });
-  const filters=[outline];
-  // a Ducky fades only while it is hidden in a bush; respawning and everything else stays at full colour
-  return {outline,update(inBush=false){
-    root.alpha=inBush?.5:1;root.tint=0xFFFFFF;
+  let alpha=null;
+  return {outline,update(inBush=false,spawnHidden=false,dt=0,reducedMotion=false){
+    const target=spawnHidden?.4:inBush?.5:1;
+    // Hide immediately; ease back to full colour when the shield expires.
+    alpha=alpha===null||target<alpha||reducedMotion?target:alpha+(target-alpha)*(1-Math.exp(-Math.max(0,dt)/.06));
+    if(Math.abs(alpha-target)<.001)alpha=target;
+    root.alpha=alpha;root.tint=0xFFFFFF;
     if(root.filters?.includes(outline))root.filters=null;
   },dispose(){
     if(!root.destroyed&&root.filters?.includes(outline))root.filters=previous;

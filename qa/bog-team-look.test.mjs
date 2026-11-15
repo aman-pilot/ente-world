@@ -11,11 +11,19 @@ const base=new URL('../src/features/bog-combat/assets/evil-ducky/',import.meta.u
 const manifest=JSON.parse(fs.readFileSync(new URL('../public/pixi-duck/manifest.json',import.meta.url)));
 const banned=/<(?:image|linearGradient|radialGradient|filter)\b|data:/i;
 
-test('all eight Evil directions preserve every live body, wing and two-lobe tuft path with only the approved fill changes',()=>{
+test('all eight Evil directions preserve live paths with approved fills and clipped profile wing endings',()=>{
  for(const view of manifest.views)for(const part of view.parts.filter(p=>['body','wing','tuft'].includes(p.role))){
   const live=fs.readFileSync(new URL('../public'+part.url,import.meta.url),'utf8');
   const devil=fs.readFileSync(new URL(part.url.split('/').at(-1),base),'utf8');
-  assert.equal(devil,live.replace(/#ffd525/ig,'#EF5144').replace(/#ffe161/ig,'#FF9C90'),part.url);
+  const profileWing=part.role==='wing'&&Math.abs(view.angle)===90;
+  let expected=live.replace(/#ffd525/ig,'#EF5144').replace(/#ffe161/ig,'#FF9C90');
+  if(profileWing){
+   const clip=view.angle===90?'M0 0H320V400H600V600H0Z':'M290 0H600V600H0V388H290Z';
+   expected=expected.replace('<defs />',`<defs><clipPath id="wing-outline"><path d="${clip}"/></clipPath></defs>`).replace('<path id="Vector_15"','<path clip-path="url(#wing-outline)" id="Vector_15"');
+   const karma=fs.readFileSync(new URL('../src/features/bog-combat/assets/karma-ducky/'+part.url.split('/').at(-1),import.meta.url),'utf8');
+   assert.equal(karma,expected.replaceAll('#EF5144','#FFD525'),'both teams trim the same profile ending');
+  }
+  assert.equal(devil,expected,part.url);
   assert.doesNotMatch(devil,banned);
  }
  for(const file of ['horn.svg','spade-tail.svg','nod-duck.svg','wing-duck.svg'])assert.doesNotMatch(fs.readFileSync(new URL(file,base),'utf8'),banned);

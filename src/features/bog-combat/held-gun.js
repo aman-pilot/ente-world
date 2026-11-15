@@ -34,8 +34,13 @@ export function attachGunC(rig,items,team,objects) {
         sprite.position.set(-spec.anchor.x-spec.grip[0],-spec.anchor.y-spec.grip[1]);mount.addChild(sprite);
         entry={mount,wing,index:body.getChildIndex(wing),body,spec};equipment.set(view,entry);body.addChild(wing,mount);
       }
-      wing.position.set(...spec.wingPose.pivot);wing.rotation=spec.wingPose.rotationDegrees*Math.PI/180;wing.scale.set(1);
-      entry.mount.position.set(...spec.grip);entry.mount.visible=true;
+      // Keep the animated shoulder and place the grip at the posed feather contact.
+      wing.rotation=spec.wingPose.rotationDegrees*Math.PI/180;
+      const dx=(spec.wingPose.contactRest[0]-spec.wingPose.pivot[0])*wing.scale.x;
+      const dy=(spec.wingPose.contactRest[1]-spec.wingPose.pivot[1])*wing.scale.y;
+      const cos=Math.cos(wing.rotation),sin=Math.sin(wing.rotation);
+      entry.mount.position.set(wing.x+dx*cos-dy*sin,wing.y+dx*sin+dy*cos);
+      entry.mount.visible=true;
       a.set(pose.x,pose.y);b.set(pose.x+Math.sin(pose.facing??0)*100,pose.y+Math.cos(pose.facing??0)*100);
       objects.toGlobal(a,pa);objects.toGlobal(b,pb);body.toLocal(pa,undefined,a);body.toLocal(pb,undefined,b);
       entry.mount.rotation=Math.atan2(b.y-a.y,b.x-a.x)-Math.atan2(spec.aimScreenVector[1],spec.aimScreenVector[0]);

@@ -173,15 +173,18 @@ export async function createDuck({outfit={cap:8,shades:1,acc:0,shoes:2},seed=0,i
         const horns=new Container({label:'Evil devil horns'}),left=new Sprite(next.horn),right=new Sprite(next.horn),spade=new Sprite(next.tail);
         left.anchor.set(.35,.88);right.anchor.set(.35,.88);left.scale.x=-1;horns.addChild(left,right);
         view.body.addChildAt(horns,view.body.getChildIndex(view.bodyPart.joint));
-        spade.anchor.set(8/205,210/232);spade.scale.x=tail.side;
-        view.body.addChildAt(spade,view.body.getChildIndex(view.bodyPart.joint));
-        const tailOffset=Math.abs(view.spec.angle)===180?tail.side*100:0;
-        spade.position.set(tail.joint.x+tailOffset,tail.joint.y);
-        const radians=view.spec.angle*Math.PI/180,sin=Math.sin(radians),span=30+92*Math.abs(Math.cos(radians));
-        const positions=[-1,1].map(side=>({x:side*span,y:side*sin<0?-10*Math.abs(sin):0,k:side*sin<0?1-Math.abs(sin)*.22:1}));
+        spade.anchor.set(8/205,210/232);
+        const radians=view.spec.angle*Math.PI/180,sin=Math.sin(radians),back=Math.cos(radians)<0;
+        // The tail grows from the lower back, on top of the body in rear views.
+        const tailPose={x:-sin*(back?65:155),y:back?-125:-105,scaleX:(sin>0?-1:1)*(back?.65:1)};
+        if(back){spade.texture=next.textures.get('spade-tail-back.svg')??next.tail;view.body.addChild(spade);}
+        else view.body.addChildAt(spade,view.body.getChildIndex(view.bodyPart.joint));
+        spade.position.set(tailPose.x,tailPose.y);spade.scale.x=tailPose.scaleX;
+        const span=122-37*Math.abs(sin);
+        const positions=[-1,1].map(side=>({x:side*span,y:side*sin<0?-25*Math.pow(Math.abs(sin),8):0,k:side*sin<0?1-Math.abs(sin)*.22:1}));
         for(let i=0;i<2;i++){const horn=horns.children[i],p=positions[i];horn.position.set(p.x,p.y);horn.scale.set((i===0?-1:1)*p.k,p.k);}
         horns.position.set(tuft.joint.x-25,tuft.joint.y+27);
-        view.devil={horns,spade,tuft,tail,tailOffset,positions};
+        view.devil={horns,spade,tuft,tail,tailPose,positions};
       }
       if(view.devil){view.devil.horns.visible=Boolean(next?.horn);view.devil.spade.visible=Boolean(next?.tail);}
       if(next?.shades&&!view.karmaShades)view.karmaShades=createKarmaShades(view,next.shades);
@@ -285,13 +288,13 @@ export async function createDuck({outfit={cap:8,shades:1,acc:0,shoes:2},seed=0,i
       if(part.role==='toe')joint.visible=!clothing.shoes&&currentAction!==1;
     }
     if(appearance?.horn&&view.devil){
-      const {horns,tuft,positions,spade,tail,tailOffset}=view.devil;
+      const {horns,tuft,positions,spade,tail,tailPose}=view.devil;
       horns.position.set(tuft.joint.x-25,tuft.joint.y+27);
       horns.rotation=tuft.joint.rotation;
-      const otherOffset=glide.other?.devil?.tailOffset??tailOffset;
-      spade.position.set(tail.joint.x+tailOffset+(otherOffset-tailOffset)*glide.w,tail.joint.y);
+      const otherPose=glide.other?.devil?.tailPose??tailPose;
+      spade.position.set(tailPose.x+(otherPose.x-tailPose.x)*glide.w,tailPose.y+(otherPose.y-tailPose.y)*glide.w);
       spade.rotation=tail.joint.rotation;
-      spade.scale.x=tail.side+((glide.other?.devil?.tail.side??tail.side)-tail.side)*glide.w;
+      spade.scale.x=tailPose.scaleX+(otherPose.scaleX-tailPose.scaleX)*glide.w;
       for(let i=0;i<2;i++){
         const horn=horns.children[i],p=positions[i],other=glide.other?.devil?.positions[i]??p,w=glide.w,k=p.k+(other.k-p.k)*w;
         horn.position.set(p.x+(other.x-p.x)*w,p.y+(other.y-p.y)*w);horn.scale.set((i===0?-1:1)*k,k);

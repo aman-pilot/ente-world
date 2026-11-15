@@ -9,3 +9,5 @@ export const RULES=Object.freeze({range:10*D,shotSpeed:28*D,shotRadius:6,fireDel
 export const TEAMS=Object.freeze(['karma','evil']);
 export const PAINT=Object.freeze({karma:[0x08c225],evil:[0x2788d9,0xfa5452,0xffe23d,0x20c75b]});
 export const emptyStats=()=>({tags:0,survives:0,score:0,medals:0,bestStreak:0});
+
+export const BOG_BOT_NAMES=Object.freeze(['Puddles','Waddles','Biscuit','Pickle','Noodle','Maple','Pip','Pebble','Clover','Mochi','Sunny','Button','Peaches','Sprout','Toffee','Mango','Dumpling','Bubbles','Waffle','Poppy','Nibbles','Tater','Honey','Daisy','Olive','Pumpkin','Bean','Churro','Peanut','Ducky']);
