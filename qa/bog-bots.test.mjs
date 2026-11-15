@@ -168,7 +168,8 @@ test('ten ducks run the normal shared brain and real simulation for three minute
   timings.push(performance.now()-start);
   if(tick%60===0)for(const p of sim.state.players.values())assert.ok(BOG_COMBAT.navigation.walkable(p.x,p.y));
  }
- assert.equal(sim.state.players.size,10);assert.ok(sim.state.scores.karma>=10&&sim.state.scores.evil>=10,'both teams find real fights');
+ assert.equal(sim.state.players.size,10);// three hits a heart: fewer knockouts in three minutes than the old one-hit rule
+ assert.ok(sim.state.scores.karma>=5&&sim.state.scores.evil>=5,'both teams find real fights');
  assert.ok([...sim.state.players.values()].every(p=>p.stats.medals===0));
  timings.sort((a,b)=>a-b);
  console.log(`Bog 10-duck AI + sim CPU: mean ${(timings.reduce((a,b)=>a+b,0)/timings.length).toFixed(3)} ms, P95 ${timings[Math.floor(timings.length*.95)].toFixed(3)} ms, P99 ${timings[Math.floor(timings.length*.99)].toFixed(3)} ms, max ${timings.at(-1).toFixed(3)} ms`);
