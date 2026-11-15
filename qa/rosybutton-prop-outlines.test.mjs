@@ -71,3 +71,36 @@ test('pink uses Home scene packing with integer source coordinates and exact rou
  for(const rings of [...Object.values(data.outlines),...Object.values(data.bodies)])assert.ok(rings.flat(2).every(Number.isInteger));
  const original=JSON.parse(readFileSync('public/pixi-art/themes/pink/art.json'));assert.equal(Object.keys(outlines).length,new Set(original.props.map(p=>p.src)).size,'one source trace per art');
 });
+
+test('Rosybutton cached contours give exactly the original walkable answers at cell and prop edges',()=>{
+ const original=geometry({...map.walk,indexPropContours:false}).walkable;
+ const same=(x,y)=>assert.equal(client(x,y),original(x,y),`exact walkability at ${x},${y}`);
+ let seed=17;
+ const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+ for(let i=0;i<12000;i++)same(map.origin.x+random()*map.width,map.origin.y+random()*map.height);
+ for(const o of [...map.walk.obstacles,...map.walk.water]){
+  const ring=o.poly??[[o.x,o.y]],pad=o.clearance??(map.walk.water.includes(o)?20:16);
+  for(let i=0;i<ring.length;i+=Math.max(1,Math.ceil(ring.length/8))){
+   const [x,y]=ring[i];
+   for(const d of [-1e-7,0,1e-7]){
+    same(x+pad+d,y);same(x,y+pad+d);
+    same(Math.round(x/8)*8+d,Math.round(y/8)*8+d);
+   }
+  }
+ }
+ assert.equal(mapOf('home').walk.indexPropContours,undefined,'Home retains its existing lookup');
+});
+
+test('cached contour cells preserve concavities, zero clearance, multipart shapes and fixed water padding',()=>{
+ const world={width:256,height:256,coast:[[0,0],[256,0],[256,256],[0,256]],islets:[],walkways:[],bridges:[],
+  water:[{poly:[[160,40],[180,40],[180,65],[160,65]],clearance:99}],
+  obstacles:[
+   {poly:[[24,24],[48,24],[48,32],[32,32],[32,48],[24,48]],clearance:0},
+   {poly:[[80,24],[96,24],[96,48],[80,48]],parts:[[[112,24],[128,24],[128,48],[112,48]]],clearance:3},
+   {x:56,y:140,rx:13,ry:9,clearance:0},
+   {poly:[[100,130],[120,130],[120,150],[100,150]],clearance:-2},
+  ]};
+ const original=geometry(world).walkable,cached=geometry({...world,indexPropContours:true}).walkable;
+ for(let y=8;y<240;y+=4)for(let x=8;x<240;x+=4)for(const d of [-1e-7,0,1e-7])assert.equal(cached(x+d,y+d),original(x+d,y+d),`${x+d},${y+d}`);
+ for(const p of [[-8,-8],[300,300],[NaN,0],[0,Infinity]])assert.equal(cached(...p),original(...p));
+});

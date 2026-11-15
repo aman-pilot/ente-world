@@ -32,7 +32,7 @@ export function makeMap(id, {world, walk = null, harbor, art = null, sea = null,
     world={...world,props};
     const ids=new Set(props.map(p=>p.id));
     const structures=(walk??world).obstacles.filter(o=>o.name&&!ids.has(o.name));
-    walk={...(walk??world),props,navigationCellSize:16,obstacles:[...structures,...propObstacles(props)]};
+    walk={...(walk??world),props,navigationCellSize:16,indexPropContours:true,obstacles:[...structures,...propObstacles(props)]};
   }
   const W = world.width, H = world.height, walking = walk ?? world;
   const FOOT = {x: harbor.jetty.foot[0], y: harbor.jetty.foot[1]}, TIP = {x: harbor.jetty.tip[0], y: harbor.jetty.tip[1]};
