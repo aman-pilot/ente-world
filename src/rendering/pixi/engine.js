@@ -1985,7 +1985,10 @@ export class PixiIsland {
     for (const {o} of visitors) o.visible=false;
     if (this.worldView) this.worldView.liveCopies=target => this.renderLiveCopies(target, copies, visitors);
     this.isletView?.update(this.islandId,this.camera,this.viewSpan.width,this.viewSpan.height,(this.globeT||0)>.001);
-    if (this.worldView) this.worldView.globeWanted=!this.archipelago || !this.walkSolo();
+    if (this.worldView) {
+      this.worldView.globeWanted=!this.archipelago || !this.walkSolo();
+      this.worldView.currentReady=this.artReady(this.artShown);
+    }
     this.renderScreen(() => {
       this.worldView?.update(this.globeT||0, this.width, this.height, performance.now() / 1000, this.camera, this.archipelago, this.mapHere(), this.birdZoom(), !this.gestures.pointers.size, this.player, reduced);
       if (this.nameLayer) {

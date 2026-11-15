@@ -407,7 +407,8 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
         if(st&&ball>.5&&st.depth<=0)st=null;
         if(!st&&!facing(island.center,Math.hypot(mi.width,mi.height)/2))return;
         const F=flatRigid(id,island.id);let mode=worldTex?1:0;
-        if(live&&st&&paint===0){
+        // A released current island keeps its authored preview until its live art returns.
+        if(live&&st&&paint===0&&(island.id!==id||this.currentReady!==false)){
           let inside=true;
           for(let gy=0;gy<=8&&inside;gy++)for(let gx=0;gx<=8;gx++){
             const qx=(gx/8-.5)*mi.width,qy=(gy/8-.5)*mi.height,X=st.x+st.scale*(st.cos*qx-st.sin*qy),Y=st.y+st.scale*(st.sin*qx+st.cos*qy);
