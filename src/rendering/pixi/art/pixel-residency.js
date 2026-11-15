@@ -17,10 +17,26 @@ export function releaseArtPixels(source) {
   if(pictures.get(source)?.uploaded&&source.resource){close(source.resource);source.resource=null;source.options.resource=null;}
 }
 extensions?.add({extension:{type:ExtensionType?.TextureUploaderWebGL,name:'cacheBackedImage'},
-  id:'cacheBackedImage',upload(source,texture,gl,...args){
+  id:'cacheBackedImage',upload(source,texture,gl,webGLVersion,targetOverride,forceAllocation=false){
     if(gl.isContextLost())return;
     if(!source.resource)throw Error(`Picture needs recovery: ${source.label}`);
-    glUploadImageResource.upload(source,texture,gl,...args);
+    const w=source.pixelWidth,h=source.pixelHeight,target=targetOverride||texture.target;
+    if(webGLVersion===2&&w*h*4>8*1048576&&source.resourceWidth===w&&source.resourceHeight===h){
+      // Keep the complete texture and its original mipmaps. Small row uploads
+      // avoid a sheet-sized client/driver transfer buffer without resampling.
+      if(forceAllocation||texture.width!==w||texture.height!==h)
+        gl.texImage2D(target,0,texture.internalFormat,w,h,0,texture.format,texture.type,null);
+      const skip=gl.getParameter(gl.UNPACK_SKIP_ROWS),pixels=gl.getParameter(gl.UNPACK_SKIP_PIXELS);
+      try{
+        gl.pixelStorei(gl.UNPACK_SKIP_PIXELS,0);
+        const rows=Math.max(1,Math.floor(2*1048576/(w*4)));
+        for(let y=0;y<h;y+=rows){
+          gl.pixelStorei(gl.UNPACK_SKIP_ROWS,y);
+          gl.texSubImage2D(target,0,0,y,w,Math.min(rows,h-y),texture.format,texture.type,source.resource);
+        }
+        texture.width=w;texture.height=h;
+      }finally{gl.pixelStorei(gl.UNPACK_SKIP_ROWS,skip);gl.pixelStorei(gl.UNPACK_SKIP_PIXELS,pixels);}
+    }else glUploadImageResource.upload(source,texture,gl,webGLVersion,targetOverride,forceAllocation);
     if(gameContexts.has(gl)){const entry=pictures.get(source);entry.uploaded=true;entry.renderer=gameContexts.get(gl);releaseArtPixels(source);}
   },
 });
