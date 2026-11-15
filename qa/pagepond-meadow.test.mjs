@@ -20,7 +20,7 @@ test('Pagepond meadow installs the chosen SVG floors and upright anchors in auth
     assert.equal(f.topLeft, true);
     assert.deepEqual([f.x,f.y,f.width,f.height], [source.x,source.y,source.width,source.height]);
   }
-  for (const p of placement.props) {
+  for (const p of placement.props.filter(p => !['meadow-bench-nw','meadow-bench-ne','meadow-quill-1','meadow-quill-2'].includes(p.id))) {
     const actual = art.props.find(a => a.id === p.id);
     assert(actual, p.id);
     for (const key of ['x','y','width','height','anchor','scale','sortY','shadow','wind']) assert.deepEqual(actual[key],p[key],p.id+' '+key);
@@ -111,6 +111,6 @@ test('All five paper boats reuse Home bob with independent gentle phases and fix
     assert.equal(homePropRotation(home,t,false,3),Math.sin(t*1.1+3)*.008);
   }
   const benches = art.props.filter(p => /^meadow-bench-/.test(p.id));
-  assert.equal(benches.length,4);
+  assert.deepEqual(benches.map(p=>p.id).sort(),['meadow-bench-se','meadow-bench-sw']);
   assert(benches.every(p => p.facing==='pool'));
 });

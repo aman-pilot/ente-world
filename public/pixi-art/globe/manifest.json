@@ -4979,15 +4979,15 @@
     "sources": {
       "version": 1,
       "theme": "library",
-      "modelSha256": "73b4adb8b524844dd7b699ebb0aa0dd0efc9b34b10f536c6fa5909d16c07b47e",
+      "modelSha256": "c88d8b14a320f1dee98fa3f68ddff560953448abc37448b8b032af401223a3ca",
       "files": [
         {
           "path": "assets/world/island-geometry.mjs",
           "sha256": "d51edc67386bf41b050d6d4be8fab99228e064840596bf529b99b974eb18f1dd"
         },
         {
-          "path": "public/pixi-art/home-review/hill/bench.svg",
-          "sha256": "affb6c62d37390febe209cbc71225f15356718e969822a4d2da73e5afa9d4f3a"
+          "path": "public/pixi-art/detail/street--bench-wood.svg",
+          "sha256": "0eada8da38c75aeaebad9c52bb6fd8bfb34163b53e54bba5bba2ffacbed8a2f0"
         },
         {
           "path": "public/pixi-art/home-review/hill/star-sign.svg",
@@ -5015,7 +5015,7 @@
         },
         {
           "path": "public/pixi-art/themes/library/art.json",
-          "sha256": "ad7e1ac159133a17f83a5cd0ba9a7035bb59b8333b0ab4f668d0866f2e89bd6e"
+          "sha256": "2995412425800f759a36231bf32ddb497bbca33c3bf5aff09aa9ebdb8853210b"
         },
         {
           "path": "public/pixi-art/themes/library/benches/arc-bookstore-105.svg",
@@ -5556,10 +5556,6 @@
         {
           "path": "public/pixi-art/themes/library/centre/jet-front.svg",
           "sha256": "b4fcbd657f93b929870497fe33c9e660cfd1ed03a9e0d46e1e428126e2689d01"
-        },
-        {
-          "path": "public/pixi-art/themes/library/close-arc-0--45.svg",
-          "sha256": "727b8732d5eb12ac1dc9fa2187d864517641c5d7fc0a29c5e667522668e46ee1"
         },
         {
           "path": "public/pixi-art/themes/library/close-arc-1--135.svg",
@@ -6718,14 +6714,6 @@
           "sha256": "49eb4706eaa8fe138805d1e97ac8249a05d8026c284fdf31833a53fced01c3be"
         },
         {
-          "path": "public/pixi-art/themes/library/hamlets/quillwick/bench-east.svg",
-          "sha256": "d1f114193ea1215709c96a1333834f84bd137ec7b7335b99952048c727062ff7"
-        },
-        {
-          "path": "public/pixi-art/themes/library/hamlets/quillwick/bench-west.svg",
-          "sha256": "9a13f8f793060f0b342a3bbbfb2b54c7d43356608fa7f17d10b07a5ca1a426e0"
-        },
-        {
           "path": "public/pixi-art/themes/library/hamlets/quillwick/blue-book-cottage.svg",
           "sha256": "1c62015e8890623add8cf96c3532d4f865d676943d731744574a4cf29eed4e98"
         },
@@ -7190,14 +7178,6 @@
           "sha256": "a970099a363504f44f97fc26f3a617045c706fcf701d3d4c3db1cad9b4c44836"
         },
         {
-          "path": "public/pixi-art/themes/library/pagepond/meadow/bench-ne.svg",
-          "sha256": "296876a7b29914356f125e7d4ee9e20d441ddf1ed7ad8e68ca80492b30063299"
-        },
-        {
-          "path": "public/pixi-art/themes/library/pagepond/meadow/bench-nw.svg",
-          "sha256": "331647b04cde7e919c3dbbe549095facd3622bce0c28e887c36e901a01794bc5"
-        },
-        {
           "path": "public/pixi-art/themes/library/pagepond/meadow/bench-se.svg",
           "sha256": "af0f3dbbee931303ac7b24e87d8cfc3aa6d2871318acc12d946f64660573e90c"
         },
@@ -7215,7 +7195,7 @@
         },
         {
           "path": "public/pixi-art/themes/library/pagepond/meadow/contact-shadows-floor.svg",
-          "sha256": "11385d47b4baf662450f45f062bd697ae2e799abf003f9d5093a6ba598663229"
+          "sha256": "f0ff2b73887025619c4332e34998bb6893dbc0cc45d6f3e7c4dadb349e41fade"
         },
         {
           "path": "public/pixi-art/themes/library/pagepond/meadow/inkpot-quill-planter.svg",
@@ -7470,15 +7450,15 @@
           "sha256": "0b81bb5ee6f33feb0db9eb60280edfa7aa960a84f4ac92936a326a611d7763b4"
         }
       ],
-      "sha256": "d83211051e7f0f4e26fceda49840da4a649f8de578c8b28bf62ea0d8a7b00a47"
+      "sha256": "e79f7b99117b192cbd35f8637dbf66a50cfd687bb81e546f347d1b745d98fd7a"
     },
-    "groundSha256": "ea61027ea4a464cda5792d4cf4479fedb6bb15ff49fe196529c63104a7a48ee9",
+    "groundSha256": "b1e2068757db08e88bed6f6678004f5f6c1a7c2f8e046b81134bf1f715a90105",
     "src": "/pixi-art/globe/library.svg",
-    "sha256": "091a326ad23081faadde2661e46b6dc426b88e9232d0fb43e443c3f7d050eb12",
+    "sha256": "494a92afa9e085a488a3bd75a8b3e86566b95d697e89e81732f0902306970e24",
     "width": 1024,
     "height": 761,
-    "bytes": 1264166,
-    "groundBytes": 653377,
+    "bytes": 1260089,
+    "groundBytes": 652865,
     "quality": {
       "tolerance": 0.2,
       "minArea": 0.12,

@@ -35,7 +35,7 @@ test('Pagepond lily pads stay afloat and the river remains separated by a walkab
   assert(!wet(...p),'dry separation from river '+p);
   assert(map.nav().walkable(...p),'bank is usable ground '+p);
  }
- for(const id of ['lib-18','lib-19','lib-20','lib-25','lib-32']){
+ for(const id of ['lib-18','lib-19','lib-20','lib-32']){
   const p=art.props.find(p=>p.id===id);assert(!wet(p.x,p.y),id+' keeps dry footing');
  }
  assert.equal(art.props.filter(p=>p.zone==='pond'&&/reeds|cattails/.test(p.src)).length,4);

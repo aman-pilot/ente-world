@@ -10,6 +10,8 @@ import {checkTheme} from '../scripts/theme-index.mjs';
 import {makeMap} from '../src/world/island-maps.js';
 const A='public/pixi-art/themes/library/',D='assets/world/themes/library/';
 const read=p=>JSON.parse(fs.readFileSync(p));
+const visualRemovals=new Set(['meadow-bench-nw','meadow-bench-ne','close-arc-0--45','meadow-quill-1','meadow-quill-2','lib-25']);
+const squareSeats=new Set(['page-b-hill-bench','hamlet-quillwick-bench-west','hamlet-quillwick-bench-east']);
 const art=read(A+'art.json'),world=read(D+'world.json'),walk=read(D+'walk-world.json'),plan=read('scripts/pagepond/layout.json');
 const oldArt=read('scripts/bigger-library/original/art.json'),old=read('scripts/bigger-library/original/world.json');
 const checked=checkTheme('library'),map=makeMap('library',{world,walk,harbor:read(D+'harbor.json'),sleepers:checked.sleepers}),geo=geometry(map.walk);
@@ -31,7 +33,7 @@ test('Pagepond keeps literary signatures, residents, props and useful pier desti
  const shadows=read('scripts/pagepond-b/shadows.json');
  for(const [src,hash] of Object.entries(keep.assets)){const strip=shadows.stripBakedGroundShadows.find(p=>p.file===A+src);if(strip){assert(!fs.readFileSync(A+src,'utf8').includes(strip.exactElement),src+' baked contact removed');}else assert.equal(createHash('sha256').update(fs.readFileSync(A+src)).digest('hex'),hash,src);}
  const b=read('scripts/pagepond-b/placements.json');
- for(const prior of keep.props){if(prior.id==='lib-256'||retiredBoatIds.has(prior.id)||[...read('scripts/pagepond-bridges/report.json').clearedLandscape,...read('scripts/pagepond-bridges/report.json').retiredBridgeParts].includes(prior.id))continue;const actual=art.props.find(p=>p.id===prior.id);assert(actual,prior.id+' retained');const allowed=new Set(['shadow','shadowSize','shadowOffset']);if(changedIds.has(prior.id))for(const k of ['src','x','y','width','height','scale','anchor','flip','wind','footprint'])allowed.add(k);if(b.planting.replace.some(p=>p.id===prior.id))for(const k of ['src','width','height','scale'])allowed.add(k);if(b.planting.moves.some(p=>p.id===prior.id))for(const k of ['x','y','footprint'])allowed.add(k);for(const k of Object.keys(prior))if(!allowed.has(k))assert.deepEqual(actual[k],prior[k],prior.id+' '+k);}
+ for(const prior of keep.props){if(visualRemovals.has(prior.id)||prior.id==='lib-256'||retiredBoatIds.has(prior.id)||[...read('scripts/pagepond-bridges/report.json').clearedLandscape,...read('scripts/pagepond-bridges/report.json').retiredBridgeParts].includes(prior.id))continue;const actual=art.props.find(p=>p.id===prior.id);assert(actual,prior.id+' retained');const allowed=new Set(['shadow','shadowSize','shadowOffset']);if(squareSeats.has(prior.id))for(const k of ['src','width','height','scale','anchor','flip'])allowed.add(k);if(changedIds.has(prior.id))for(const k of ['src','x','y','width','height','scale','anchor','flip','wind','footprint'])allowed.add(k);if(b.planting.replace.some(p=>p.id===prior.id))for(const k of ['src','width','height','scale'])allowed.add(k);if(b.planting.moves.some(p=>p.id===prior.id))for(const k of ['x','y','footprint'])allowed.add(k);for(const k of Object.keys(prior))if(!allowed.has(k))assert.deepEqual(actual[k],prior[k],prior.id+' '+k);}
  for(const [pose,spots] of Object.entries(keep.sleepSpots))assert.deepEqual(world.sleepSpots[pose].slice(0,spots.length),spots);assert.equal(checked.sleepers.length,250);assert(checked.ready,checked.problems.join('\n'));
  for(const src of ['jetty-west.svg','jetty-east.svg','jetty-south.svg','pond-reading-dock.svg','hamlets/paperboat/south-jetty.svg'])assert(art.decks.some(d=>d.src===src),src);
  assert.deepEqual(world.coastRings,keep.coastRings,'paired page-like land retained');
@@ -94,4 +96,14 @@ test('Every Pagepond tile has one opaque Home-system painter and the exact lane 
  const audit=read('scripts/pagepond-ground/geometry-audit.json');assert.deepEqual(audit.issues,[]);assert.equal(audit.unservedEnds,0);assert.deepEqual(audit.routeWidths,[104,128]);
  for(const color of ['sage','lavender','blue','coral'])assert(fs.readFileSync(A+`hamlets/inkleaf/cottage-${color}-book.svg`,'utf8').includes('M40 136H239V254H40Z'));
  assert(fs.readFileSync(A+'hamlets/inkleaf/print-hall.svg','utf8').includes('M50 173H493V382H50Z'));
+});
+
+
+test('Pagepond visual fixes remove only the named garden furniture and keep square wooden seats',()=>{
+ for(const id of visualRemovals){assert(!art.props.some(p=>p.id===id),id+' removed');assert(!world.props.some(p=>p.id===id),id+' removed from world');}
+ assert(art.props.some(p=>p.id==='lib-11'&&p.x===1980&&p.y===3528),'middle garden inkwell retained');
+ for(const id of squareSeats){
+  const p=art.props.find(p=>p.id===id);assert.equal(p.src,'/pixi-art/detail/street--bench-wood.svg');assert.equal(p.height*(p.scale??1),113);assert.equal(p.flip,false);assert.equal(p.rotation??0,0);assert.deepEqual(world.props.find(q=>q.id===id),p);
+ }
+ assert.equal(art.contactShadows,true);
 });
