@@ -26,6 +26,9 @@ export default function BogGame({engine,team,name='Ducky',profile,accountId,navi
     return()=>{active=false;abort.abort();clearTimeout(timeout);current?.leave(false);if(layer.current===current)layer.current=null;};
   },[engine,team,name,profile,navigation,blockers,attempt]);
   const {self,snapshot,status,error}=state;
+  const waiting=status==='connecting'||status==='reconnecting';
+  const connectionText=status==='reconnecting'?'Reconnecting':'Connecting to the bog';
+  const loader=status!=='connected'?globalThis.window?.EWArrival?.loader?.(waiting?connectionText:''):null;
   // out of lives: the clouds close in now and part where the Ducky paddles to (BogEntry)
   useEffect(()=>{if(self?.out)out.current?.();},[self?.out]);
   // the shield pickup blocks one splat: show it with a countdown while it lasts, and a short flash when it is used up
@@ -43,8 +46,6 @@ export default function BogGame({engine,team,name='Ducky',profile,accountId,navi
     <div className="bog-hud-card bog-hud-me">
       <small>You · Team {mine==='karma'?'Karma':'Evil'}</small>
       <b>{self?.stats.tags??0} splats · {self?.stats.score??0} pts</b>
-      {status!=='connected'&&<span role="status">{error||'Connecting…'}{status==='reconnecting'?' Reconnecting…':''}</span>}
-      {status==='disconnected'&&<button onClick={()=>setAttempt(n=>n+1)}>Reconnect</button>}
     </div>
     <button className="bog-hud-leave" onClick={()=>{if(layer.current)layer.current.leave();else leave.current(null);}}>{returnLabel}</button>
     <div className="bog-hud-bottom">
@@ -64,5 +65,11 @@ export default function BogGame({engine,team,name='Ducky',profile,accountId,navi
           </div></div>
       </div>
     </div>
+    {(waiting||status==='disconnected')&&<div className={`bog-connection${waiting?' bog-connection--wait':''}`} key={status}>
+      <div className="bog-connection-content" role={waiting?'status':'alertdialog'} aria-live="polite" aria-label={waiting?connectionText:'Disconnected from the bog'}>
+        <div className="arrival-loader" aria-hidden="true" dangerouslySetInnerHTML={{__html:loader||''}}/>
+        {waiting?!loader&&<p>{connectionText}</p>:<><p>{error||'Disconnected from the bog. Try reconnecting.'}</p><button onClick={()=>setAttempt(n=>n+1)}>Reconnect</button></>}
+      </div>
+    </div>}
   </aside>;
 }

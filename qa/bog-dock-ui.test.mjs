@@ -8,14 +8,14 @@ import {createRoot} from 'react-dom/client';
 import {Container} from 'pixi.js';
 import {BOG_COMBAT} from '../src/features/bog-combat/config.js';
 
-test('strict-mode dock chooses either side, returns with totals/medal case and restores island ownership',async()=>{
+test('strict-mode dock chooses either side, closes back to the boat and restores island ownership',async()=>{
   const {outputFiles:[bundle]}=await build({entryPoints:[fileURLToPath(new URL('../src/features/bog-combat/BogEntry.jsx',import.meta.url))],bundle:true,packages:'external',jsx:'automatic',format:'esm',write:false,loader:{'.css':'empty','.svg':'dataurl'}});
   let code=bundle.text;
   for(const name of ['react','react/jsx-runtime','pixi.js'])code=code.replaceAll(JSON.stringify(name),JSON.stringify(import.meta.resolve(name)));
   const {default:BogEntry}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
   const dom=new JSDOM('<canvas></canvas><div id="root"></div>'),originals={window:globalThis.window,document:globalThis.document,IS_REACT_ACT_ENVIRONMENT:globalThis.IS_REACT_ACT_ENVIRONMENT};
   Object.assign(globalThis,{window:dom.window,document:dom.window.document,IS_REACT_ACT_ENVIRONMENT:true});
-  const sockets=[];let returns=0,closed=0;
+  const sockets=[];let closed=0;
   class Socket{
     readyState=1;bufferedAmount=0;
     constructor(url){
@@ -32,7 +32,7 @@ test('strict-mode dock chooses either side, returns with totals/medal case and r
   }
   const oldRoom={},objects=new Container(),engine={canvas:document.querySelector('canvas'),objects,room:oldRoom,liveRigs:new Map(),stopInput(){},renderLiveDucks(){},dispose(){}};
   const root=createRoot(document.getElementById('root'));
-  const props={...BOG_COMBAT,engine,Socket,profile:'ui-profile-'.padEnd(36,'a'),loadGhosts:async()=>({}),loadGun:async()=>[],travel:{islandId:'isle-249',mode:'walking'},status:'playing',onReturnToDock:()=>returns++,onLeave:()=>closed++};
+  const props={...BOG_COMBAT,engine,Socket,profile:'ui-profile-'.padEnd(36,'a'),loadGhosts:async()=>({}),loadGun:async()=>[],travel:{islandId:'isle-249',mode:'walking'},status:'playing',onLeave:()=>closed++};
   const click=async text=>{const button=[...document.querySelectorAll('button')].find(b=>b.textContent.includes(text));assert.ok(button,text);await act(async()=>button.click());};
   const render=async options=>{await act(async()=>root.render(React.createElement(React.StrictMode,null,React.createElement(BogEntry,{...props,...options}))));};
   try{
@@ -42,12 +42,23 @@ test('strict-mode dock chooses either side, returns with totals/medal case and r
     const evilIcon=document.querySelector('.bog-combat-popper-icon').getAttribute('src');
     assert.doesNotMatch(decodeURIComponent(evilIcon),/karma-padlock/);
     assert.equal(sockets.filter(s=>s.url.searchParams.has('team')&&s.readyState===1).length,1,'strict effects leave exactly one participant');
-    await click('Back to boat');assert.equal(engine.room,oldRoom);assert.equal(engine.bogCombat,undefined);assert.equal(returns,1);
-    assert.match(document.body.textContent,/Back at the dock/);assert.match(document.querySelector('dl').textContent,/Score50/);assert.match(document.querySelector('ul').textContent,/Earned/);
-    await click('Pick a team');await click('Karma');assert.equal(engine.bogCombat.room.client.self.team,'karma');
+    await click('Back to boat');assert.equal(engine.room,oldRoom);assert.equal(engine.bogCombat,undefined);assert.equal(closed,1);
+    assert.equal(document.querySelector('.bog-hud'),null);assert.doesNotMatch(document.body.textContent,/Back at the dock/);
+    assert.ok(sockets.every(s=>s.readyState===3),'leaving closes every socket');
+    await render({travel:{islandId:'isle-249',mode:'sailing'}});assert.equal(document.querySelector('[role="dialog"]'),null);
+    await render();assert.ok(document.querySelector('[role="dialog"]'),'another landing opens the dock again');
+    await click('Enter');await click('Karma');assert.equal(engine.bogCombat.room.client.self.team,'karma');
     const karmaIcon=document.querySelector('.bog-combat-popper-icon').getAttribute('src');
     assert.notEqual(karmaIcon,evilIcon);assert.match(decodeURIComponent(karmaIcon),/karma-padlock/);
-    await click('Back to boat');await click('Back to boat');assert.equal(closed,1);
+    const participant=sockets.find(s=>s.url.searchParams.has('team')&&s.readyState===1);
+    await act(async()=>{participant.close();participant.onclose({code:1000,reason:'Test disconnect'});});
+    const problem=document.querySelector('.bog-connection [role="alertdialog"]');
+    assert.ok(problem);assert.match(problem.textContent,/Test disconnect/);
+    assert.equal(document.querySelector('.bog-hud-me [role="status"]'),null);
+    await click('Reconnect');
+    assert.equal(document.querySelector('.bog-connection'),null,'the overlay clears when the match reconnects');
+    assert.equal(sockets.filter(s=>s.url.searchParams.has('team')&&s.readyState===1).length,1,'reconnect leaves one participant');
+    await click('Back to boat');assert.equal(closed,2);
     await render({travel:{islandId:'isle-249',mode:'sailing'}});assert.equal(document.querySelector('[role="dialog"]'),null);
     await render();assert.ok(document.querySelector('[role="dialog"]'),'another landing opens the picker again');
   }finally{await act(async()=>root.unmount());assert.equal(engine.room,oldRoom);assert.equal(engine.bogCombat,undefined);assert.ok(sockets.every(s=>s.readyState===3));objects.destroy({children:true});dom.window.close();Object.assign(globalThis,originals);}

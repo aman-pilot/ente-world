@@ -1,7 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
 import {ArenaLobbyClient,profileToken} from './client.js';
-import {MEDALS} from './medals.js';
-import {emptyStats} from './rules.js';
 import BogGame from './BogGame.jsx';
 import {BogWelcome,BogTeamPick} from './BogEntryScreens.jsx';
 import BogClouds,{FeatherWait} from './BogClouds.jsx';
@@ -14,16 +12,9 @@ export function trapFocus(event) {
   if(event.shiftKey&&(active===first||active===event.currentTarget)){event.preventDefault();last?.focus();}
   else if(!event.shiftKey&&(active===last||active===event.currentTarget)){event.preventDefault();first?.focus();}
 }
-export function LifetimeStats({stats=emptyStats()}) {
-  return <dl className="bog-combat-lifetime">{[['tags','Kills'],['survives','Survives'],['score','Score'],['medals','Medals'],['bestStreak','Best streak']].map(([key,label])=><div key={key}><dt>{label}</dt><dd>{stats[key]??0}</dd></div>)}</dl>;
-}
-export function MedalCase({medals={}}) {
-  return <ul className="bog-combat-medals">{MEDALS.map(m=><li key={m.id}><strong>{m.name}</strong><span>{medals[m.id]?'Earned':m.detail}</span></li>)}</ul>;
-}
-
 export default function BogDock({engine,name='Ducky',profile:providedProfile,onLeave=()=>{},onReturnToDock=()=>{},onOut,initialPanel='welcome',leaveLabel='Back to boat',...options}) {
   const [profile]=useState(()=>providedProfile??profileToken()),[team,setTeam]=useState(null),[panel,setPanel]=useState(initialPanel);
-  const [data,setData]=useState(null),[status,setStatus]=useState('connecting'),[attempt,setAttempt]=useState(0),[lastVisit,setLastVisit]=useState(null);
+  const [data,setData]=useState(null),[status,setStatus]=useState('connecting'),[attempt,setAttempt]=useState(0);
   const dialog=useRef(null),leave=useRef(onLeave);leave.current=onLeave;
   // joining a team: the clouds close in while the match gets ready and part once the Ducky stands at its start spot
   const [clouds,setClouds]=useState(null);
@@ -49,22 +40,13 @@ export default function BogDock({engine,name='Ducky',profile:providedProfile,onL
     window.addEventListener('keydown',keydown,true);
     return()=>{window.removeEventListener('keydown',keydown,true);previous?.focus?.({preventScroll:true});};
   },[team]);
-  const back=totals=>{if(totals?.out){leave.current();return;}onReturnToDock();setLastVisit(totals);setTeam(null);setPanel('summary');};
+  const back=()=>leave.current();
   // one tree shape for every panel, so the clouds keep running from the pick into the game
   const cover=clouds&&<BogClouds text="Getting ready" ready={clouds==='ready'} onGone={()=>setClouds(null)}/>;
   if(team)return <><BogGame {...options} engine={engine} team={team} name={name} profile={profile} onLeave={back} onOut={onOut}
       onReady={()=>setClouds(c=>c==='wait'?'ready':c)}/>{cover}</>;
-  const connected=status==='connected'&&data,stats=data?.stats??lastVisit?.stats??emptyStats(),medals=data?.medalCase??lastVisit?.medalCase??{};
+  const connected=status==='connected'&&data;
   const statusLine=<div className="bog-entry-status" role="status">{status==='disconnected'?<>The bog is unavailable. <button onClick={()=>setAttempt(n=>n+1)}>Reconnect</button></>:status==='connecting'?<FeatherWait text="Connecting to the bog"/>:'Ready to make a splash.'}</div>;
   if(panel==='welcome')return <BogWelcome dialog={dialog} onEnter={()=>setPanel('teams')} onLeave={onLeave} status={statusLine}/>;
-  if(panel==='teams')return <><BogTeamPick dialog={dialog} data={connected?data:null} onPlay={join} onLeave={onLeave} leaveLabel={leaveLabel} status={statusLine}/>{cover}</>;
-  return <div className="bog-combat-dock">
-    <section ref={dialog} className="bog-combat-card" role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="bog-combat-heading" onKeyDown={trapFocus}>
-      <header><small>BOOQUACK BOG · 5 FEATHERS PER ENTRY</small><button onClick={onLeave}>{leaveLabel}</button></header>
-      <h1 id="bog-combat-heading">Back at the dock</h1>
-      <p>Your lifetime progress carries over every visit.</p><LifetimeStats stats={stats}/><MedalCase medals={medals}/>
-      <footer><span>{Object.keys(medals).length} / {MEDALS.length} medals earned</span><button onClick={()=>setPanel('teams')}>Pick a team</button></footer>
-      {statusLine}
-    </section>
-  </div>;
+  return <><BogTeamPick dialog={dialog} data={connected?data:null} onPlay={join} onLeave={onLeave} leaveLabel={leaveLabel} status={statusLine}/>{cover}</>;
 }
