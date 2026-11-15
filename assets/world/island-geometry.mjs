@@ -61,7 +61,7 @@ export function coastIndex(coast,CELL=64){
 }
 export function geometry(world){
  const ellipse=(x,y,o,pad=0)=>((x-o.x)/(o.rx+pad))**2+((y-o.y)/(o.ry+pad))**2<1;
- // Compile Rosybutton's static prop and water contours once. Row-local
+ // Compile outlined islands' static prop and water contours once. Row-local
  // containment and clearance queries preserve the original point tests.
  // Each 8-unit cell is certified with its circumscribed circle. Cells touching
  // a contour use the exact point test; the cache never rounds a blocked edge.
@@ -140,13 +140,23 @@ export function geometry(world){
   };
  }
  let waterAt=null,solidAtPoint=null;
- let waterNear=null,solidNear=null,bridgeNear=null,coastAt=null,coastContains=null;
+ let waterNear=null,solidNear=null,bridgeNear=null,coastAt=null,coastContains=null,walkwayNear=null;
+ function boardAt(x,y){
+  if(!world.walkways)return Math.abs(x-world.boardwalk.x)<world.boardwalk.w/2-12&&Math.abs(y-world.boardwalk.y)<world.boardwalk.h/2+25;
+  // Pagepond's fine fallback grid samples a large sea box. Reject distant
+  // decks by their bounds before doing segment projections at every sea cell.
+  if(world.indexPropContours)walkwayNear??=shapeIndex(world.walkways.map(b=>{
+   const pad=Math.max(0,b.w/2-10);
+   return {...b,clearance:0,poly:[[Math.min(b.a[0],b.b[0])-pad,Math.min(b.a[1],b.b[1])-pad],[Math.max(b.a[0],b.b[0])+pad,Math.max(b.a[1],b.b[1])+pad]]};
+  }),0);
+  return (walkwayNear?walkwayNear(x,y):world.walkways).some(b=>{const dx=b.b[0]-b.a[0],dy=b.b[1]-b.a[1],t=Math.max(0,Math.min(1,((x-b.a[0])*dx+(y-b.a[1])*dy)/(dx*dx+dy*dy)));return Math.hypot(x-b.a[0]-dx*t,y-b.a[1]-dy*t)<b.w/2-10;});
+ }
  function walkable(x,y){if(!Number.isFinite(x)||!Number.isFinite(y))return false;
   coastAt??=coastIndex(world.coast);
   const side=coastAt(x,y);
   if(world.indexPropContours)coastContains??=polygonIndex(world.coast,8);
   if(!(side===2?(coastContains?coastContains(x,y):inPoly(x,y,world.coast)):side===1)){
-   const board=world.walkways?world.walkways.some(b=>{const dx=b.b[0]-b.a[0],dy=b.b[1]-b.a[1],t=Math.max(0,Math.min(1,((x-b.a[0])*dx+(y-b.a[1])*dy)/(dx*dx+dy*dy)));return Math.hypot(x-b.a[0]-dx*t,y-b.a[1]-dy*t)<b.w/2-10;}):Math.abs(x-world.boardwalk.x)<world.boardwalk.w/2-12&&Math.abs(y-world.boardwalk.y)<world.boardwalk.h/2+25;
+   const board=boardAt(x,y);
    const isle=world.islets.some(a=>((x-a[0])/(a[2]-20))**2+((y-a[1])/(a[3]-20))**2<1);
    if(!board&&!isle)return false;
   }

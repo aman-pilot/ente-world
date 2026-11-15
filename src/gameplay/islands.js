@@ -22,7 +22,7 @@ export function boardingPoint(boat,nav) {
   const dock=isletWalks(boat.islandId ?? 'home').find(w=>near(boat,w.water,150));
   if(dock)return {...dock.land};
   const map=mapOf(boat.islandId ?? 'home'), {HARBOR:harbor,JETTY:jetty}=map, {foot,dir,length,along}=jetty;
-  if (!near(boat,harbor.water,600)) return shoreFor(boat.x,boat.y,nav ?? navOf(boat.islandId ?? 'home')) ?? {x:Math.round(boat.x),y:Math.round(boat.y)};
+  if (!near(boat,harbor.water,600)) return shoreFor(boat.x,boat.y,nav ?? navOf(boat.islandId ?? 'home'),280,map) ?? {x:Math.round(boat.x),y:Math.round(boat.y)};
   const t=Math.max(length*jetty.wetFrom,Math.min(length-44,(boat.x-foot.x)*dir.x+(boat.y-foot.y)*dir.y));
   const side=Math.sign((boat.x-foot.x)*-dir.y+(boat.y-foot.y)*dir.x)*(t >= length-45 ? 0 : 18), p=along(t,side);
   return {x:Math.round(p.x),y:Math.round(p.y)};
@@ -137,7 +137,9 @@ export function retireBoat(boats,boat,landing=null) {
   fillMoorings(boats);
 }
 
-const shoreFor=(x,y,nav,reach=280) => {
+const shoreFor=(x,y,nav,reach=280,map=null) => {
+  const approach=map?.id==='library'&&map.world.boardingApproaches?.find(a=>Math.hypot(x-a.boat[0],y-a.boat[1])<8&&Math.hypot(x-a.point[0],y-a.point[1])<=reach&&nav.walkable(...a.point));
+  if(approach)return {x:approach.point[0],y:approach.point[1]};
   const p=nav.nearest(x,y,reach);
   if (!p) return null;
   const [rx,ry]=p.map(Math.round);
@@ -151,12 +153,12 @@ export function landingSpot(actor,nav=null,reach=420,target=null) {
       best={islandId,offset:{x:at.x-shore.x,y:at.y-shore.y},...shore,d,...extra};
     }
   };
-  const findShore=(p,walk)=>target ? (walk.walkable(p.x,p.y) ? p : null) : shoreFor(p.x,p.y,walk,reach);
+  const findShore=(p,walk,map)=>target ? (walk.walkable(p.x,p.y) ? p : null) : shoreFor(p.x,p.y,walk,reach,map);
   for (const island of WORLD_ISLANDS) {
     if(!islandMapReady(island.id))continue;
     const map=mapOf(island.id),p=unplaceRigid(actor.islandId,island.id,target ?? actor),lx=p.x,ly=p.y;
     if (lx < map.origin.x-reach || ly < map.origin.y-reach || lx > map.origin.x+map.width+reach || ly > map.origin.y+map.height+reach) continue;
-    const shore=findShore(p,island.id===actor.islandId && nav && map.home ? nav : map.nav());
+    const shore=findShore(p,island.id===actor.islandId && nav && map.home ? nav : map.nav(),map);
     if (shore) consider(island.id,shore,placeRigid(actor.islandId,island.id,shore));
   }
   for (const i of ISLETS) {

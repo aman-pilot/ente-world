@@ -7,6 +7,20 @@ const CELL=cellSize,COLS=Math.ceil(world.width/CELL),ROWS=Math.ceil(world.height
 const grid=new Uint8Array(COLS*ROWS);
 for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)grid[y*COLS+x]=walkable(X0+(x+.5)*CELL,Y0+(y+.5)*CELL)?1:0;
 function point(id){return [X0+(id%COLS+.5)*CELL,Y0+(Math.floor(id/COLS)+.5)*CELL];}
+// Disjoint grid regions cannot have an A* route. Four-neighbour labels are
+// conservative: a permitted diagonal already requires both adjacent cells.
+// Thin contours may split a label further, so normal line checks still decide.
+const components=world.theme==='library'?(() => {
+ const labels=new Uint32Array(grid.length),queue=new Uint32Array(grid.length);let label=0;
+ for(let i=0;i<grid.length;i++)if(grid[i]&&!labels[i]){
+  let head=0,tail=1;queue[0]=i;labels[i]=++label;
+  while(head<tail){const cur=queue[head++],x=cur%COLS;
+   for(const next of [x?cur-1:-1,x+1<COLS?cur+1:-1,cur-COLS,cur+COLS])
+    if(next>=0&&next<grid.length&&grid[next]&&!labels[next]){labels[next]=label;queue[tail++]=next;}
+  }
+ }
+ return labels;
+})():null;
 const STEP=new Uint8Array(COLS*ROWS*9);
 function stepClear(cur,dx,dy,n){const k=cur*9+(dy+1)*3+(dx+1);if(!STEP[k])STEP[k]=clearLine(point(cur),point(n))?1:2;return STEP[k]===1;}
 function cell(x,y){return Math.floor((y-Y0)/CELL)*COLS+Math.floor((x-X0)/CELL);}
@@ -29,17 +43,26 @@ function route(sx,sy,tx,ty){
  if(near)return path;
  const edge=reachToward(sx,sy,tx,ty);return edge?[edge]:[];
 }
+// Reuse Pagepond's large A* workspace. A generation stamp avoids clearing
+// every island cell for each click and keeps old search state out of the route.
+let workspace;
 function search(sx,sy,target){
  function nearCell(x,y){const c=cell(x,y);if(grid[c]&&clearLine([x,y],point(c)))return c;for(let r=1;r<6;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){let xx=Math.floor((x-X0)/CELL)+dx,yy=Math.floor((y-Y0)/CELL)+dy,id=yy*COLS+xx;if(xx>=0&&xx<COLS&&yy>=0&&yy<ROWS&&grid[id]&&clearLine([x,y],point(id)))return id;}return -1;}
- const start=nearCell(sx,sy),end=nearCell(...target);if(start<0||end<0)return [];
- const cost=new Float32Array(grid.length).fill(Infinity),parent=new Int32Array(grid.length).fill(-1),closed=new Uint8Array(grid.length),heap=[];
- const heuristic=id=>{const a=point(id),b=point(end);return Math.hypot(a[0]-b[0],a[1]-b[1])/CELL;};
+ const start=nearCell(sx,sy),end=nearCell(...target);if(start<0||end<0||components&&components[start]!==components[end])return [];
+ let cost,parent,closed,seen,generation;
+ if(components){
+  workspace??={cost:new Float32Array(grid.length),parent:new Int32Array(grid.length),closed:new Uint32Array(grid.length),seen:new Uint32Array(grid.length),generation:0};
+  if(workspace.generation===0xffffffff){workspace.closed.fill(0);workspace.seen.fill(0);workspace.generation=0;}
+  ({cost,parent,closed,seen}=workspace);generation=++workspace.generation;
+ }else{cost=new Float32Array(grid.length).fill(Infinity);parent=new Int32Array(grid.length).fill(-1);closed=new Uint8Array(grid.length);generation=1;}
+ const heap=[],endX=end%COLS,endY=Math.floor(end/COLS);
+ const heuristic=components?id=>Math.hypot(id%COLS-endX,Math.floor(id/COLS)-endY):id=>{const a=point(id),b=point(end);return Math.hypot(a[0]-b[0],a[1]-b[1])/CELL;};
  function push(id,f){let i=heap.length;heap.push({id,f});while(i){let p=(i-1)>>1;if(heap[p].f<=f)break;heap[i]=heap[p];i=p;}heap[i]={id,f};}
  function pop(){let top=heap[0],end=heap.pop();if(heap.length){let i=0;while(i*2+1<heap.length){let c=i*2+1;if(c+1<heap.length&&heap[c+1].f<heap[c].f)c++;if(heap[c].f>=end.f)break;heap[i]=heap[c];i=c;}heap[i]=end;}return top.id;}
- cost[start]=0;push(start,heuristic(start));let found=false;
- while(heap.length){let cur=pop();if(closed[cur])continue;closed[cur]=1;if(cur===end){found=true;break;}
+ if(seen)seen[start]=generation;cost[start]=0;push(start,heuristic(start));let found=false;
+ while(heap.length){let cur=pop();if(closed[cur]===generation)continue;closed[cur]=generation;if(cur===end){found=true;break;}
  const x=cur%COLS,y=Math.floor(cur/COLS);
- for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;let xx=x+dx,yy=y+dy,n=yy*COLS+xx;if(xx<0||yy<0||xx>=COLS||yy>=ROWS||!grid[n]||closed[n])continue;if(dx&&dy&&(!grid[y*COLS+xx]||!grid[yy*COLS+x]))continue;const nc=cost[cur]+(dx&&dy?Math.SQRT2:1);if(!stepClear(cur,dx,dy,n))continue;if(nc<cost[n]){cost[n]=nc;parent[n]=cur;push(n,nc+heuristic(n));}}}
+ for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;let xx=x+dx,yy=y+dy,n=yy*COLS+xx;if(xx<0||yy<0||xx>=COLS||yy>=ROWS||!grid[n]||closed[n]===generation)continue;if(dx&&dy&&(!grid[y*COLS+xx]||!grid[yy*COLS+x]))continue;const nc=cost[cur]+(dx&&dy?Math.SQRT2:1);if(seen&&seen[n]!==generation||nc<cost[n]){if(!stepClear(cur,dx,dy,n))continue;if(seen)seen[n]=generation;cost[n]=nc;parent[n]=cur;push(n,nc+heuristic(n));}}}
  if(!found)return [];
  const cells=[];for(let n=end;n!==start;n=parent[n])cells.push(point(n));cells.reverse();cells.push(target);
  const raw=[];
