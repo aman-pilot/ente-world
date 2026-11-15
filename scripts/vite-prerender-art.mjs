@@ -216,7 +216,9 @@ export function prerenderArt() {
         const members=previousGroups.get(tier.group)??new Set();
         members.add(src+'\0'+tier.url);previousGroups.set(tier.group,members);
       }
-      for(const [group,allPieces] of groups){
+      // Groups are independent, so several are packed at once. A main-detail
+      // group (/8) reads the sheets of its sibling groups, so those run after.
+      const packGroup=async([group,allPieces])=>{
         // A main-detail tier often repeats the old top density. Reuse that
         // exact frame instead of encoding another copy of its entire sheet.
         const pieces=allPieces.filter(p=>{
@@ -225,7 +227,7 @@ export function prerenderArt() {
           if(!same)return true;
           Object.assign(p.tier,same,{group});return false;
         });
-        if(!pieces.length)continue;
+        if(!pieces.length)return;
         const members=previousGroups.get(group);
         const sameMembers=members?.size===pieces.length&&pieces.every(p=>members.has(p.src+'\0'+p.tier.url));
         const lossless=!group.includes('/ground/opaque/'),quality=lossless?92:90;
@@ -236,7 +238,7 @@ export function prerenderArt() {
           for(const [url,bytes]of files){this.emitFile({type:'asset',fileName:url.slice(config.base.length),source:bytes});sheetBytes.set(url,bytes.length);}
           pieces.forEach((p,i)=>{Object.assign(p.tier,old[i]);});
           config.logger.info(`Art sheets ${group}: ${new Set(old.map(t=>t.sheet)).size} reused`);
-          continue;
+          return;
         }
         const sheets=await packArtSheets(pieces,4096,{lossless,quality});
         for(const sheet of sheets){
@@ -249,7 +251,13 @@ export function prerenderArt() {
             group,gutter:2,sheetLimit:4096,sheetEffort:4,sheetQuality:quality});
         }
         config.logger.info(`Art sheets ${group}: ${sheets.length}, ${pieces.filter(p=>p.tier.atlasFallback).length} oversized fallbacks, ${(sheets.reduce((n,s)=>n+s.bytes.length,0)/1048576).toFixed(2)} MiB, ${sheets.map(s=>`${s.width}x${s.height}`).join(' ')}`);
-      }
+      };
+      const packGroups=async list=>{
+        let next=0;
+        await Promise.all(Array.from({length:Math.min(concurrency,list.length)},async()=>{while(next<list.length)await packGroup(list[next++]);}));
+      };
+      await packGroups([...groups].filter(([group])=>!group.endsWith('/8')));
+      await packGroups([...groups].filter(([group])=>group.endsWith('/8')));
       // Extra landing densities append to stable packing group IDs so old
       // sheets remain reusable. Restore nominal order for group tier planning,
       // even where native-size caps make several scales numerically equal.
