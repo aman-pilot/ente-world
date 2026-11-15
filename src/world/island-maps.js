@@ -1,3 +1,5 @@
+import librarySleepers from '../../assets/world/themes/library/sleepers.json' with {type:'json'};
+import {outlineLibraryProps,loadLibraryScene,librarySceneReady} from './prop-outlines/library-scene.js';
 import pinkSleepers from '../../assets/world/themes/pink/sleepers.json' with {type:'json'};
 import {hasPropOutlines,propObstacles} from './prop-outlines/islands.js';
 import {outlinePinkProps,loadPinkScene,pinkSceneReady} from './prop-outlines/pink-scene.js';
@@ -25,11 +27,13 @@ const HOME_JETTY = expansion.jetty;
 const trimHome = w => ({...w, islets: w.islets.filter(a => ![3930, 3340, 2290, 5450].includes(a[0])), walkways: w.walkways.filter(b => ![3940, 3320, 2320, 5050].includes(b.a[0]))});
 
 export function makeMap(id, {world, walk = null, harbor, art = null, sea = null, centre = null, addJetty = true, sleepers = null}) {
-  const enabled=hasPropOutlines(id === 'pink' ? 'sunset' : id) && id !== 'home';
-  const deferred=enabled&&!pinkSceneReady();
+  const enabled=hasPropOutlines(id === 'pink' ? 'sunset' : id === 'library' ? 'isle-251' : id) && id !== 'home';
+  const scene=id==='library'?{ready:librarySceneReady,outline:outlineLibraryProps}: {ready:pinkSceneReady,outline:outlinePinkProps};
+  const deferred=enabled&&!scene.ready();
   if(enabled&&!deferred){
-    sleepers??=pinkSleepers;
-    const props=outlinePinkProps(world.props);
+    if(id==='pink')sleepers??=pinkSleepers;
+    if(id==='library'&&world.sleepSpots)sleepers??=librarySleepers;
+    const props=scene.outline(world.props??[]);
     world={...world,props};
     const ids=new Set(props.map(p=>p.id));
     const structures=(walk??world).obstacles.filter(o=>o.name&&!ids.has(o.name));
@@ -82,7 +86,7 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
   const walkMap = beds.length ? {...baseWalk, obstacles: [...(baseWalk.obstacles ?? []), ...beds.map(enabled?homeSleeperFootprint:sleeperFootprint)]} : baseWalk;
   let NAV = null;
   const nav = () => {
-    if(deferred)throw Error('Rosybutton layout is not ready');
+    if(deferred)throw Error(`${id} layout is not ready`);
     return NAV ??= createNavigation(walkMap, {cellSize: walking.navigationCellSize ?? 32});
   };
   const shoreFor = (x, y, reach = 280) => {const p = nav().nearest(x, y, reach); return p ? {x: Math.round(p[0]), y: Math.round(p[1])} : null;};
@@ -164,17 +168,20 @@ export function registerMap(theme, data) {
 }
 for (const [theme, data] of Object.entries(READY ?? {})) if (THEME_IDS.includes(theme) && theme !== 'home') registerMap(theme, data);
 
-let pinkMapLoaded=pinkSceneReady();
-export const islandMapReady=id=>themeOfIsland(id)!=='pink'||pinkMapLoaded;
-let pinkMapPending;
+const outlinedScenes={pink:{ready:pinkSceneReady,load:loadPinkScene},library:{ready:librarySceneReady,load:loadLibraryScene}};
+const loadedScenes=new Set(Object.entries(outlinedScenes).filter(([,scene])=>scene.ready()).map(([theme])=>theme));
+const pendingScenes=new Map();
+export const islandMapReady=id=>!outlinedScenes[themeOfIsland(id)]||loadedScenes.has(themeOfIsland(id));
 export function prepareIslandMap(id){
   if(islandMapReady(id))return Promise.resolve();
-  return pinkMapPending??=loadPinkScene().then(()=>{
+  const theme=themeOfIsland(id);
+  if(!pendingScenes.has(theme))pendingScenes.set(theme,outlinedScenes[theme].load().then(()=>{
     // Keep coastline/harbour references held by sailing and scenery consumers.
-    Object.assign(MAPS.get('pink'),makeMap('pink',READY.pink));
+    Object.assign(MAPS.get(theme),makeMap(theme,READY[theme]));
     VERSION++;
-    pinkMapLoaded=true;
-  }).catch(error=>{pinkMapPending=undefined;throw error;});
+    loadedScenes.add(theme);
+  }).catch(error=>{pendingScenes.delete(theme);throw error;}));
+  return pendingScenes.get(theme);
 }
 
 export const HOME_MAP = MAPS.get('home');

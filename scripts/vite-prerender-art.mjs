@@ -126,7 +126,7 @@ export async function collectPlacedArt(root) {
 }
 
 export function prerenderArt() {
-  let config, manifestURL, manifest, entries, sheetBytes, homeURL, pinkURL, duckPartsURL, islandsURL;
+  let config, manifestURL, manifest, entries, sheetBytes, homeURL, pinkURL, libraryURL, duckPartsURL, islandsURL;
   const previousDetail=new Map();
   return {
     name: 'prerender-island-art', apply: 'build',
@@ -149,6 +149,9 @@ export function prerenderArt() {
       const pink=await readFile(path.join(root,'assets/world/themes/pink/scene-pack.json'),'utf8');
       pinkURL=config.base+`${DIRECTORY}/pink-${hash(pink)}.json`;
       this.emitFile({type:'asset',fileName:pinkURL.slice(config.base.length),source:pink});
+      const library=await readFile(path.join(root,'assets/world/themes/library/scene-pack.json'),'utf8');
+      libraryURL=config.base+`${DIRECTORY}/library-${hash(library)}.json`;
+      this.emitFile({type:'asset',fileName:libraryURL.slice(config.base.length),source:library});
       for (const src of new Set(entries.map(e => e.src).filter(src => /\.(svg|png)$/.test(src) && !sizes[src]))) {
         const {width, height} = await sharp(path.join(config.publicDir, src)).metadata();
         sizes[src] = [width, height];
@@ -399,6 +402,7 @@ export function prerenderArt() {
       }
     },
     transform(code, id) {
+      if(id.endsWith('/world/prop-outlines/library-scene.js'))return {code:lazyPinkScene(code,libraryURL),map:null};
       if(id.endsWith('/world/prop-outlines/pink-scene.js'))return {code:lazyPinkScene(code,pinkURL),map:null};
       if(id.endsWith('/world/home/placements.js'))return {code:indexHomeGeometry(code),map:null};
       if(id.endsWith('/world/home/startup-scene.js'))return {code:`import {unpackHomeScene} from './scene-pack.js';const get=()=>(async()=>{const response=await fetch(${JSON.stringify(homeURL)});if(!response.ok)throw Error('Home layout unavailable');return response.json();})().catch(error=>{pending=undefined;throw error;});let pending=get();export const homeSceneData=()=>pending??=get();export async function loadHomeScene(room){const data=await homeSceneData();const scene=unpackHomeScene(data,room?'room':'solo');scene.beds.bad=scene.dropped;return scene;}`,map:null};

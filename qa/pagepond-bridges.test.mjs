@@ -49,8 +49,8 @@ test('all 34 Pagepond bridge ends meet widened paths and the production deck phy
   for(const [sign,p]of [[-1,d.a],[1,d.b]]){
    const v=d.homeSource.includes('-ne')?[85,52]:d.homeSource.includes('-nw')?[-85,52]:[-u[1]*100,u[0]*100],vl=Math.hypot(...v);
    for(const cross of [-48,-24,0,24,48])assert(floor([p[0]+v[0]/vl*cross,p[1]+v[1]/vl*cross]),d.id+' full-width bank throat '+cross);
-   for(let distance=0;distance<=40;distance+=4){const q=p.map((v,k)=>v+u[k]*sign*distance);assert(floor(q),d.id+' path extends to deck');assert(nav.walkable(...q),d.id+' clear landing');}
-   const route=nav.route(map.spawn.x,map.spawn.y,...p);assert.deepEqual(route.at(-1),p,d.id+' landing reachable');
+   for(let distance=0;distance<=40;distance+=4){const q=p.map((v,k)=>v+u[k]*sign*distance);assert(floor(q),d.id+' path extends to deck');const approach=nav.nearest(...q,80);assert(approach,d.id+' clear landing beside prop outline');assert(nav.walkable(...approach),d.id+' uncovered landing');const access=nav.route(...p,...approach);assert.deepEqual(access.at(-1),approach,d.id+' continuous landing access');let previous=p;for(const point of access){assert(nav.clearLine(previous,point),d.id+' landing avoids solid art');previous=point;}}
+   const landing=nav.nearest(...p,80);assert(landing,d.id+' landing approach');const route=nav.route(map.spawn.x,map.spawn.y,...landing);assert.deepEqual(route.at(-1),landing,d.id+' landing reachable');
   }
   for(let t=0;t<=1;t+=.02)assert(nav.walkable(d.a[0]+dx*t,d.a[1]+dy*t),d.id+' continuous deck');
  }

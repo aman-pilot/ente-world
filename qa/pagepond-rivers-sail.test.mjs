@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {mapFor} from '../src/world/island-maps.js';
-import {canSail,harborOf,createBoats,setSailDestination,sailStep,BOAT_RADIUS} from '../src/gameplay/islands.js';
+import {boardingPoint,canSail,harborOf,createBoats,setSailDestination,sailStep,BOAT_RADIUS} from '../src/gameplay/islands.js';
 import {paperboatMoorings,retiredBoatIds} from '../scripts/pagepond-boats/config.mjs';
 import {deckX} from '../src/world/home/bridge-projection.mjs';
 import {shoreOf} from '../src/rendering/pixi/environment/surf.js';
@@ -24,7 +24,7 @@ test('Pagepond replaces every floating paperboat with the approved playable Home
  const fleet=createBoats().filter(b=>b.islandId===id),nav=map.nav();
  for(const p of paperboatMoorings){
   const boat=fleet.find(b=>b.x===p.x&&b.y===p.y);assert(boat,p.id+' is a real fleet boat');assert(canSail(boat.x,boat.y,id),p.id+' full hull clears the shore');
-  const shore=nav.nearest(boat.x,boat.y,280);assert(shore,p.id+' has boarding land');assert(nav.route(map.spawn.x,map.spawn.y,...shore).length,p.id+' boarding land is reachable');
+  const landing=boardingPoint(boat,nav),shore=[landing.x,landing.y];assert(nav.walkable(...shore),p.id+' has boarding land');assert(Math.hypot(shore[0]-boat.x,shore[1]-boat.y)<=280,p.id+' boarding within reach');assert(nav.route(map.spawn.x,map.spawn.y,...shore).length,p.id+' boarding land is reachable');
  }
  const props=read('assets/world/themes/library/placements.json');
  assert(!props.some(p=>retiredBoatIds.has(p.id)));assert(!map.world.props.some(p=>retiredBoatIds.has(p.id)));
