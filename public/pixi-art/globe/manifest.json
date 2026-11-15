@@ -2171,11 +2171,11 @@
     "sources": {
       "version": 1,
       "theme": "pink",
-      "modelSha256": "b9d9d5b8aad2fd28293bb5326b1b0e72fdc4284a6c31f325f73bf8f8e622f045",
+      "modelSha256": "1e9d49c343b666666222443404406cfefa22f17717082a6a5bd013267a14ed94",
       "files": [
         {
           "path": "assets/world/island-geometry.mjs",
-          "sha256": "d51edc67386bf41b050d6d4be8fab99228e064840596bf529b99b974eb18f1dd"
+          "sha256": "d17320666075f8215474de66af965d81a7344a816f0b279fbf8203a3890e32ae"
         },
         {
           "path": "public/pixi-art/decals/flower-dot-1.svg",
@@ -2327,7 +2327,7 @@
         },
         {
           "path": "public/pixi-art/themes/pink/art.json",
-          "sha256": "7de13b3c27adb58c0510f9010545864b065ed19df940e57d69d117581881c7d2"
+          "sha256": "7da82ae1494a601735df53b6eba87389078813441490a86170ff4ed8cec03106"
         },
         {
           "path": "public/pixi-art/themes/pink/detail/bow-bench.svg",
@@ -4939,21 +4939,21 @@
         },
         {
           "path": "src/world/island-maps.js",
-          "sha256": "278e8aebcfd1c8cc9173c1957b77918e393e56614c42dc1e2f508dc5f08bf400"
+          "sha256": "7779fadcfc0641c0eb2864074eafe8ef668dfb3cab416708407c352e037da720"
         },
         {
           "path": "src/world/world-map.js",
           "sha256": "0b81bb5ee6f33feb0db9eb60280edfa7aa960a84f4ac92936a326a611d7763b4"
         }
       ],
-      "sha256": "78c47819d03cb226cc85dc62bb848c54628c71c6556868c1e439ce8440aa3b8f"
+      "sha256": "fa19309e9b55448d84a7557100dfb7f6bea032d28b6bbc61a01bdfa1710763f1"
     },
     "groundSha256": "4a2bfe012c25cde81a98819c586f7730ce716f938aa26be92c03181cb0b11678",
     "src": "/pixi-art/globe/pink.svg",
-    "sha256": "e5d81b0fe5c334f651486790fa3149d5e75bcb45588959c4cc2d34bc47507cd6",
+    "sha256": "8970192b106cd8b29bd19414034c55c3574cddce2751b374ef8ee7f97665b89c",
     "width": 1024,
     "height": 760,
-    "bytes": 934764,
+    "bytes": 934759,
     "groundBytes": 378783,
     "quality": {
       "tolerance": 0.2,

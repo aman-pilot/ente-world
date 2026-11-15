@@ -360,8 +360,8 @@
     "id": "sunset-3",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 4495,
-    "y": -381
+    "x": 4092,
+    "y": 40
   },
   {
     "id": "sunset-4",
@@ -395,8 +395,8 @@
     "id": "sunset-8",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 1099,
-    "y": -513
+    "x": 636,
+    "y": -312
   },
   {
     "id": "sunset-9",
@@ -458,8 +458,8 @@
     "id": "sunset-17",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 1195,
-    "y": 2559
+    "x": 1196,
+    "y": 2544
   },
   {
     "id": "sunset-18",
@@ -493,8 +493,8 @@
     "id": "sunset-22",
     "region": "sunset",
     "islandId": "sunset",
-    "x": 6471,
-    "y": -209
+    "x": 6436,
+    "y": -192
   },
   {
     "id": "sunset-23",
