@@ -34,6 +34,7 @@ export function createLivePatches(renderer){
  };
 }
 
+// Draw at the game renderer's native resolution without an intermediate atlas.
 export function drawLiveIsland(renderer,from,to,scene,camera,width,height,tilt,target){
    const r=flatRigid(from,to),m=cameraMatrix(camera,width,height,tilt);
    const x=r.x-r.a*r.cx-r.c*r.cy,y=r.y-r.b*r.cx-r.d*r.cy;

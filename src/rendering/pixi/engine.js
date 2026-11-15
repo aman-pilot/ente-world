@@ -1699,8 +1699,9 @@ export class PixiIsland {
         if(this.destinationArt&&this.destinationArt!==mapId&&this.destinationArt!==this.artShown
           &&!this.sailingArtWanted?.has(WORLD_ISLANDS.find(i=>artOf(i.id)===this.destinationArt)?.id))this.freeArt(this.destinationArt);
         if(this.destinationArt!==mapId){
-          this.pauseIslandBackground();this.destinationArt=mapId;void this.islandReady(next.destination).catch(()=>{});
+          this.pauseIslandBackground();this.destinationArt=mapId;
         }
+        void this.islandReady(next.destination).catch(()=>{});
       }
     }
     const arrivalName = this.room ? this.room.arrival : this.offlineArrival;
