@@ -157,9 +157,18 @@ async function buildThemeArt(map, {acquire, release, groundPool, renderer, tilt=
     sprite.themeArt = map.id;
     let shadow = null;
     if (!NO_SHADOW.test(name) && prop.shadow !== false) {
-      const [rx, ry] = prop.shadowSize ?? (r => [r, r * .3])(Math.max(8, Math.min(300, prop.width * scale * .36)));
-      shadow = new Graphics().ellipse(rx * .06, ry * .1, rx, ry).fill({color: manifest.shadowColor ?? 0x3c5a2a, alpha: manifest.shadowAlpha ?? .15});
-      shadow.position.set(prop.x + (prop.shadowOffset?.[0] ?? 0), prop.y + (prop.shadowOffset?.[1] ?? 0)); shadows.addChild(shadow);
+      const contact = manifest.contactShadows === true;
+      const [rx, ry] = prop.shadowSize ?? (r => [r, contact ? Math.max(3, r * .12) : r * .3])(Math.max(8, Math.min(300, prop.width * scale * .36)));
+      // Fitted contacts are already in world units. Default contacts follow the
+      // sprite's feet, including off-centre anchors, instead of floating below it.
+      const [sx, sy] = prop.shadowOffset ?? (contact
+        ? [(.5 - anchor.x) * prop.width * scale, (1 - anchor.y) * prop.height * scale - Math.min(8, prop.height * scale * .035)]
+        : [0, 0]);
+      shadow = new Graphics();
+      for (const [size, strength] of contact ? [[1, .12], [.85, .18], [.7, .28], [.55, .42]] : [[1, 1]]) {
+        shadow.ellipse(contact ? 0 : rx * .06, contact ? 0 : ry * .1, rx * size, ry * size).fill({color: manifest.shadowColor ?? 0x3c5a2a, alpha: (manifest.shadowAlpha ?? (contact ? .12 : .15)) * strength});
+      }
+      shadow.position.set(prop.x + sx, prop.y + sy); shadows.addChild(shadow);
     }
     const centrePiece = typeof prop.centrePiece === 'object' ? prop.centrePiece : (centre.pieces??[]).find(p => prop.id?.endsWith(p.id) && prop.src.includes('centre/'));
     return {...prop, centrePiece, id: prop.id ?? `${map.id}-${i}`, name, scale, sprite, shadow, deck: prop.deck ?? /bridge|deck/i.test(name), wind: prop.wind ?? (!prop.src.includes('centre/') && WIND.test(name))};
