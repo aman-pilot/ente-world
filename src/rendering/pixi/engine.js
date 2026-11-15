@@ -1445,7 +1445,10 @@ export class PixiIsland {
     const retained=new Set([...(this.sheetPreparations?.keys()??[]),
       ...[...this.arts.keys()].map(map=>WORLD_ISLANDS.find(i=>artOf(i.id)===map)?.id).filter(Boolean)]);
     for(const id of retained){
-      if(this.sailingArtWanted.has(id)||artOf(id)===this.destinationArt||!sailing&&id===this.islandId)continue;
+      if(this.sailingArtWanted.has(id)||!sailing&&id===this.islandId)continue;
+      const state=this.detailStates?.get(id);
+      // Keep a destination's landing preparation, but never its offscreen sharp set.
+      if(artOf(id)===this.destinationArt&&!state?.live){state?.controller?.abort();continue;}
       this.freeArt(artOf(id));
     }
     return visible.filter(i=>!i.home&&this.artReady(i.map));
