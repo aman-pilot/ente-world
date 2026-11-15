@@ -18,7 +18,7 @@ export function circleHit(from,to,centre,radius){
   const b=2*(fx*dx+fy*dy),disc=b*b-4*a*c;if(disc<0)return null;
   const t=(-b-Math.sqrt(disc))/(2*a);return t>=0&&t<=1?t:null;
 }
-export function createBogCombat({blockers=getBogBlockers(),bounds=BOG_COMBAT.bounds,pads=spawnPads,navigation=blockers===getBogBlockers()&&bounds===BOG_COMBAT.bounds?BOG_COMBAT.navigation:navigationFor(blockers,bounds),pickupSpots=null,hideBushes=HIDE_BUSHES,onStats=()=>{},onOut=()=>{},isBonusZone=()=>false}={}){
+export function createBogCombat({blockers=getBogBlockers(),bounds=BOG_COMBAT.bounds,pads=spawnPads,navigation=blockers===getBogBlockers()&&bounds===BOG_COMBAT.bounds?BOG_COMBAT.navigation:navigationFor(blockers,bounds),pickupSpots=null,hideBushes=HIDE_BUSHES,onStats=()=>{},onOut=()=>{},isBonusZone=()=>false,countBotTags=false}={}){
   const movementNav=navigation,living=[];prepareShotIndex(blockers);
   const shotSlots=Array.from({length:RULES.maxShots},()=>({})),shotPool=[...shotSlots],ownedShots=new WeakSet(shotSlots);
   const splatSlots=Array.from({length:RULES.maxSplats},()=>({})),splatPool=[...splatSlots];
@@ -81,7 +81,8 @@ export function createBogCombat({blockers=getBogBlockers(),bounds=BOG_COMBAT.bou
     p.lives=Math.max(0,p.lives-1);p.out=p.lives===0;p.comebackReady=true;p.lastTaggedBy=shot.owner;p.alive=false;p.pace=0;p.heading=null;p.path=[];p.travel=0;p.respawnAt=state.time+RULES.respawnDelay;p.input=idle();p.action=0;p.streak=0;
     const owner=state.players.get(shot.owner);state.scores[shot.team]+=RULES.tagPoints;
     let medals=[];
-    if(owner&&(owner.bot||!p.bot)){owner.stats.tags++;owner.stats.score+=RULES.tagScore;owner.streak++;owner.stats.bestStreak=Math.max(owner.stats.bestStreak,owner.streak);
+    // tags on bots only count for players in the practice match (countBotTags), so nobody farms points off bots live
+    if(owner&&(owner.bot||!p.bot||countBotTags)){owner.stats.tags++;owner.stats.score+=RULES.tagScore;owner.streak++;owner.stats.bestStreak=Math.max(owner.stats.bestStreak,owner.streak);
       if(!owner.bot){owner.stats.medals++;
       medals=tagMedals({owner,victim:p,players:state.players.values(),time:state.time,distance:RULES.range-shot.left+Math.hypot(point.x-shot.x,point.y-shot.y),scores:state.scores,inBonusZone:isBonusZone(p)});save(owner);}
     }
