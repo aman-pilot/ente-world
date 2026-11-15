@@ -105,7 +105,9 @@ function blastSprites() {
   };
   const feather = new Image(); feather.src = '/pixi-art/karma/golden-feather.svg';
   const sprites = {stars:SPARK_TINTS.map(star), feather:null};
-  feather.decode().then(() => {const n = 256, c = document.createElement('canvas'); c.width = c.height = n; c.getContext('2d').drawImage(feather, 0, 0, n, n); sprites.feather = c;}).catch(() => {});
+  let disposed = false;
+  sprites.destroy = () => {disposed = true; for (const c of [...sprites.stars, sprites.feather]) if (c) c.width = c.height = 1; sprites.feather = null; feather.src = '';};
+  feather.decode().then(() => {if (disposed) return; const n = 256, c = document.createElement('canvas'); c.width = c.height = n; c.getContext('2d').drawImage(feather, 0, 0, n, n); sprites.feather = c;}).catch(() => {});
   return sprites;
 }
 function sizeBlast(cv) {
@@ -195,6 +197,7 @@ export function Landing({signInAvailable, onWatch}) {
       .then(m => imgExt.then(x => m.createGlobeIntro(canvas.current, {ext:x, home:{ground:`/guest/home-ground.${x}`, props:`/guest/home-props.${x}`}})))
       .then(g => {if (cancelled) g.destroy(); else {globe = g; g.homeReady.then(warmDucky);} return g;}).catch(() => {warmDucky(); return null;});
     const whoosh = [...el.querySelectorAll('.ld-whoosh')], blastCv = document.querySelector('.ld-flurry'), blast = blastSprites();
+    const releaseBlast = () => {if (blastCv) blastCv.width = blastCv.height = 1; blast.destroy();};
     const cloudsSet = Promise.resolve(whoosh.forEach((img, i) => {img.src = window.EWClouds.url(WHOOSH[i].art);}));   // code-drawn clouds (index.html)
     let landAt = null;   // where Home is on screen when the feather touches it
     const paint = T => {
@@ -251,7 +254,7 @@ export function Landing({signInAvailable, onWatch}) {
       setPanel(true);
       warmSignInCache();
       later(() => {const p = document.querySelector('.guest-panel[data-plain]'); p?.style.setProperty('--dim', 1); p?.style.setProperty('--pop', 1); p?.style.setProperty('--dpop', 1); p?.style.setProperty('--wpop', 1);}, 60);   // returning visitors: in place, no arrival
-      return () => {cancelled = true; cancelAnimationFrame(frame); timers.forEach(clearTimeout); removeEventListener('resize', onResize); document.removeEventListener('visibilitychange', onShow); removeEventListener('focus', onShow); globe?.destroy();};
+      return () => {cancelled = true; cancelAnimationFrame(frame); timers.forEach(clearTimeout); removeEventListener('resize', onResize); document.removeEventListener('visibilitychange', onShow); removeEventListener('focus', onShow); globe?.destroy(); releaseBlast();};
     }
 
     function titleAnimations() {
@@ -350,6 +353,7 @@ export function Landing({signInAvailable, onWatch}) {
       window.removeEventListener('pointerdown', skip);
       window.removeEventListener('keydown', skip);
       globe?.destroy();
+      releaseBlast();
     };
   }, [settled]);
 
