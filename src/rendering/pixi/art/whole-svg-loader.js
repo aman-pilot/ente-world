@@ -320,5 +320,7 @@ const prepare=createIslandPreparer();
 // Dev and node QA keep the SVG fallback and never request build-only files.
 export const prepareIsland=(islandId,dpr)=>manifestURL?prepare(islandId,dpr):Promise.resolve({release(){}});
 export const islandReady=prepareIsland;
+// Built pages only, like prepareIsland. A failed try is forgotten and asked again later.
+export const warmIslandIndex=()=>{if(manifestURL)void getIslandIndex().catch(()=>{});};
 
 export {getIslandIndex};

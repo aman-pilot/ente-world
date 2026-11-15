@@ -381,6 +381,9 @@ export async function createWater({app, world, art, layer, objects, props, motio
   try {
     const pond = world.water[0], rect = {x: pond.x - pond.rx - 35, y: pond.y - pond.ry - 35, width: pond.rx * 2 + 70, height: pond.ry * 2 + 70};
     const sea = null;
+    // The cove and fountain drawings are read below, one after another.
+    // Ask for both now so they arrive while the pond is prepared.
+    for (const src of ['/pixi-art/lake-race.svg', props.find(p => p.asset === 'fountain-wishing')?.src]) if (src) svgText(src).catch(() => {});
     const meshGround=await groundMeshEntry('home');
     let pondMask;
     if(meshGround?.waterMask){

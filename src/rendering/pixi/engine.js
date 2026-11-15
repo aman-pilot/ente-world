@@ -2,7 +2,7 @@ import {createIslandPrefetch} from './art/island-prefetch.js';
 import {selectIslandTier} from '../../app/ducky-prefetch.js';
 import {swapIslandDetail,detailZoomLimit} from './art/island-detail.js';
 import {loadHomeScene} from '../../world/home/startup-scene.js';
-import {getIslandIndex,loadPrerenderManifest,prepareIsland as prepareIslandSheets} from './art/whole-svg-loader.js';
+import {getIslandIndex,warmIslandIndex,loadPrerenderManifest,prepareIsland as prepareIslandSheets} from './art/whole-svg-loader.js';
 import {uploadIsland, nextArtFrame, markArtActivity, mapArtInFrames} from './art/island-preparation.js';
 import {renderPolaroid} from '../shared/polaroid.js';
 import {ART_TEXTURE} from './art/art-texture.js';
@@ -219,6 +219,9 @@ export class PixiIsland {
       this.arrivalScene.addChild(this.ocean);
       this.lastFrame=performance.now();
       this.renderArrival(this.lastFrame);
+      // The island list is the same for every island. Ask for it while the
+      // server is still deciding where this Duck is.
+      if(this.room)warmIslandIndex();
       // Choose the authoritative island before any shared asset can pick a tier.
       if(this.room){
         const id=await this.room.waitForIsland();
@@ -251,6 +254,9 @@ export class PixiIsland {
       // Fetch the island's layout alongside its sheets, not after them.
       await Promise.all([recoverArt(()=>this.prepareIsland(startingIsland),{label:'Spawn sheets'}),prepareIslandMap(startingIsland)]);
       const prepareHome=artOf(startingIsland)==='home';
+      // Sounds and the boat list need nothing from the island being built.
+      // Start them here; startup preparation below waits on the same loads.
+      void this.audio.prepare();void loadBoatViews().catch(()=>{});
       this.arrivalRig=await createDuck({outfit:this.player?.outfit,seed:21,isPlayer:true});
       if(this.disposed){this.arrivalRig.dispose();return;}
       this.arrivalScene.addChild(this.arrivalRig.root);

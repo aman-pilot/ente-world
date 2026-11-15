@@ -401,8 +401,9 @@ export function prerenderArt() {
     transform(code, id) {
       if(id.endsWith('/world/prop-outlines/pink-scene.js'))return {code:lazyPinkScene(code,pinkURL),map:null};
       if(id.endsWith('/world/home/placements.js'))return {code:indexHomeGeometry(code),map:null};
-      if(id.endsWith('/world/home/startup-scene.js'))return {code:`import {unpackHomeScene} from './scene-pack.js';const get=()=>(async()=>{const response=await fetch(${JSON.stringify(homeURL)});if(!response.ok)throw Error('Home layout unavailable');return response.json();})().catch(error=>{pending=undefined;throw error;});let pending=get();export async function loadHomeScene(room){pending??=get();const data=await pending;const scene=unpackHomeScene(data,room?'room':'solo');scene.beds.bad=scene.dropped;return scene;}`,map:null};
+      if(id.endsWith('/world/home/startup-scene.js'))return {code:`import {unpackHomeScene} from './scene-pack.js';const get=()=>(async()=>{const response=await fetch(${JSON.stringify(homeURL)});if(!response.ok)throw Error('Home layout unavailable');return response.json();})().catch(error=>{pending=undefined;throw error;});let pending=get();export const homeSceneData=()=>pending??=get();export async function loadHomeScene(room){const data=await homeSceneData();const scene=unpackHomeScene(data,room?'room':'solo');scene.beds.bad=scene.dropped;return scene;}`,map:null};
       if (id.endsWith('/art/whole-svg-loader.js')) return {code: code.replaceAll('__PRERENDER_ART_MANIFEST__', JSON.stringify(manifestURL)), map: null};
+      if(id.endsWith('/assets/world/walk-world.json'))return shareHomeWalkOutlines(config.root,id);
     },
   };
 }
@@ -545,6 +546,20 @@ export function buildIslandIndex(entries,manifest,entryURL,sheetBytes=new Map())
     }
   }
   return {version:2,entry:entryURL,islands};
+}
+
+// The page code carried the Home walk outlines (5.7 MB) although the Home scene
+// file it always fetches holds the same outlines. Read them from that file.
+// The page code waits for it, so every reader still sees the complete data.
+// Only done when both copies are equal, value for value.
+export async function shareHomeWalkOutlines(root,id) {
+  const walk=JSON.parse(await readFile(id,'utf8')),scene=JSON.parse(JSON.stringify(await bakeHomeScene(root)));
+  if(!Array.isArray(walk.obstacles)||JSON.stringify(walk.obstacles)!==JSON.stringify(scene.room.walk.obstacles))return;
+  const home=path.join(root,'src/world/home/');
+  return {code:`import {homeSceneData} from ${JSON.stringify(home+'startup-scene.js')};import {unpackHomeScene} from ${JSON.stringify(home+'scene-pack.js')};
+const obstacles=[],fill=data=>{if(!obstacles.length)obstacles.push(...unpackHomeScene(data,'room').walk.obstacles);};
+try{fill(await homeSceneData());}catch{homeSceneData().then(fill,()=>{});}
+export default {${Object.entries(walk).map(([key,value])=>JSON.stringify(key)+':'+(key==='obstacles'?'obstacles':JSON.stringify(value))).join(',')}};`,map:null};
 }
 
 // Evaluate the same dev/test implementation once in Node, before bundling.
