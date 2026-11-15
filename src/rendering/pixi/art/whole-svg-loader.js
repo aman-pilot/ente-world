@@ -1,4 +1,4 @@
-import {cacheBackedPixels} from './pixel-residency.js';
+import {cacheBackedPixels,retainArtSample} from './pixel-residency.js';
 import {headStartJSON,takeHomeBitmap,homeHeadStartActive,prepareHomeGround} from '../../../app/home-head-start.js';
 import {loadRasterDetail} from './raster-detail.js';
 import {selectIslandTier} from '../../../app/ducky-prefetch.js';
@@ -167,6 +167,7 @@ export function createWholeSVGLoader({queue = createArtQueue(), getManifest=load
                   let released=false;
                   texture.releaseAtlas=()=>{if(released)return;released=true;held.count--;freeSheet(tier,held);};
                   texture.artKey=key;texture.artTier=tier;texture.artGroundPadding=groundPadding;
+                  await retainArtSample(texture);
                   loadedSVGTextures.add(texture);
                   texture.once('destroy',()=>{
                     loadedSVGTextures.delete(texture);

@@ -24,11 +24,22 @@ extensions?.add({extension:{type:ExtensionType?.TextureUploaderWebGL,name:'cache
     if(gameContexts.has(gl)){const entry=pictures.get(source);entry.uploaded=true;entry.renderer=gameContexts.get(gl);releaseArtPixels(source);}
   },
 });
-// Snow only needs a tiny frame sample. Read the existing GPU frame on demand
-// rather than pinning an entire decoded Duck or hat sheet for that sample.
-export function readArtFrame(texture){
-  const renderer=pictures.get(texture.source)?.renderer;
-  return renderer&&!renderer.gl.isContextLost()?renderer.texture.generateCanvas(texture):null;
+// Snow profiles read alpha on the CPU. Preserve their exact 192px sample,
+// not an entire decoded sheet or a GPU readback with different edge rounding.
+export async function retainArtSample(texture){
+  const source=texture.source,entry=pictures.get(source);
+  if(!entry||!texture.artKey?.startsWith('/pixi-duck/')||typeof globalThis.ImageBitmap!=='function')return;
+  await reloadPixels(source);
+  if(source.destroyed||texture.destroyed||!source.resource)return;
+  const canvas=Pixi.DOMAdapter.get().createCanvas(192,192),ctx=canvas.getContext('2d',{willReadFrequently:true});
+  try{
+    const f=texture.frame,r=source.resolution,ink=texture.trim??{x:0,y:0,width:texture.width,height:texture.height};
+    ctx.drawImage(source.resource,f.x*r,f.y*r,f.width*r,f.height*r,
+      ink.x/texture.width*192,ink.y/texture.height*192,ink.width/texture.width*192,ink.height/texture.height*192);
+    const rgba=ctx.getImageData(0,0,192,192).data,alpha=new Uint8Array(192*192);
+    for(let i=0;i<alpha.length;i++)alpha[i]=rgba[i*4+3];
+    texture.artAlphaSample=alpha;
+  }finally{canvas.width=canvas.height=1;if(entry.uploaded)setTimeout(()=>releaseArtPixels(source),0);}
 }
 export async function prepareArtPixels(source,renderer) {
   const gate=gates.get(renderer);if(gate)await gate.promise;
