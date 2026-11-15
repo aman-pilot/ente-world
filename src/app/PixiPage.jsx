@@ -85,7 +85,7 @@ export default function PixiPage() {
       url.searchParams.delete('auth');
       history.replaceState(history.state, '', url);
     }
-    let arrivalTimer;
+    let arrivalTimer, firstIsland = true;
     const client = new RoomClient(state => {
       setStatus(state);
       if (['connecting','reconnecting','expired','signed-out','spectators-full'].includes(state)) {
@@ -95,7 +95,8 @@ export default function PixiPage() {
       if (['expired','signed-out'].includes(state)) setSession(previous => previous && {...previous,user:null});
       if (['expired','signed-out','star-required'].includes(state)) refresh();
     }, (id,text) => island.current?.showChat(id,text), setOnline, setLatestJoin, state => {
-      if (state.islandId === 'home') startHomeHeadStart({guest:true});
+      if (firstIsland && state.islandId === 'home') startHomeHeadStart({guest:true});
+      firstIsland = false;
       settleHomeHeadStart(state.islandId);
       setTravel(state);
       void island.current?.prepareIsland(state.islandId).catch(()=>{});
