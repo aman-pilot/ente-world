@@ -251,6 +251,9 @@ export class PixiIsland {
       // Fetch the island's layout alongside its sheets, not after them.
       await Promise.all([recoverArt(()=>this.prepareIsland(startingIsland),{label:'Spawn sheets'}),prepareIslandMap(startingIsland)]);
       const prepareHome=artOf(startingIsland)==='home';
+      // Sounds and the boat list need nothing from the island being built.
+      // Start them here; startup preparation below waits on the same loads.
+      void this.audio.prepare();void loadBoatViews().catch(()=>{});
       this.arrivalRig=await createDuck({outfit:this.player?.outfit,seed:21,isPlayer:true});
       if(this.disposed){this.arrivalRig.dispose();return;}
       this.arrivalScene.addChild(this.arrivalRig.root);
