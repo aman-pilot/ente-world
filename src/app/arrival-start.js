@@ -2,11 +2,13 @@ import {arrivalPending} from './arrival.js';
 
 // Keep the page-open session check for the game, without caching later refreshes.
 let session;
-export function startupSession() {
-  return session ??= fetch('/api/session').then(r => {
+export function startupSession(consume = false) {
+  const pending = session ??= fetch('/api/session').then(r => {
     if (!r.ok) throw Error('Session request failed');
     return r.json();
-  }).catch(error => {session=undefined; throw error;});
+  }).catch(error => {if (session === pending) session=undefined; throw error;});
+  if (consume) session=undefined;
+  return pending;
 }
 
 // Buffer the first snapshot while the renderer module downloads and evaluates.

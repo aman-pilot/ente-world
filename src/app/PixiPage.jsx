@@ -73,7 +73,7 @@ export default function PixiPage() {
     const abort = new AbortController();
     const refresh = async (initial = false) => {
       try {
-        const value = initial ? await startupSession() : await fetch('/api/session', {signal:abort.signal}).then(r => {if (!r.ok) throw Error('Session request failed'); return r.json();});
+        const value = initial ? await startupSession(true) : await fetch('/api/session', {signal:abort.signal}).then(r => {if (!r.ok) throw Error('Session request failed'); return r.json();});
         if (!abort.signal.aborted) setSession(value);
       } catch {
         if (!abort.signal.aborted) setSession({user:null, signInAvailable:false});
