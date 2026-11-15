@@ -31,7 +31,7 @@ test('Polaroid framing preserves landscape and portrait scenes in the PNG', asyn
     const png = await loadImage(Buffer.from(await blob.arrayBuffer()));
     const border = Math.round(Math.min(width, height) * .05);
     assert.equal(png.width, width + 2 * border);
-    assert.equal(png.height, height + 4 * border);
+    assert.equal(png.height, height + 5 * border);
     const ctx = createCanvas(png.width, png.height).getContext('2d');
     ctx.drawImage(png, 0, 0);
     const pixel = (x, y) => Array.from(ctx.getImageData(x, y, 1, 1).data);
@@ -41,4 +41,24 @@ test('Polaroid framing preserves landscape and portrait scenes in the PNG', asyn
     assert.deepEqual(pixel(border + width - 1, border + height - 1), [0, 0, 255, 255]);
     assert.deepEqual(pixel(border, border + height), [255, 249, 237, 255]);
   }
+});
+
+test('Polaroid caption writes the player name under the photo', async () => {
+  const scene = createCanvas(400, 200);
+  const viewport = {clientWidth:400, clientHeight:200, ownerDocument:{createElement() {
+    return createCanvas(1, 1);
+  }}};
+  const inkIn = async player => {
+    const png = await loadImage(Buffer.from(await (await renderPolaroid(viewport, [scene], '#000', {player})).arrayBuffer()));
+    const ctx = createCanvas(png.width, png.height).getContext('2d');
+    ctx.drawImage(png, 0, 0);
+    const border = Math.round(200 * .05);
+    // Left half of the caption strip: where the name goes.
+    const {data} = ctx.getImageData(border, border * 2 + 200, Math.round(png.width / 2) - border, border * 3 - border);
+    let dark = 0;
+    for (let i = 0; i < data.length; i += 4) if (data[i] < 120) dark++;
+    return dark;
+  };
+  assert.equal(await inkIn(''), 0);
+  assert.ok(await inkIn('mallard') > 0);
 });
