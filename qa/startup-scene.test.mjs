@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {build} from 'esbuild';
 import {bakeHomeScene} from '../scripts/vite-prerender-art.mjs';
 import {segmentGrid} from '../src/world/home/segment-grid.js';
+import {packHomeScene,unpackHomeScene} from '../src/world/home/scene-pack.js';
 import {createManifestParts} from '../src/rendering/pixi/art/manifest-parts.js';
 import {preparationFrame,markArtActivity} from '../src/rendering/pixi/art/island-preparation.js';
 
@@ -26,10 +27,13 @@ test('baked Home props, decals, beds and walk data equal the runtime computation
  assert.deepEqual(baked.room.props,scenes[1].props);
  assert.deepEqual(baked.solo,JSON.parse(JSON.stringify(scenes[0])));
  assert.deepEqual(baked.room,JSON.parse(JSON.stringify(scenes[1])));
+ const packed=JSON.parse(JSON.stringify(packHomeScene(baked)));
+ for(const room of ['solo','room'])assert.deepEqual(unpackHomeScene(packed,room),baked[room],'packed Home scene unpacks to the exact baked values');
  if(process.env.ART_MANIFEST){
   const {readdir}=await import('node:fs/promises');
   const name=(await readdir('dist/art-prerender')).find(n=>/^home-.*json$/.test(n));
-  assert.deepEqual(JSON.parse(await readFile('dist/art-prerender/'+name)),baked);
+  const built=JSON.parse(await readFile('dist/art-prerender/'+name));
+  for(const room of ['solo','room'])assert.deepEqual(JSON.parse(JSON.stringify(unpackHomeScene(built,room))),baked[room]);
  }
 });
 

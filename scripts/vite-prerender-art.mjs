@@ -1,3 +1,4 @@
+import {packHomeScene} from '../src/world/home/scene-pack.js';
 import {prerenderDetailSheets} from './prerender-detail.mjs';
 import {detailSources} from './detail-sources.mjs';
 import {packDetailFrames,detailSheetBytes} from './detail-layout.mjs';
@@ -126,6 +127,7 @@ export function prerenderArt() {
   return {
     name: 'prerender-island-art', apply: 'build',
     configResolved(value) {config = value;},
+    transformIndexHtml() {return homeURL?[{tag:'link',attrs:{rel:'preload',as:'fetch',href:homeURL,crossorigin:''},injectTo:'head'}]:[];},
     async buildStart() {
       const start = performance.now(), root = config.root;
       const sharp = require('sharp');
@@ -133,7 +135,7 @@ export function prerenderArt() {
       for(const name of await readdir(priorDir).catch(()=>[]))if(/^detail-.*\.webp$/.test(name))previousDetail.set(`${DIRECTORY}/${name}`,await readFile(path.join(priorDir,name)));
       const sizes = JSON.parse(await readFile(path.join(root, 'src/rendering/shared/art-source-sizes.json'), 'utf8'));
       entries = await collectPlacedArt(root);
-      const home = JSON.stringify(await bakeHomeScene(root));
+      const home = JSON.stringify(packHomeScene(await bakeHomeScene(root)));
       homeURL = config.base + `${DIRECTORY}/home-${hash(home)}.json`;
       this.emitFile({type:'asset',fileName:homeURL.slice(config.base.length),source:home});
       for (const src of new Set(entries.map(e => e.src).filter(src => /\.(svg|png)$/.test(src) && !sizes[src]))) {
@@ -377,7 +379,7 @@ export function prerenderArt() {
     },
     transform(code, id) {
       if(id.endsWith('/world/home/placements.js'))return {code:indexHomeGeometry(code),map:null};
-      if(id.endsWith('/world/home/startup-scene.js'))return {code:`let pending;export async function loadHomeScene(room){pending??=(async()=>{const response=await fetch(${JSON.stringify(homeURL)});if(!response.ok)throw Error('Home layout unavailable');return response.json();})().catch(error=>{pending=undefined;throw error;});const data=await pending;const scene=structuredClone(data[room?'room':'solo']);scene.beds.bad=scene.dropped;return scene;}`,map:null};
+      if(id.endsWith('/world/home/startup-scene.js'))return {code:`import {unpackHomeScene} from './scene-pack.js';const get=()=>(async()=>{const response=await fetch(${JSON.stringify(homeURL)});if(!response.ok)throw Error('Home layout unavailable');return response.json();})().catch(error=>{pending=undefined;throw error;});let pending=get();export async function loadHomeScene(room){pending??=get();const data=await pending;const scene=unpackHomeScene(data,room?'room':'solo');scene.beds.bad=scene.dropped;return scene;}`,map:null};
       if (id.endsWith('/art/whole-svg-loader.js')) return {code: code.replaceAll('__PRERENDER_ART_MANIFEST__', JSON.stringify(manifestURL)), map: null};
     },
   };

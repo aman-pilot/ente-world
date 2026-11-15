@@ -1832,7 +1832,7 @@ export class PixiIsland {
       prop.sprite.visible = visible(prop.x, prop.y, Math.max(prop.width, prop.height) * prop.scale);
       if (prop.shadow) prop.shadow.visible = prop.sprite.visible;
       if (prop.sprite.visible) prop.sprite.skew.x = !reduced && prop.wind ? Math.sin(t * 1.3 + i * .7) * .009 * breeze + this.gust * .035 : 0;
-      if (prop.boat) {
+      if (prop.boat || prop.spinPeriod) {
         prop.sprite.y = homePropY(prop,t,reduced,i);
         prop.sprite.rotation = homePropRotation(prop,t,reduced,i);
       }
