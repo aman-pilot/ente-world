@@ -10,7 +10,7 @@ function point(id){return [X0+(id%COLS+.5)*CELL,Y0+(Math.floor(id/COLS)+.5)*CELL
 // Disjoint grid regions cannot have an A* route. Four-neighbour labels are
 // conservative: a permitted diagonal already requires both adjacent cells.
 // Thin contours may split a label further, so normal line checks still decide.
-const components=world.theme==='library'?(() => {
+const components=(world.theme==='library'||world.theme==='community')?(() => {
  const labels=new Uint32Array(grid.length),queue=new Uint32Array(grid.length);let label=0;
  for(let i=0;i<grid.length;i++)if(grid[i]&&!labels[i]){
   let head=0,tail=1;queue[0]=i;labels[i]=++label;
@@ -43,7 +43,7 @@ function route(sx,sy,tx,ty){
  if(near)return path;
  const edge=reachToward(sx,sy,tx,ty);return edge?[edge]:[];
 }
-// Reuse Pagepond's large A* workspace. A generation stamp avoids clearing
+// Reuse the large A* workspace (Pagepond, Campfire). A generation stamp avoids clearing
 // every island cell for each click and keeps old search state out of the route.
 let workspace;
 function search(sx,sy,target){

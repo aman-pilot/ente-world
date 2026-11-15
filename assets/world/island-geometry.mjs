@@ -143,7 +143,7 @@ export function geometry(world){
  let waterNear=null,solidNear=null,bridgeNear=null,coastAt=null,coastContains=null,walkwayNear=null;
  function boardAt(x,y){
   if(!world.walkways)return Math.abs(x-world.boardwalk.x)<world.boardwalk.w/2-12&&Math.abs(y-world.boardwalk.y)<world.boardwalk.h/2+25;
-  // Pagepond's fine fallback grid samples a large sea box. Reject distant
+  // Pagepond's and Campfire's fine fallback grids sample a large sea box. Reject distant
   // decks by their bounds before doing segment projections at every sea cell.
   if(world.indexPropContours)walkwayNear??=shapeIndex(world.walkways.map(b=>{
    const pad=Math.max(0,b.w/2-10);

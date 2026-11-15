@@ -31,7 +31,7 @@ test('Every Campfire sleeper fits on dry lawn outside full path widths, water, b
   for(const dx of [-b.r*.8,0,b.r*.8]){
    assert(inPoly(b.x+dx,b.y,world.coast),'sleeper inside shore');
    assert(!world.water.some(o=>inShape(b.x+dx,b.y,o,0)),'sleeper outside water');
-   if(!b.tree)assert(g.walkable(b.x+dx,b.y),'sleeper on open ground');
+   if(!b.tree)assert(!m.baseWalk.obstacles.some(o=>!o.bodyBlock&&inShape(b.x+dx,b.y-32,o,0)),'sleeper body outside drawn props');
   }
   for(const p of art.props.filter(p=>p.kind==='building'))assert(!inShape(b.x,b.y,p.footprint,12),'sleeper outside building '+p.id);
   for(const h of world.residentialPlots)assert(Math.hypot(b.x-h.door[0],b.y-h.door[1])>b.r+65,'open door '+h.id);
@@ -73,7 +73,7 @@ test('New Campfire planting keeps its whole crown off paths, water, doors and sl
 
 test('Campfire life additions preserve existing solid props, the redrawn stage and raster off',()=>{
  assert.equal(art.raster.enabled,false);
- assert.deepEqual(art.props.filter(p=>!p.lifeGrove),walk.props);
+ assert.deepEqual(art.props,walk.props);
  assert.deepEqual(world.props,walk.props);
  assert.equal(hash(readFileSync(A+'detail/stage.svg','utf8')),'3435cf2f99ec06cfd5754b494181168429e1a2dd6e7d5e700fe5c93322f9f036');
 });

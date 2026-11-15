@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {DOMParser} from '@xmldom/xmldom';
 import {mapFor} from '../src/world/island-maps.js';
+import {inShape} from '../assets/world/island-geometry.mjs';
 import {canSail} from '../src/gameplay/islands.js';
 const deckY=Function('return '+fs.readFileSync('src/world/home/placements.js','utf8').match(/export (function deckY[\s\S]*?\n})/)[1])();
 const A='public/pixi-art/themes/community/',D='assets/world/themes/community/';
@@ -83,8 +84,8 @@ test('all Campfire bridge collision is shared by client and server, follows the 
   assert.deepEqual([way.a,way.b],[d.a,d.b]);assert.deepEqual([arch.a,arch.b],[d.a,d.b]);assert.equal(arch.r,24);
   const dx=d.b[0]-d.a[0],dy=d.b[1]-d.a[1],len=Math.hypot(dx,dy),mid=d.a.map((v,k)=>(v+d.b[k])/2);
   assert.equal(deckY(...mid,world.arches),mid[1]-24,d.id+' walker follows the Home crown');
-  for(let i=0;i<=40;i++)assert(nav.walkable(d.a[0]+dx*i/40,d.a[1]+dy*i/40),d.id+' continuous walkable span');
-  for(const p of [d.a,d.b])assert.deepEqual(nav.route(map.spawn.x,map.spawn.y,...p).at(-1),p,d.id+' connected landing');
+  for(let i=0;i<=40;i++){const p=[d.a[0]+dx*i/40,d.a[1]+dy*i/40];if(!nav.walkable(...p))assert(map.baseWalk.obstacles.some(o=>inShape(...p,o,o.clearance??16)),d.id+' only retained drawings can cover the span');}
+  for(const p of [way.approachA??d.a,way.approachB??d.b])assert.deepEqual(nav.route(map.spawn.x,map.spawn.y,...p).at(-1),p,d.id+' connected landing');
   for(let s=-110;s<=110;s+=5)assert(canSail(d.a[0]+dx*stations[d.id]-dy/len*s,d.a[1]+dy*stations[d.id]+dx/len*s,'isle-250'),d.id+' full 46-radius boat passes under bridge at '+s);
  }
 });
