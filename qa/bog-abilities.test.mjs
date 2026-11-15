@@ -80,7 +80,15 @@ test('five pickups occupy walkable Mid, Site A/B and two lane spots, with a twen
   const {sim,p}=fixture({pickupSpots:[{id:'paint',kind:'paint',x:200,y:400}]});p.ammo=2;p.reloadAt=100;sim.step(1/60);
   assert.equal(p.ammo,12);assert.equal(p.reloadAt,0);assert.equal(sim.state.pickups[0].readyAt,sim.state.time+20);
   const exported=sim.snapshot('karma').pickups;exported[0].readyAt=0;assert.ok(sim.state.pickups[0].readyAt>0);
-  p.ammo=2;advance(sim,19.9);assert.equal(p.ammo,2);advance(sim,.15);assert.equal(p.ammo,12);
+  p.ammo=2;p.topUpAt=Infinity;advance(sim,19.9);assert.equal(p.ammo,2,'only the pickup refills here (top-up held off)');advance(sim,.15);assert.equal(p.ammo,12);
+});
+test('a part-empty tank tops up one paint at a time once you stop shooting; an empty one still reloads in one go',()=>{
+  const {sim,p}=fixture({pickupSpots:[]});
+  p.ammo=4;p.topUpAt=sim.state.time+RULES.paintTopUpDelay;p.input={...p.input,fire:false};
+  advance(sim,RULES.paintTopUpDelay-.05);assert.equal(p.ammo,4,'no top-up right after shooting');
+  advance(sim,.1);assert.equal(p.ammo,5);
+  advance(sim,RULES.paintTopUpEvery*3+.01);assert.equal(p.ammo,8);
+  advance(sim,30);assert.equal(p.ammo,RULES.ammoCapacity,'never past a full tank');
 });
 test('one pickup has one authoritative collector, tagged ducks cannot collect it',()=>{
   const {sim,p,e}=fixture({pickupSpots:[{id:'one',kind:'shield',x:200,y:400}]});
@@ -196,4 +204,12 @@ test('replaying a turn followed by an idle hop uses the new facing, including un
   combatWalkStep(copy,nav,1/60,1/60,{x:0,y:1});
   const before=copy.y;combatWalkStep(copy,nav,1/60,2/60,{x:0,y:0,dodge:1});
   assert.equal(copy.dodgeX,0);assert.equal(copy.dodgeY,1);assert.ok(Math.abs(copy.y-before-RULES.dodgeDistance/15)<1e-9);
+});
+test('two Duckies never spawn on the same pad while another pad is free',()=>{
+  const pads=[{x:200,y:400},{x:400,y:400},{x:600,y:400}];
+  const sim=createBogCombat({blockers:[],bounds:{width:2000,height:1500},pads:()=>pads,pickupSpots:[]});
+  const a=sim.join({id:'a',team:'karma'});
+  const b=sim.join({id:'b',team:'karma'});b.spawns=a.spawns-1;   // b's turn in the rotation lands on a's pad
+  a.x=pads[0].x;a.y=pads[0].y;b.alive=false;b.respawnAt=0;sim.step(1/60);
+  assert.ok(Math.hypot(a.x-b.x,a.y-b.y)>=96,'b took a free pad, not a\'s');
 });

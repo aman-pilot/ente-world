@@ -3,7 +3,7 @@ import {movementFacing,facingVector} from './facing.js';
 import {getBogBlockers} from './blockers.js';
 import {BOG_COMBAT} from './config.js';
 import {DUCK_RADIUS,traceShot,prepareShotIndex,navigationFor,walkingActor} from './physics.js';
-import {RULES,TEAMS,emptyStats} from './rules.js';
+import {RULES,TEAMS,emptyStats,DUCK_LENGTH} from './rules.js';
 import {assistShot,resetAbilities,combatWalkStep} from './mechanics.js';
 import {createPickupSpots,collectPickups} from './pickups.js';
 import {cleanMedalCase,tagMedals} from './medals.js';
@@ -12,6 +12,7 @@ import {HIDE_BUSHES,BUSH_REVEAL_SECONDS,updateBushPresence,isBushHidden,isCombat
 const idle=()=>({x:0,y:0,ax:1,ay:0,fire:false});
 const unit=(x,y)=>{const n=Math.hypot(x,y);return n>0?{x:x/n,y:y/n}:{x:0,y:0};};
 export const spawnPads=team=>BOG_COMBAT.pads(team);
+const SPAWN_CLEARANCE=2*DUCK_LENGTH;
 export function circleHit(from,to,centre,radius){
   const dx=to.x-from.x,dy=to.y-from.y,fx=from.x-centre.x,fy=from.y-centre.y;
   const a=dx*dx+dy*dy,c=fx*fx+fy*fy-radius*radius;if(c<=0)return 0;if(!a)return null;
@@ -30,7 +31,11 @@ export function createBogCombat({blockers=getBogBlockers(),bounds=BOG_COMBAT.bou
   function spawn(p){
     const choices=pads(p.team);
     if(!choices?.length)throw new Error(`Missing Bog spawn pads for ${p.team}`);
-    const start=choices[p.spawns++%choices.length];
+    // the pads in turn, skipping any a living Ducky is standing on (two players spawning on one pad stacked their
+    // name tags); if every pad is taken, the one furthest from anyone
+    const near=pad=>{let d=Infinity;for(const o of state.players.values())if(o!==p&&o.alive)d=Math.min(d,Math.hypot(o.x-pad.x,o.y-pad.y));return d;};
+    const order=choices.map((_,i)=>choices[(p.spawns+i)%choices.length]);
+    const start=order.find(pad=>near(pad)>=SPAWN_CLEARANCE)??order.reduce((a,b)=>near(b)>near(a)?b:a);p.spawns++;
     if(!Number.isFinite(start.x)||!Number.isFinite(start.y)||!movementNav.walkable(start.x,start.y))throw new Error(`Bog spawn pad is not walkable: ${start.base??p.team}`);
     Object.assign(p,walkingActor({...start,path:[],heading:null,pace:0,action:0,travel:0,jumpLeft:0}));
     p.facing=movementFacing({x:(bounds.x0??0)+bounds.width/2-p.x,y:(bounds.y0??0)+bounds.height/2-p.y},0);const facing=facingVector(p.facing);p.ax=facing.x;p.ay=facing.y;
@@ -92,10 +97,13 @@ export function createBogCombat({blockers=getBogBlockers(),bounds=BOG_COMBAT.bou
   }
   function fire(p){
     if(p.ammo===0&&state.time>=p.reloadAt){p.ammo=RULES.ammoCapacity;p.reloadAt=0;}
+    // a part-empty tank tops itself up while you hold fire: one paint every paintTopUpEvery, once you have stopped
+    // shooting for paintTopUpDelay (an empty one still reloads in one go)
+    if(p.ammo>0&&p.ammo<RULES.ammoCapacity&&!p.input.fire&&state.time>=(p.topUpAt??0)){p.ammo++;p.topUpAt=state.time+RULES.paintTopUpEvery;}
     if(!p.input.fire||p.ammo===0||state.time<p.nextFire||state.shots.length>=RULES.maxShots)return;
     if(!shotPool.length)for(const slot of shotSlots)if(!state.shots.includes(slot))shotPool.push(slot);
     const shot=shotPool.pop();if(!shot)return;
-    p.ammo--;if(p.ammo===0)p.reloadAt=state.time+RULES.reloadSeconds;
+    p.ammo--;if(p.ammo===0)p.reloadAt=state.time+RULES.reloadSeconds;p.topUpAt=state.time+RULES.paintTopUpDelay;
     p.nextFire=state.time+RULES.fireDelay;p.shieldUntil=state.time;
     p.bushRevealUntil=state.time+BUSH_REVEAL_SECONDS;
     const id=++nextShot;
