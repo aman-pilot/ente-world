@@ -16,6 +16,7 @@ export default function BogReview(){
  const inspect=new URLSearchParams(location.search).has('inspect');
  useEffect(()=>{
   let cancelled=false,installation;
+  document.getElementById('boot-sky')?.remove();   // the landing intro's sky layer from index.html, which only the landing clears
   const game=new PixiIsland({onError:e=>{globalThis.bogReviewError=String(e);if(!cancelled)setError(String(e));}});
   globalThis.bogGame=game;
   const camera=(x,y,zoom=.65)=>{
@@ -24,7 +25,7 @@ export default function BogReview(){
   globalThis.bogCamera=camera;
   (async()=>{
    await game.mount(host.current);if(cancelled)return;
-   document.getElementById('boot-sky')?.remove();   // the landing intro's sky layer from index.html, which only the landing clears
+   if(bots>0)game.canvas.style.opacity='0';   // the bot match fades in on the match itself (BogDemo), not on the dock first
    installation=installBogEnvironment();
    game.switchIsland(installation.islandId);
    const dock=installation.map.HARBOR.land;

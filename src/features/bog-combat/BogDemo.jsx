@@ -43,7 +43,9 @@ export default function BogDemo({engine,combat,count}){
    // the player has joined a team: the game's own camera follows their Ducky, so the demo stops steering it
    if(mode==='area'||(engine.bogCombat&&!engine.bogCombat.room.demoSpectator))return;
    const focus=demo.sim.state.players.get(mode==='action'?demo.heroId:mode);
-   if(focus){engine.follow=false;engine.fitMode=false;engine.fly=null;Object.assign(engine.target,{x:focus.x,y:focus.y-90,zoom:.65});}
+   if(focus){engine.follow=false;engine.fitMode=false;engine.fly=null;Object.assign(engine.target,{x:focus.x,y:focus.y-90,zoom:.65});
+    // first frame: start right on the match (the page hides the dock view until now, so there is no jump across the island)
+    if(engine.canvas.style.opacity==='0'){Object.assign(engine.camera,{x:focus.x,y:focus.y-90,zoom:.65});engine.canvas.style.transition='opacity .25s';engine.canvas.style.opacity='1';}}
   },16);return()=>clearInterval(timer);
  },[mode,demo,engine]);
  const focused=snapshot?.players.find(p=>p.id===(mode==='action'||mode==='area'?demo.heroId:mode));
