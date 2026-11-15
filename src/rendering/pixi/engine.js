@@ -193,7 +193,7 @@ export class PixiIsland {
       this.canvas = this.app.canvas;
       this.cleanups.push(installPixelRecovery(this.app.renderer,{
         lost:()=>{this.contextRecovering=true;cancelAnimationFrame(this.raf);this.audio.suspend();},
-        restored:()=>{if(this.disposed)return;this.contextRecovering=false;this.lastFrame=performance.now();this.audio.resume();this.raf=requestAnimationFrame(time=>this.tick(time));},
+        restored:()=>{if(this.disposed)return;this.contextRecovering=false;this.lastFrame=performance.now();this.audio.resume();cancelAnimationFrame(this.raf);this.raf=requestAnimationFrame(time=>this.scene.visible?this.tick(time):this.renderArrival(time));},
         failed:error=>{if(!this.disposed)this.onError(error);},
       }));
       this.canvas.tabIndex = 0;
@@ -453,7 +453,7 @@ export class PixiIsland {
 
 
   renderArrival(now) {
-    if(this.disposed||!this.arrivalScene)return;
+    if(this.disposed||this.contextRecovering||!this.arrivalScene)return;
     const dt=Math.min(.1,Math.max(0,now-this.lastFrame)/1000),t=now/1000;
     this.lastFrame=now;
     const player=this.player ?? this.initialSpawn;

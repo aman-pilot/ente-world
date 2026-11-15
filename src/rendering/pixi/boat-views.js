@@ -99,10 +99,7 @@ async function initialViews(){
   const selected=entries.filter(([key])=>key==='f00'||key==='f24');
   const m={...manifest,views:Object.fromEntries(selected.length?selected:entries.slice(0,1))};
   const files=[...new Set(Object.values(m.views).flatMap(v=>[v.file,v.front,v.rigFront].filter(Boolean)))];
-  const textures=new Map(await Promise.all(files.map(async file=>{
-    const texture=await Assets.load(art(DIR+file,.25));
-    textureFiles.set(texture,file);return [file,texture];
-  })));
+  const textures=new Map(await Promise.all(files.map(async file=>[file,await Assets.load(art(DIR+file))])));
   return manifestViews(m,file=>textures.get(file)??null);
 }
 export function loadBoatViews() {

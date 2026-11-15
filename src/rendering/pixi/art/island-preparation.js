@@ -67,7 +67,7 @@ export async function mapArtInFrames(items, visit, {yieldFrame=preparationFrame,
   return results;
 }
 
-export function textureSources(roots) {
+function textureSources(roots) {
   const sources = new Set();
   const visit = node => {
     if (!node || node.destroyed) return;

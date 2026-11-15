@@ -1,5 +1,4 @@
-import {uploadIsland,textureSources} from './art/island-preparation.js';
-import {releaseArtPixels} from './art/pixel-residency.js';
+import {prepareTreePixels,releaseArtPixels} from './art/pixel-residency.js';
 import {Application, Rectangle} from 'pixi.js';
 import {createDuck} from './duck.js';
 
@@ -31,7 +30,7 @@ async function duckHeight() {
 
 async function drawPortrait(outfit) {
   const W = 640, app = new Application();
-  let duck;
+  let duck,sources=[];
   try {
     // Draw once at 3x for the profile panel, without starting a second ticker.
     await app.init({width:W, height:W, backgroundAlpha:0, antialias:true, resolution:3,
@@ -42,7 +41,7 @@ async function drawPortrait(outfit) {
     duck.root.position.set(W / 2, feet);
     duck.update(0, {action:0, turn:0, reducedMotion:true});
     app.stage.addChild(duck.root);
-    await uploadIsland(app.renderer,[duck.root]);
+    sources=await prepareTreePixels(app.renderer,duck.root);
     app.render();
     // a profile picture: the head and face, with the whole hat. The frame runs from the hat's tip (or the
     // tuft) down to just under the cheeks, so a tall hat makes the head smaller instead of cutting the face.
@@ -51,7 +50,7 @@ async function drawPortrait(outfit) {
     const frame = new Rectangle(W / 2 - side / 2, bottom - side, side, side);
     return await app.renderer.extract.base64({target:app.stage, frame});
   } finally {
-    if(duck)for(const source of textureSources([duck.root]))releaseArtPixels(source);
+    for(const source of sources)releaseArtPixels(source);
     duck?.dispose();
     if (app.renderer) app.destroy({removeView:true, releaseGlobalResources:false}, {children:true});
     else app.stage?.destroy({children:true});

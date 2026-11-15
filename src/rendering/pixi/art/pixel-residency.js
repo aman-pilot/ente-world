@@ -1,4 +1,5 @@
-import {extensions,ExtensionType,glUploadImageResource} from 'pixi.js';
+import * as Pixi from 'pixi.js';
+const {extensions,ExtensionType,glUploadImageResource}=Pixi;
 
 // Only reproducible static pictures use this uploader. Dimensions, frames and
 // GPU textures stay intact; the HTTP cache replaces their decoded CPU copy.
@@ -15,7 +16,7 @@ export function cacheBackedPixels(source,reload) {
 export function releaseArtPixels(source) {
   if(pictures.get(source)?.uploaded&&source.resource){close(source.resource);source.resource=null;source.options.resource=null;}
 }
-extensions.add({extension:{type:ExtensionType.TextureUploaderWebGL,name:'cacheBackedImage'},
+extensions?.add({extension:{type:ExtensionType?.TextureUploaderWebGL,name:'cacheBackedImage'},
   id:'cacheBackedImage',upload(source,texture,gl,...args){
     if(gl.isContextLost())return;
     if(!source.resource)throw Error(`Picture needs recovery: ${source.label}`);
@@ -34,6 +35,15 @@ export async function prepareArtPixels(source,renderer) {
   if(source.destroyed||source.resource||source._gpuData?.[renderer.uid])return;
   await reloadPixels(source);
 }
+// A portrait has its own short-lived renderer. Rehydrate only its frames and
+// leave the game renderer's already-uploaded textures in place.
+export async function prepareTreePixels(renderer,root){
+  const sources=new Set();
+  const visit=node=>{if(node.texture?.source)sources.add(node.texture.source);for(const child of node.children??[])visit(child);};
+  visit(root);
+  for(const source of sources){await prepareArtPixels(source,renderer);if(!source.destroyed)renderer.texture.bindSource(source);}
+  return sources;
+}
 async function reloadPixels(source){
   const entry=pictures.get(source);
   if(!entry||source.destroyed||source.resource)return;
@@ -43,27 +53,29 @@ async function reloadPixels(source){
   await entry.pending;
 }
 export function installPixelRecovery(renderer,{lost=()=>{},restored=()=>{},failed=()=>{}}={}) {
-  const canvas=renderer.canvas;gameContexts.set(renderer.gl,renderer);let dead=false;
+  const canvas=renderer.canvas;gameContexts.set(renderer.gl,renderer);let dead=false,epoch=0;
   const onLost=event=>{
-    event.preventDefault();
+    event.preventDefault();epoch++;
     if(!gates.has(renderer)){let resolve;const promise=new Promise(r=>resolve=r);gates.set(renderer,{promise,resolve});}
     lost();
   };
   const onRestored=async()=>{
+    const version=epoch;
     try{
       // One sheet at a time. Never rebuild a second full island in CPU memory.
       for(const [source,entry] of pictures){
-        if(dead)return;
+        if(dead||version!==epoch)return;
         if(entry.renderer!==renderer||!entry.uploaded||source.destroyed)continue;
         await reloadPixels(source);
-        if(dead||source.destroyed)continue;
+        if(dead||version!==epoch)return;
+        if(source.destroyed)continue;
         renderer.texture.bindSource(source);
         await new Promise(resolve=>requestAnimationFrame(resolve));
       }
-      if(!dead){gates.get(renderer)?.resolve();gates.delete(renderer);restored();}
-    }catch(error){if(!dead)failed(error);}
+      if(!dead&&version===epoch){gates.get(renderer)?.resolve();gates.delete(renderer);restored();}
+    }catch(error){if(!dead&&version===epoch)failed(error);}
   };
   canvas.addEventListener('webglcontextlost',onLost);
   canvas.addEventListener('webglcontextrestored',onRestored);
-  return ()=>{dead=true;canvas.removeEventListener('webglcontextlost',onLost);canvas.removeEventListener('webglcontextrestored',onRestored);gates.get(renderer)?.resolve();gates.delete(renderer);gameContexts.delete(renderer.gl);for(const entry of pictures.values())if(entry.renderer===renderer){entry.renderer=null;entry.uploaded=false;}};
+  return ()=>{dead=true;epoch++;canvas.removeEventListener('webglcontextlost',onLost);canvas.removeEventListener('webglcontextrestored',onRestored);gates.get(renderer)?.resolve();gates.delete(renderer);gameContexts.delete(renderer.gl);for(const entry of pictures.values())if(entry.renderer===renderer){entry.renderer=null;entry.uploaded=false;}};
 }
