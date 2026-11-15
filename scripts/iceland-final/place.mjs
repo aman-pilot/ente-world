@@ -157,7 +157,7 @@ export function validate(result,{root=ROOT,requireAssets=true}={}) {
   }
  }
  check(buildings.length===w.iceland2.doors.length,'missing building');
- const base=makeMap('snow',{world:w,walk:w,harbor:json(path.join(root,WORLD,'harbor.json')),sleepers:[]}).baseWalk;
+ const base=makeMap('snow-layout',{world:w,walk:w,harbor:json(path.join(root,WORLD,'harbor.json')),sleepers:[]}).baseWalk;
  const beds=resolveSleepSpots(base,art.props,geometry(base).walkable,sleepHalfWidths(),{spots:w.sleepSpots,avoid:w.sleepAvoid,warn:false});
  check(beds.length===60&&!beds.bad.length,`sleepers ${beds.length}: ${JSON.stringify(beds.bad)}`);
  for(const issue of quality3Problems(art,w,report))check(false,issue);
@@ -210,7 +210,7 @@ async function main(){
   writeFileSync(path.join(ROOT,ART,'art.json'),JSON.stringify(result.art,null,1)+'\n');
   for(const name of ['world.json','walk-world.json'])writeFileSync(path.join(ROOT,WORLD,name),JSON.stringify(result.world,null,1)+'\n');
   const indexFile=path.join(ROOT,'assets/world/themes/index.js'),index=readFileSync(indexFile,'utf8');
-  const harbor=json(path.join(ROOT,WORLD,'harbor.json')),base=makeMap('snow',{world:result.world,walk:result.world,harbor,sleepers:[]}).baseWalk;
+  const harbor=json(path.join(ROOT,WORLD,'harbor.json')),base=makeMap('snow-layout',{world:result.world,walk:result.world,harbor,sleepers:[]}).baseWalk;
   const beds=resolveSleepSpots(base,result.art.props,geometry(base).walkable,sleepHalfWidths(),{spots:result.world.sleepSpots,avoid:result.world.sleepAvoid,warn:false})
    .map(({x,y,pose,r,flip,tree})=>({x:Math.round(x),y:Math.round(y),pose,r:Math.round(r*10)/10,flip,...(tree?{tree}:{})}));
   writeFileSync(indexFile,index.replace(/^  snow: .*$/m,`  snow: {world: snowWorld, walk: snowWalk, harbor: snowHarbor, art: '/pixi-art/themes/snow/art.json', sea: ${JSON.stringify(result.art.sea)}, sleepers: ${JSON.stringify(beds)}},`));

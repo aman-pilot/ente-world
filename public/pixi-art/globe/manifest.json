@@ -1051,7 +1051,7 @@
         },
         {
           "path": "src/world/island-maps.js",
-          "sha256": "5c33e3d02d58ba9f99d3492116e15e6b3707806d35b5b7dae8feb37379568969"
+          "sha256": "aa211335ef84f41129840b7b896c34333e9f2515e18912708248c29608337bc0"
         },
         {
           "path": "src/world/prop-outlines/geometry.js",
@@ -1062,7 +1062,7 @@
           "sha256": "0b81bb5ee6f33feb0db9eb60280edfa7aa960a84f4ac92936a326a611d7763b4"
         }
       ],
-      "sha256": "556a125f1d79a25b6c74da2b013cb518e96423fdef378bc869d6bf2c22a388e3"
+      "sha256": "173b187496b6a708e11555c4f137eb1a3d81bf18cecb0ac364acf461f9caa7b0"
     },
     "groundSha256": "dddbf340591c9c37fbe7ffb512aa8561b0dd33aec741be13b64e96b528c9ab21",
     "src": "/pixi-art/globe/home.svg",
@@ -2139,14 +2139,14 @@
         },
         {
           "path": "src/world/island-maps.js",
-          "sha256": "5c33e3d02d58ba9f99d3492116e15e6b3707806d35b5b7dae8feb37379568969"
+          "sha256": "aa211335ef84f41129840b7b896c34333e9f2515e18912708248c29608337bc0"
         },
         {
           "path": "src/world/world-map.js",
           "sha256": "0b81bb5ee6f33feb0db9eb60280edfa7aa960a84f4ac92936a326a611d7763b4"
         }
       ],
-      "sha256": "77bf21afa2d8ad4df0be46382e5f6e1ca75be209cbf34809d4ed9a399ebec94a"
+      "sha256": "130297152f2ebdd300992dfd214e8c51a223ba72c5694424e5c3aaa08b11198a"
     },
     "groundSha256": "9ccbb8ccdcc856fbee572465311b5041240705b4b64336793493b855ae057189",
     "src": "/pixi-art/globe/sunflower.svg",
@@ -4939,14 +4939,14 @@
         },
         {
           "path": "src/world/island-maps.js",
-          "sha256": "5c33e3d02d58ba9f99d3492116e15e6b3707806d35b5b7dae8feb37379568969"
+          "sha256": "aa211335ef84f41129840b7b896c34333e9f2515e18912708248c29608337bc0"
         },
         {
           "path": "src/world/world-map.js",
           "sha256": "0b81bb5ee6f33feb0db9eb60280edfa7aa960a84f4ac92936a326a611d7763b4"
         }
       ],
-      "sha256": "e1d25b6c9dbc1b0bdde2a0dd8e0f034647a3147fb940380e2f26b0607a4dce2c"
+      "sha256": "887b7ef239bd9bb1cf97d566226e2452f16b2bfb02df2b4d4911240ed148411a"
     },
     "groundSha256": "4a2bfe012c25cde81a98819c586f7730ce716f938aa26be92c03181cb0b11678",
     "src": "/pixi-art/globe/pink.svg",
@@ -7435,14 +7435,14 @@
         },
         {
           "path": "src/world/island-maps.js",
-          "sha256": "5c33e3d02d58ba9f99d3492116e15e6b3707806d35b5b7dae8feb37379568969"
+          "sha256": "aa211335ef84f41129840b7b896c34333e9f2515e18912708248c29608337bc0"
         },
         {
           "path": "src/world/world-map.js",
           "sha256": "0b81bb5ee6f33feb0db9eb60280edfa7aa960a84f4ac92936a326a611d7763b4"
         }
       ],
-      "sha256": "29406ff365f1d6d19ab7f465d1d1967d6d4f1d69167d197ab10c70b3d79f2762"
+      "sha256": "8b4acb90e17ce3bd7e576ded09f7e77f777d2524858f5c69e13da215dc965cb7"
     },
     "groundSha256": "b1e2068757db08e88bed6f6678004f5f6c1a7c2f8e046b81134bf1f715a90105",
     "src": "/pixi-art/globe/library.svg",
@@ -8459,14 +8459,14 @@
         },
         {
           "path": "src/world/island-maps.js",
-          "sha256": "5c33e3d02d58ba9f99d3492116e15e6b3707806d35b5b7dae8feb37379568969"
+          "sha256": "aa211335ef84f41129840b7b896c34333e9f2515e18912708248c29608337bc0"
         },
         {
           "path": "src/world/world-map.js",
           "sha256": "0b81bb5ee6f33feb0db9eb60280edfa7aa960a84f4ac92936a326a611d7763b4"
         }
       ],
-      "sha256": "526f21db13ee79311f22af48168474b9c2bb9cca7bc821c24e277838f0a24ab0"
+      "sha256": "bd25530a846fb5d36bcfc79c5f87141927800b0feef1f36bc8677567c5ec3038"
     },
     "groundSha256": "56ca5b43b287cbfbfb290f654f917a0311a042d4be767993605833f2ca3519d2",
     "src": "/pixi-art/globe/community.svg",
@@ -8911,14 +8911,14 @@
         },
         {
           "path": "src/world/island-maps.js",
-          "sha256": "5c33e3d02d58ba9f99d3492116e15e6b3707806d35b5b7dae8feb37379568969"
+          "sha256": "aa211335ef84f41129840b7b896c34333e9f2515e18912708248c29608337bc0"
         },
         {
           "path": "src/world/world-map.js",
           "sha256": "0b81bb5ee6f33feb0db9eb60280edfa7aa960a84f4ac92936a326a611d7763b4"
         }
       ],
-      "sha256": "bf2e68227f2af82c777840f552281bbf8a1511195a848b63af738420bc344696"
+      "sha256": "03c00428e7cb237470150d51a15e03b3dcfcb2cae08a3470084e4a62d5eec31f"
     },
     "groundSha256": "40584b6e5bda1d8e14c75565e8109d9ee0755a748f82bdd07d34ca1b1622a64e",
     "src": "/pixi-art/globe/bog.svg",
@@ -8943,7 +8943,7 @@
     "sources": {
       "version": 1,
       "theme": "snow",
-      "modelSha256": "29c6ccc4660519bf0aafaeb36a561b0108320c17712e96943dc5fc63c1b76133",
+      "modelSha256": "92405b2ab412e4a850804bdb15941c6b96c65f2d4ce5c769d08c733a01be57ec",
       "files": [
         {
           "path": "assets/world/island-geometry.mjs",
@@ -8951,7 +8951,7 @@
         },
         {
           "path": "public/pixi-art/themes/snow/art.json",
-          "sha256": "7b8802c409568cbeddb6ad099c3b2b022c50174992b8a411cd76132515cef5fd"
+          "sha256": "f4a3c626560619651bbfe92874b100c40d97487c4b3f848e24ac69adc3a2164a"
         },
         {
           "path": "public/pixi-art/themes/snow/final/buildings/bakery.svg",
@@ -10539,21 +10539,21 @@
         },
         {
           "path": "src/world/island-maps.js",
-          "sha256": "5c33e3d02d58ba9f99d3492116e15e6b3707806d35b5b7dae8feb37379568969"
+          "sha256": "aa211335ef84f41129840b7b896c34333e9f2515e18912708248c29608337bc0"
         },
         {
           "path": "src/world/world-map.js",
           "sha256": "0b81bb5ee6f33feb0db9eb60280edfa7aa960a84f4ac92936a326a611d7763b4"
         }
       ],
-      "sha256": "6a9274140cf7591b4151e0294ce3f71ca6ce0b47257b3d763bc5b4e8f7159751"
+      "sha256": "5bc3e46e4e6508c576cb3058139e5e0d633ba20c67a2ff70d5b8967549145293"
     },
     "groundSha256": "2fdaf51c505df0bc6703d582052b7ebf887085beafe964d8bbdf50495e6a2790",
     "src": "/pixi-art/globe/snow.svg",
-    "sha256": "59d4c9f75c2d029b9c04d051d7b47fd005ac9a732843b686f0f1f68c1a809d0c",
+    "sha256": "b803f408cfb883effa881981ba4f8898372e53a5d655b08a79fcee08ff5dd26d",
     "width": 1024,
     "height": 794,
-    "bytes": 326799,
+    "bytes": 326798,
     "groundBytes": 205378,
     "quality": {
       "tolerance": 0.2,

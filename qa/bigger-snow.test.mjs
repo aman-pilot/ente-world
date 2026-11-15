@@ -4,7 +4,7 @@ import test from 'node:test';
 import {readFileSync,existsSync} from 'node:fs';
 import {makeMap} from '../src/world/island-maps.js';
 import {checkTheme} from '../scripts/theme-index.mjs';
-import {inPoly} from '../assets/world/island-geometry.mjs';
+import {geometry,inPoly} from '../assets/world/island-geometry.mjs';
 import {tileResolution,tileInView,GROUND_BUDGET_BYTES,createGroundPool} from '../src/rendering/pixi/art/ground-stream.js';
 import {loadThemeArt} from '../src/rendering/pixi/art/theme-art.js';
 import {ICELAND_SMOKE} from '../src/rendering/pixi/environment/iceland-life.js';
@@ -31,14 +31,18 @@ test('all B2 places, fourteen building doors and the harbour are reachable; soli
  assert.ok(ready.ready,ready.problems.join('\n'));
  for(const [name,z]of Object.entries(world.zones))assert.ok(route(...z.spawn),name);
  for(const [name,x,y]of world.iceland2.doors)assert.ok(route(x,y),name+' doorway');
- for(const p of art.props){assert.ok(inPoly(p.x,p.y,world.coast),p.id+' offshore');const solid=world.obstacles.find(o=>o.prop===p.id);if(solid)assert.equal(nav.walkable(solid.x,solid.y),false,p.id+' solid');}
+ for(const p of art.props){assert.ok(inPoly(p.x,p.y,world.coast),p.id+' offshore');const solid=map.world.props.find(q=>q.id===p.id);if(solid.outlineKind==='solid'){assert.ok(solid.footprint&&solid.bodyFootprint,p.id+' traced body');for(const ring of [solid.footprint.poly,...(solid.footprint.parts??[])])for(const [x,y]of ring.filter((_,i)=>i%4===0))assert.equal(nav.walkable(x,y),false,p.id+' solid drawing');}else assert.equal(solid.footprint,undefined,p.id+' walk-over drawing');}
+ const sites=j('src/gameplay/karma-sites.json').filter(p=>p.region==='isle-55');
+ const targets=[...Object.values(world.iceland2.nodes),...Object.values(world.iceland2.shores),world.iceland2.rink.heart,...sites.map(p=>[p.x,p.y])];
+ for(const target of targets){assert.ok(nav.walkable(...target));assert.deepEqual(nav.route(map.spawn.x,map.spawn.y,...target).at(-1),target,'exact authored target reachable');}
  assert.ok(route(map.HARBOR.land.x,map.HARBOR.land.y));
  for(const b of map.boatSpots())for(let i=0;i<16;i++){const a=i*Math.PI/8;assert.ok(!map.landAt(b.x+46*Math.cos(a),b.y+46*Math.sin(a)),'boat hull clearance');}
 });
 test('Iceland has exactly sixty resolved solid residents, all eight approved sleep poses',()=>{
  assert.equal(world.sleepTotal,60);assert.equal(ready.sleepers.length,60);assert.equal(map.sleepers.length,60);
  assert.equal(new Set(map.sleepers.map(b=>b.pose)).size,8);
- for(const bed of map.sleepers){assert.ok(map.landAt(bed.x,bed.y));assert.ok(map.walk.obstacles.some(o=>o.sleeper&&Math.abs(o.x-bed.x)<1));}
+ const clear=geometry(map.baseWalk).walkable;
+ for(const bed of map.sleepers){assert.ok(map.landAt(bed.x,bed.y));assert.ok(clear(bed.x,bed.y),'sleeper outside prop contours');assert.ok(map.walk.obstacles.some(o=>o.sleeper&&Math.abs(o.x-bed.x)<1));}
 });
 test('Home plant silhouettes are retained under snow caps and every plant base clears a path',()=>{
  for(const family of ['tree','bush'])for(let i=1;i<=(family==='tree'?5:4);i++){
