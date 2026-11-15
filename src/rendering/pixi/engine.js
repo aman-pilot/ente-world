@@ -1442,7 +1442,9 @@ export class PixiIsland {
       void this.islandReady(island.id).catch(()=>{});
       if(this.artReady(island.map))this.startIslandDetail(island.map);
     }
-    for(const [id] of this.sheetPreparations??[]){
+    const retained=new Set([...(this.sheetPreparations?.keys()??[]),
+      ...[...this.arts.keys()].map(map=>WORLD_ISLANDS.find(i=>artOf(i.id)===map)?.id).filter(Boolean)]);
+    for(const id of retained){
       if(this.sailingArtWanted.has(id)||artOf(id)===this.destinationArt||!sailing&&id===this.islandId)continue;
       this.freeArt(artOf(id));
     }
