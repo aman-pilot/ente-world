@@ -19,6 +19,10 @@ const nativeImport = new Function('specifier', 'return import(specifier)');
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex').slice(0, 24);
 const DIRECTORY = 'art-prerender';
+// The player's Duck is drawn on every start: its part list and its outfit frames.
+const DUCK_MANIFEST = '/pixi-duck/manifest.json', DUCK_PARTS = '/pixi-duck/frames/';
+export const startupPreloads = urls => [...new Set(urls.filter(Boolean))]
+  .map(href => ({tag:'link',attrs:{rel:'preload',as:'fetch',href,crossorigin:''},injectTo:'head'}));
 const VERSION = 1;
 
 // Uniform screen-density steps keep continuous pieces aligned across sheets.
@@ -122,12 +126,15 @@ export async function collectPlacedArt(root) {
 }
 
 export function prerenderArt() {
-  let config, manifestURL, manifest, entries, sheetBytes, homeURL;
+  let config, manifestURL, manifest, entries, sheetBytes, homeURL, duckPartsURL, islandsURL;
   const previousDetail=new Map();
   return {
     name: 'prerender-island-art', apply: 'build',
     configResolved(value) {config = value;},
-    transformIndexHtml() {return homeURL?[{tag:'link',attrs:{rel:'preload',as:'fetch',href:homeURL,crossorigin:''},injectTo:'head'}]:[];},
+    // Every start reads these small files one after another once the page code runs.
+    // Fetch them with the page instead. The HTML is written after generateBundle,
+    // so the island index name is known here.
+    transformIndexHtml() {return startupPreloads([homeURL,islandsURL,manifestURL,duckPartsURL,manifestURL&&DUCK_MANIFEST]);},
     async buildStart() {
       const start = performance.now(), root = config.root;
       const sharp = require('sharp');
@@ -286,6 +293,7 @@ export function prerenderArt() {
         this.emitFile({type:'asset',fileName:name,source});parts[dir]=config.base+name;
       }
       const catalog=JSON.stringify({parts}),catalogName=`${DIRECTORY}/catalog-${hash(catalog)}.json`;
+      duckPartsURL=parts[DUCK_PARTS];
       this.emitFile({type:'asset',fileName:catalogName,source:catalog});
       manifestURL = config.base + catalogName;
       const bytes = (await Promise.all(emitted.values())).reduce((a, b) => a + b.length, Buffer.byteLength(json));
@@ -376,6 +384,7 @@ export function prerenderArt() {
       const json=JSON.stringify(index),fileName=`${DIRECTORY}/islands-${hash(json)}.json`;
       this.emitFile({type:'asset',fileName,source:json});
       this.emitFile({type:'asset',fileName:`${DIRECTORY}/islands.json`,source:JSON.stringify({url:config.base+fileName})});
+      islandsURL=config.base+fileName;
       const headers=bundle['_headers'];
       const text=String(headers?.source??await readFile(path.join(config.publicDir,'_headers'),'utf8').catch(error=>{if(error.code==='ENOENT')return '';throw error;}));
       const source=text+'\n/art-prerender/islands.json\n  ! Cache-Control\n  Cache-Control: no-cache\n';
