@@ -38,16 +38,13 @@ export default function BogGame({engine,team,name='Ducky',profile,accountId,navi
   const mine=self?.team??team,lives=self?.lives??RULES.lives,hurt=self?.alive!==false&&(self?.hits??0)>0,ammo=self?.ammo??RULES.ammoCapacity,now=snapshot?.time??0;
   const note=self?.out?'Out of lives! Paddling to an islet…':self?.alive===false?`Respawning in ${Math.max(1,Math.ceil(self.respawnAt-now))}…`
     :self?.shieldUntil>now?`Hidden ${Math.ceil(self.shieldUntil-now)}s`:self?.bushHidden?'Hidden in bush':null;
-  // Game HUD: your score top left, the team race top centre, the way out top right; hearts and paint at the bottom
+  // Game HUD: your score top left, the way out top right; hearts and paint at the bottom (no team score bar: boss)
   return <aside className="bog-hud" aria-label="Bog paint game">
     <div className="bog-hud-card bog-hud-me">
       <small>You · Team {mine==='karma'?'Karma':'Evil'}</small>
       <b>{self?.stats.tags??0} splats · {self?.stats.score??0} pts</b>
       {status!=='connected'&&<span role="status">{error||'Connecting…'}{status==='reconnecting'?' Reconnecting…':''}</span>}
       {status==='disconnected'&&<button onClick={()=>setAttempt(n=>n+1)}>Reconnect</button>}
-    </div>
-    <div className="bog-hud-card bog-hud-race" aria-label={`Karma ${snapshot?.scores.karma??0}, Evil ${snapshot?.scores.evil??0}`}>
-      <span className="bog-hud-karma">Karma <b>{snapshot?.scores.karma??0}</b></span><span className="bog-hud-evil">Evil <b>{snapshot?.scores.evil??0}</b></span>
     </div>
     <button className="bog-hud-leave" onClick={()=>{if(layer.current)layer.current.leave();else leave.current(null);}}>{returnLabel}</button>
     <div className="bog-hud-bottom">

@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 
 // The intro's clouds for the Bog's own waits: they close in with the feather and words, hold while the game gets
 // ready, then part. `ready` parts them; they never hold longer than 15 s.
-const CLOUDS = window.EWArrival?.clouds || [[1, 'l', -34], [2, 'r', -30], [3, 'l', 0], [4, 'r', 4], [5, 'l', 34], [6, 'r', 38], [7, 'b', 60], [8, 'b', 92]];
+const CLOUDS = globalThis.window?.EWArrival?.clouds || [[1, 'l', -34], [2, 'r', -30], [3, 'l', 0], [4, 'r', 4], [5, 'l', 34], [6, 'r', 38], [7, 'b', 60], [8, 'b', 92]];
 
 export default function BogClouds({text, ready, onGone}) {
   const [phase, setPhase] = useState('close');   // close (closing in, then holding) -> part -> gone
@@ -22,12 +22,12 @@ export default function BogClouds({text, ready, onGone}) {
   return <div className="arrival bog-clouds" data-phase={phase}>
     <div className="arrival-sky" aria-hidden="true"/>
     {CLOUDS.map(([art, side, y], i) => <img key={i} className="arrival-cloud" data-side={side} style={{'--y':`${y}vh`, '--i':i}}
-      src={window.EWClouds?.url(art, true)} alt="" aria-hidden="true"/>)}
-    <div className="arrival-loader" role="status" dangerouslySetInnerHTML={{__html:window.EWArrival?.loader?.(text) || ''}}/>
+      src={globalThis.window?.EWClouds?.url(art, true)} alt="" aria-hidden="true"/>)}
+    <div className="arrival-loader" role="status" dangerouslySetInnerHTML={{__html:globalThis.window?.EWArrival?.loader?.(text) || ''}}/>
   </div>;
 }
 
 // the small feather loader for a line of status text (the ticket's "Connecting to the bog")
 export function FeatherWait({text}) {
-  return <span className="bog-wait" dangerouslySetInnerHTML={{__html:window.EWArrival?.loader?.(text) || text}}/>;
+  return <span className="bog-wait" dangerouslySetInnerHTML={{__html:globalThis.window?.EWArrival?.loader?.(text) || text}}/>;
 }

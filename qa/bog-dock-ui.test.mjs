@@ -37,7 +37,7 @@ test('strict-mode dock chooses either side, returns with totals/medal case and r
   const render=async options=>{await act(async()=>root.render(React.createElement(React.StrictMode,null,React.createElement(BogEntry,{...props,...options}))));};
   try{
     await render();assert.match(document.body.textContent,/Admit one Ducky.*Booquack Bog/);await click('Enter');
-    assert.match(document.body.textContent,/Pick your side/);assert.equal(document.querySelector('.bog-pick-evil').disabled,false);
+    assert.match(document.body.textContent,/Pick your side/);assert.equal(document.querySelector('.bog-pick-evil .bog-pick-join').disabled,false);
     await click('Evil');assert.equal(engine.bogCombat.room.client.self.team,'evil');assert.match(document.querySelector('aside').textContent,/5 splats/);
     const evilIcon=document.querySelector('.bog-combat-popper-icon').getAttribute('src');
     assert.doesNotMatch(decodeURIComponent(evilIcon),/karma-padlock/);

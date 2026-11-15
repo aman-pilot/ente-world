@@ -27,7 +27,11 @@ export default function BogDock({engine,name='Ducky',profile:providedProfile,onL
   const dialog=useRef(null),leave=useRef(onLeave);leave.current=onLeave;
   // joining a team: the clouds close in while the match gets ready and part once the Ducky stands at its start spot
   const [clouds,setClouds]=useState(null);
-  const join=id=>{if(clouds)return;setClouds('wait');setTimeout(()=>setTeam(id),750);};   // the game starts once the clouds have closed over the pick
+  const join=id=>{
+    if(clouds)return;
+    if(!globalThis.window?.EWClouds){setTeam(id);return;}   // no cloud cover on this page (tests): straight in
+    setClouds('wait');setTimeout(()=>setTeam(id),750);   // the game starts once the clouds have closed over the pick
+  };
   useEffect(()=>{
     if(team)return;let active=true;setData(null);setStatus('connecting');engine.stopInput();
     const lobby=new ArenaLobbyClient({profile,url:options.lobbyURL,Socket:options.Socket,
