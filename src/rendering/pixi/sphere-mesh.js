@@ -1,7 +1,7 @@
 import {Mesh,MeshGeometry,RenderTexture,Matrix} from 'pixi.js';
 import {cameraMatrix,cameraSpan} from '../shared/sphere-camera.js';
 import {mapOf} from '../../world/island-maps.js';
-import {placeRigid,unplaceRigid} from '../../world/rigid.js';
+import {placeRigid,unplaceRigid,flatRigid} from '../../world/rigid.js';
 export function patchGeometry(from,to,box){
  const positions=[],uvs=[];
  for(const [u,v]of [[0,0],[1,0],[1,1],[0,1]]){const p=placeRigid(from,to,{x:box.x+u*box.width,y:box.y+v*box.height});positions.push(p.x,p.y);uvs.push(u,v);}
@@ -32,4 +32,12 @@ export function createLivePatches(renderer){
   },
   destroy(){for(const e of entries.values())drop(e);entries.clear();},
  };
+}
+
+export function drawLiveIsland(renderer,from,to,scene,camera,width,height,tilt,target){
+   const r=flatRigid(from,to),m=cameraMatrix(camera,width,height,tilt);
+   const x=r.x-r.a*r.cx-r.c*r.cy,y=r.y-r.b*r.cx-r.d*r.cy;
+   const transform=new Matrix(m.a*r.a+m.c*r.b,m.b*r.a+m.d*r.b,
+    m.a*r.c+m.c*r.d,m.b*r.c+m.d*r.d,m.a*x+m.c*y+m.tx,m.b*x+m.d*y+m.ty);
+   renderer.render({container:scene,target,clear:false,transform});
 }
