@@ -52,10 +52,10 @@ export async function attachBogCombat(engine,{onLeave=()=>{},onSnapshot=()=>{},o
       let entry=attachments.get(pose.id);
       if(!entry){entry={rig,readability:createBogReadability(rig),ability:createAbilityView(this.objects,rig,{tilt:TILT}),gun:attachGunC(rig,guns,pose.team,this.objects),marker:createTeamMarker(this.objects,pose,{tilt:TILT,self:pose.id===room.client.self?.id}),knockout:createKnockout(this.objects,rig,{tilt:TILT,art:ghostArt})};attachments.set(pose.id,entry);}
       rig.showRing?.(false);
-      entry.readability.update(pose.alive!==false&&isBushHidden(pose,combatTime),pose.alive!==false&&pose.shieldUntil>combatTime,dt,reducedMotion);
       entry.knockout.update(pose,combatTime,snapshot,reducedMotion);
       entry.ability.update(pose,combatTime,reducedMotion);
       entry.gun.update(pose);entry.marker.update(pose,rig,combatTime);
+      entry.readability.update(pose.alive!==false&&isBushHidden(pose,combatTime),pose.alive!==false&&pose.shieldUntil>combatTime,dt,reducedMotion);
       feel.flashTarget(pose.id,rig,entry.knockout);
     }
     if(snapshot){pickups.update(snapshot,combatTime,reducedMotion);if(room.fire&&effects.trigger(room.player,combatTime))playSound('shot');effects.update(snapshot,combatTime,{self:room.player,reducedMotion});}

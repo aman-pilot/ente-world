@@ -23,6 +23,8 @@ export function createTeamMarker(objects,pose,{tilt=1,self=false}={}) {
   return {root,update(p,rig,time){
     root.position.set(rig.root.x,rig.root.y);root.zIndex=rig.root.zIndex-.1;root.visible=rig.root.visible&&p.alive;
     const hidden=isCombatHidden(p,time);
+    // A separate ground ring would remain visible through the translucent body.
+    if(ring)ring.visible=!hidden;
     tag.text=p.alive&&p.shieldUntil>time?`${p.name} · Hidden ${Math.ceil(p.shieldUntil-time)}s`:hidden?`${p.name} · Hidden in bush`:p.name;
     tag.scale.y=hiddenIcon.scale.y=1/tilt;hiddenIcon.visible=hidden;
   },dispose(){root.removeFromParent();root.destroy({children:true});}};

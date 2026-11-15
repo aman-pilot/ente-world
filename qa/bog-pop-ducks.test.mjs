@@ -7,8 +7,8 @@ import {BOG_OUTLINE_PIXELS,BOG_TEAM_COLOURS} from '../src/features/bog-combat/re
 import {createTeamMarker} from '../src/features/bog-combat/effects.js';
 import {createBogCombat} from '../src/features/bog-combat/sim.js';
 
-// how see-through a Ducky looks: hidden Duckies fade as one flat picture through an alpha filter on the whole rig
-const seen=rig=>rig.root.alpha*(rig.root.filters?.find(f=>'alpha' in f)?.alpha??1);
+// Hidden Duckies fade the cached whole-rig quad, after all equipment is posed.
+const seen=rig=>rig.root.alpha;
 test('team markers carry no ring, only a team-tinted name and the hidden icon through both concealment states',()=>{
   for(const team of ['karma','evil']){
     const objects=new Container(),rig={root:new Container()};rig.root.position.set(100,200);rig.root.zIndex=200;
@@ -36,6 +36,12 @@ test('only your own Ducky gets the coral player ring; everyone else has none',()
   const other=createTeamMarker(objects,{team:'evil',name:'Them'}),mine=createTeamMarker(objects,{team:'karma',name:'Me'},{self:true});
   assert.equal(other.root.children.some(c=>c.label==='Your player ring'),false);
   assert.equal(mine.root.children.filter(c=>c.label==='Your player ring').length,1);
+  const ring=mine.root.children.find(c=>c.label==='Your player ring'),rig={root:new Container()};
+  for(const state of [{shieldUntil:17},{bushId:'cover',bushRevealUntil:0},{}]){
+    mine.update({team:'karma',name:'Me',alive:true,...state},rig,10);
+    assert.equal(ring.visible,!(state.shieldUntil||state.bushId),'ground ring cannot show through the hidden body');
+  }
+  rig.root.destroy();
   other.dispose();mine.dispose();objects.destroy();
 });
 
@@ -60,7 +66,7 @@ test('combat fades whole Duckies during spawn hiding and bush hiding, and restor
       for(const p of players)Object.assign(p,state);
       engine.renderLiveDucks(players,1/60,10,true,()=>true);
       for(const {rig}of liveRigs.values()){
-        assert.equal(seen(rig),state.shieldUntil?.4:state.bushId?.5:1,'spawn hiding and bush hiding fade the whole Ducky as one picture');assert.equal(rig.root.alpha,1);assert.equal(rig.root.tint,0xFFFFFF);
+        assert.equal(seen(rig),state.shieldUntil?.4:state.bushId?.5:1,'spawn hiding and bush hiding fade the whole Ducky as one picture');assert.equal(rig.root.isCachedAsTexture,!!(state.shieldUntil||state.bushId));assert.equal(rig.root.tint,0xFFFFFF);
       }
     }
     for(const p of players)p.shieldUntil=17;
@@ -72,7 +78,9 @@ test('combat fades whole Duckies during spawn hiding and bush hiding, and restor
     for(let frame=0;frame<30;frame++)engine.renderLiveDucks(players,1/60,10,false,()=>true);
     for(const {rig}of liveRigs.values())assert.equal(rig.root.alpha,1,'fade settles at full opacity');
     engine.renderLiveDucks([],1/60,10,false,()=>true);
-    for(const {rig}of liveRigs.values())assert.ok(rig.root.filters==null,'disappearing participants lose their combat filter');
+    for(const {rig}of liveRigs.values()){
+      assert.ok(rig.root.filters==null);assert.equal(rig.root.isCachedAsTexture,false,'disappearing participants release their combat texture');
+    }
     layer.leave();assert.equal(objects.children.length,0);
   }finally{layer?.leave(false);objects.destroy({children:true});globalThis.window=oldWindow;globalThis.document=oldDocument;dom.window.close();}
 });
