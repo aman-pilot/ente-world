@@ -9,7 +9,7 @@ export function demoBotCount(search){
   return raw&&/^\d+$/.test(raw)?Math.min(20,Math.max(0,Number(raw))):0;
 }
 export function createDemo(combat,count,{random=Math.random}={}){
-  const sim=createBogCombat({...combat,countBotTags:true}),brains=new Map(),sockets=new Set();
+  const sim=createBogCombat(combat),brains=new Map(),sockets=new Set();
   const match={winner:null,restartAt:0,round:1};
   const heroId='bot-0';
   const {think}=createBotController(sim,combat,{random,showcase:true,heroId});

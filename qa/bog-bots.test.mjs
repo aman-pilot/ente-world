@@ -89,13 +89,12 @@ test('bot tags use real five-life knockouts and hidden respawns, then renew with
  }finally{stop(owner);}
 });
 
-test('bot combat grants no bot medals and cannot farm saved human tags, medals or best streak',()=>{
+test('bot combat grants no bot medals, and a human tag on a bot counts like any tag',()=>{
  const saves=[],sim=createBogCombat({...BOG_COMBAT,onStats:(...args)=>saves.push(args)});
  const human=sim.join({id:'human',team:'karma'}),bot=sim.join({id:'bot',team:'evil'});bot.bot=true;
- hit(sim,bot,human.id);assert.deepEqual(human.stats,emptyStats());assert.deepEqual(human.medalCase,{});assert.equal(human.streak,0);
- assert.equal(saves.length,0);assert.deepEqual(sim.state.events.at(-1).medals,[]);
+ hit(sim,bot,human.id);assert.equal(human.stats.tags,1);assert.equal(human.stats.score,RULES.tagScore);assert.equal(human.streak,1);
  hit(sim,human,bot.id);assert.equal(bot.stats.tags,1);assert.equal(bot.stats.medals,0);assert.deepEqual(bot.medalCase,{});
- sim.leave(bot.id);sim.leave(human.id);assert.ok(saves.every(([id,stats])=>id==='human'&&stats.tags===0&&stats.medals===0));
+ sim.leave(bot.id);sim.leave(human.id);assert.ok(saves.every(([id])=>id==='human'),'only humans are saved');
  const owner={id:'owner',team:'karma',stats:{tags:1},medalCase:{},lastTagAt:-Infinity,streak:1},victim={id:'victim',team:'evil'};
  const medals=tagMedals({owner,victim,players:[{...owner,alive:true},{...victim,alive:false},{id:'extra-bot',bot:true,team:'evil',alive:true}],time:0,distance:0});
  assert.ok(!medals.includes('clutch'),'bots cannot satisfy a saved medal condition');
