@@ -10991,8 +10991,8 @@
    "id": "bakery-yard-woodpile-3",
    "name": "bakery-yard-woodpile-3",
    "src": "final/props/woodpile.svg",
-   "x": 3546.61,
-   "y": 3351.23,
+   "x": 3634.67,
+   "y": 3321.34,
    "width": 150,
    "height": 130.48,
    "resolution": 4,
@@ -33267,8 +33267,8 @@
    "id": "sled-cart-backing",
    "name": "sled-cart-backing",
    "src": "final/props/shrub-large.svg",
-   "x": 4925,
-   "y": 1840,
+   "x": 4922.7,
+   "y": 1834.46,
    "width": 165,
    "height": 90.52,
    "resolution": 4,
@@ -33351,8 +33351,8 @@
    "id": "cocoa-cart-backing",
    "name": "cocoa-cart-backing",
    "src": "final/props/shrub-large.svg",
-   "x": 4960,
-   "y": 7360,
+   "x": 4906.26,
+   "y": 7413.74,
    "width": 165,
    "height": 90.52,
    "resolution": 4,
@@ -33393,8 +33393,8 @@
    "id": "bakery-door-pot-left",
    "name": "bakery-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 2897.63,
-   "y": 3066.96,
+   "x": 2902.99,
+   "y": 3079.89,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -33430,8 +33430,8 @@
    "id": "bakery-door-pot-right",
    "name": "bakery-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 3048.36,
-   "y": 3066.96,
+   "x": 3059.47,
+   "y": 3075.48,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -33510,8 +33510,8 @@
    "id": "lodge-door-pot-left",
    "name": "lodge-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 8961.84,
-   "y": 2742.48,
+   "x": 8960.01,
+   "y": 2756.36,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -33547,8 +33547,8 @@
    "id": "lodge-door-pot-right",
    "name": "lodge-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 9125.84,
-   "y": 2742.48,
+   "x": 9135.79,
+   "y": 2766.5,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -33627,8 +33627,8 @@
    "id": "sled-workshop-door-pot-left",
    "name": "sled-workshop-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 2744.1,
-   "y": 6428.16,
+   "x": 2749.28,
+   "y": 6447.48,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -33664,8 +33664,8 @@
    "id": "sled-workshop-door-pot-right",
    "name": "sled-workshop-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 2908.1,
-   "y": 6428.16,
+   "x": 2913.28,
+   "y": 6447.48,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -33744,8 +33744,8 @@
    "id": "fishing-hall-door-pot-left",
    "name": "fishing-hall-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 8885.08,
-   "y": 7033.48,
+   "x": 8883.25,
+   "y": 7047.36,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -33781,8 +33781,8 @@
    "id": "fishing-hall-door-pot-right",
    "name": "fishing-hall-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 9049.08,
-   "y": 7033.48,
+   "x": 9059.03,
+   "y": 7057.5,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -33861,8 +33861,8 @@
    "id": "cocoa-hut-door-pot-left",
    "name": "cocoa-hut-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 6075.58,
-   "y": 4576.62,
+   "x": 6081.27,
+   "y": 4597.87,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -33898,8 +33898,8 @@
    "id": "cocoa-hut-door-pot-right",
    "name": "cocoa-hut-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 6202.58,
-   "y": 4576.62,
+   "x": 6218.14,
+   "y": 4592.18,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -33978,8 +33978,8 @@
    "id": "ice-duck-gallery-door-pot-left",
    "name": "ice-duck-gallery-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 7810.41,
-   "y": 4777.49,
+   "x": 7813.54,
+   "y": 4801.28,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34016,7 +34016,7 @@
    "name": "ice-duck-gallery-door-pot-right",
    "src": "final/props/flowerpot.svg",
    "x": 7974.41,
-   "y": 4777.49,
+   "y": 4801.49,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34095,8 +34095,8 @@
    "id": "bakery-oven-door-pot-left",
    "name": "bakery-oven-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 2068.6,
-   "y": 3021.8,
+   "x": 2060.6,
+   "y": 3035.66,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34132,8 +34132,8 @@
    "id": "bakery-oven-door-pot-right",
    "name": "bakery-oven-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 2232.6,
-   "y": 3021.8,
+   "x": 2245.29,
+   "y": 3031.54,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34212,8 +34212,8 @@
    "id": "bakery-store-door-pot-left",
    "name": "bakery-store-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 3734.34,
-   "y": 3072.11,
+   "x": 3727.45,
+   "y": 3088.74,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34249,8 +34249,8 @@
    "id": "bakery-store-door-pot-right",
    "name": "bakery-store-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 3898.34,
-   "y": 3072.11,
+   "x": 3907.34,
+   "y": 3087.7,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34329,8 +34329,8 @@
    "id": "lodge-west-door-pot-left",
    "name": "lodge-west-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 8132.81,
-   "y": 2718.71,
+   "x": 8088.46,
+   "y": 2737.08,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34366,8 +34366,8 @@
    "id": "lodge-west-door-pot-right",
    "name": "lodge-west-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 8296.81,
-   "y": 2718.71,
+   "x": 8304.81,
+   "y": 2732.57,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34446,8 +34446,8 @@
    "id": "lodge-east-door-pot-left",
    "name": "lodge-east-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 9729.46,
-   "y": 2749.53,
+   "x": 9721.46,
+   "y": 2763.39,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34483,8 +34483,8 @@
    "id": "lodge-east-door-pot-right",
    "name": "lodge-east-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 9893.46,
-   "y": 2749.53,
+   "x": 9901.46,
+   "y": 2763.39,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34563,8 +34563,8 @@
    "id": "workshop-store-door-pot-left",
    "name": "workshop-store-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 1615.7,
-   "y": 6395.91,
+   "x": 1608.81,
+   "y": 6412.54,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34600,8 +34600,8 @@
    "id": "workshop-store-door-pot-right",
    "name": "workshop-store-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 1779.7,
-   "y": 6395.91,
+   "x": 1788.7,
+   "y": 6411.5,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34680,8 +34680,8 @@
    "id": "tool-shed-door-pot-left",
    "name": "tool-shed-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 3826.45,
-   "y": 6435.83,
+   "x": 3831.63,
+   "y": 6455.15,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34717,8 +34717,8 @@
    "id": "tool-shed-door-pot-right",
    "name": "tool-shed-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 3990.45,
-   "y": 6435.83,
+   "x": 3995.63,
+   "y": 6455.15,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34797,8 +34797,8 @@
    "id": "fishing-west-door-pot-left",
    "name": "fishing-west-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 7848.79,
-   "y": 6979.13,
+   "x": 7840.79,
+   "y": 6992.99,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34834,8 +34834,8 @@
    "id": "fishing-west-door-pot-right",
    "name": "fishing-west-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 8012.79,
-   "y": 6979.13,
+   "x": 8020.79,
+   "y": 6992.99,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34914,8 +34914,8 @@
    "id": "fishing-east-door-pot-left",
    "name": "fishing-east-door-pot-left",
    "src": "final/props/flowerpot.svg",
-   "x": 9821.58,
-   "y": 7005.76,
+   "x": 9813.58,
+   "y": 7019.62,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -34951,8 +34951,8 @@
    "id": "fishing-east-door-pot-right",
    "name": "fishing-east-door-pot-right",
    "src": "final/props/flowerpot.svg",
-   "x": 9985.58,
-   "y": 7005.76,
+   "x": 9998.27,
+   "y": 7015.5,
    "width": 58,
    "height": 76,
    "resolution": 4,
@@ -50339,8 +50339,8 @@
    "id": "feedback-grove-extra-2-tree-1-3",
    "name": "feedback-grove-extra-2-tree-1-3",
    "src": "final/props/pine-small.svg",
-   "x": 6692.47,
-   "y": 2234.57,
+   "x": 6581.6,
+   "y": 2280.49,
    "width": 185,
    "height": 237.49,
    "resolution": 4,
@@ -54935,8 +54935,8 @@
    "id": "lake-woodpile",
    "name": "woodpile",
    "src": "final/rink/woodpile.svg",
-   "x": 6470,
-   "y": 4670,
+   "x": 6473.39,
+   "y": 4644.22,
    "width": 130,
    "height": 112.67,
    "finalKind": "lake",
@@ -55055,8 +55055,8 @@
    "id": "lake-rock-6435",
    "name": "rock-1",
    "src": "final/rink/rock-1.svg",
-   "x": 6435,
-   "y": 5345,
+   "x": 6485.02,
+   "y": 5354.95,
    "width": 132,
    "height": 84.86,
    "finalKind": "lake",
@@ -55120,8 +55120,8 @@
    "id": "lake-rock-7500",
    "name": "rock-3",
    "src": "final/rink/rock-3.svg",
-   "x": 7500,
-   "y": 5160,
+   "x": 7517.39,
+   "y": 5164.66,
    "width": 115,
    "height": 73.93,
    "finalKind": "lake",
@@ -55204,8 +55204,8 @@
    "id": "lake-rock-7420",
    "name": "rock-3",
    "src": "final/rink/rock-3.svg",
-   "x": 7420,
-   "y": 5490,
+   "x": 7422.35,
+   "y": 5507.85,
    "width": 85,
    "height": 54.64,
    "finalKind": "lake",
@@ -55232,8 +55232,8 @@
    "id": "lake-reeds-6430",
    "name": "reeds-1",
    "src": "final/rink/reeds-1.svg",
-   "x": 6430,
-   "y": 5330,
+   "x": 6432.75,
+   "y": 5371.91,
    "width": 85,
    "height": 96.59,
    "finalKind": "lake",
@@ -55260,8 +55260,8 @@
    "id": "lake-reeds-7490",
    "name": "reeds-2",
    "src": "final/rink/reeds-2.svg",
-   "x": 7490,
-   "y": 5140,
+   "x": 7466,
+   "y": 5181.57,
    "width": 90,
    "height": 102.27,
    "finalKind": "lake",
@@ -55979,8 +55979,8 @@
    "id": "snowman-rolling-ball",
    "name": "snowman-rolling-ball",
    "src": "final/props/snowball-big.svg",
-   "x": 2650,
-   "y": 8000,
+   "x": 2635.29,
+   "y": 7997.07,
    "width": 110,
    "height": 106.89,
    "finalKind": "scene",
@@ -56034,8 +56034,8 @@
    "id": "snowman-snowball-pile",
    "name": "snowman-snowball-pile",
    "src": "final/props/snowball-pile.svg",
-   "x": 2700,
-   "y": 8050,
+   "x": 2692.93,
+   "y": 8057.07,
    "width": 110,
    "height": 83.79,
    "finalKind": "scene",
@@ -56638,8 +56638,8 @@
    "id": "snowman-bench-west",
    "name": "snowman-bench-west",
    "src": "final/props/bench.svg",
-   "x": 2260,
-   "y": 8072,
+   "x": 2259.22,
+   "y": 8066.05,
    "width": 235,
    "height": 152.22,
    "finalKind": "scene",
@@ -56842,8 +56842,8 @@
    "id": "camp-0-focal",
    "name": "camp-0-focal",
    "src": "final/props/woodpile.svg",
-   "x": 2950.4,
-   "y": 1659.85,
+   "x": 2968.52,
+   "y": 1727.46,
    "width": 150,
    "height": 130.48,
    "resolution": 4,
@@ -56903,8 +56903,8 @@
    "id": "camp-0-lamp",
    "name": "camp-0-lamp",
    "src": "final/props/lamp.svg",
-   "x": 2845.4,
-   "y": 1554.85,
+   "x": 2896.13,
+   "y": 1365.53,
    "width": 65,
    "height": 159.23,
    "resolution": 4,
@@ -57410,8 +57410,8 @@
    "id": "camp-3-lamp",
    "name": "camp-3-lamp",
    "src": "final/props/lamp.svg",
-   "x": 8245.29,
-   "y": 1604.71,
+   "x": 8253.9,
+   "y": 1670.15,
    "width": 65,
    "height": 159.23,
    "resolution": 4,
@@ -58704,8 +58704,8 @@
    "id": "camp-10-lamp",
    "name": "camp-10-lamp",
    "src": "final/props/lamp.svg",
-   "x": 3725.45,
-   "y": 5088.07,
+   "x": 3722.32,
+   "y": 5111.86,
    "width": 65,
    "height": 159.23,
    "resolution": 4,
@@ -59256,7 +59256,7 @@
    "name": "camp-13-lamp",
    "src": "final/props/lamp.svg",
    "x": 10636.84,
-   "y": 6556.73,
+   "y": 6596.73,
    "width": 65,
    "height": 159.23,
    "resolution": 4,
@@ -60034,8 +60034,8 @@
    "id": "camp-18-focal",
    "name": "camp-18-focal",
    "src": "final/props/cocoa-table.svg",
-   "x": 9500,
-   "y": 1600,
+   "x": 9546.67,
+   "y": 1553.33,
    "width": 180,
    "height": 145,
    "finalKind": "camp",
@@ -60219,8 +60219,8 @@
    "id": "camp-19-focal",
    "name": "camp-19-focal",
    "src": "final/props/mini-snowman.svg",
-   "x": 1660,
-   "y": 2240,
+   "x": 1737.94,
+   "y": 2195,
    "width": 118,
    "height": 142,
    "resolution": 4,
@@ -60262,8 +60262,8 @@
    "id": "camp-19-lamp",
    "name": "camp-19-lamp",
    "src": "final/props/lamp.svg",
-   "x": 1555,
-   "y": 2135,
+   "x": 1535.96,
+   "y": 2120.39,
    "width": 65,
    "height": 159.23,
    "resolution": 4,
@@ -68185,60 +68185,60 @@
     8015.23
    ],
    "bakery": [
-    2979.63,
-    3025.69
+    2988.24,
+    3091.13
    ],
    "lodge": [
     9043.84,
-    2680.26
+    2768.26
    ],
    "sled-workshop": [
-    2826.1,
-    6395.55
+    2833.8,
+    6454.05
    ],
    "fishing-hall": [
     8967.08,
-    6971.26
+    7059.26
    ],
    "cocoa-hut": [
-    6157.58,
-    4545.58
+    6164.89,
+    4601.1
    ],
    "ice-duck-gallery": [
-    7892.41,
-    4737.48
+    7900.89,
+    4801.92
    ],
    "bakery-oven": [
     2150.6,
-    2971.95
+    3045.95
    ],
    "bakery-store": [
     3816.34,
-    3025.69
+    3097.69
    ],
    "lodge-west": [
-    8214.81,
-    2672.58
+    8224.08,
+    2742.97
    ],
    "lodge-east": [
-    9811.46,
-    2703.28
+    9820.73,
+    2773.67
    ],
    "workshop-store": [
     1697.7,
-    6349.49
+    6421.49
    ],
    "tool-shed": [
-    3908.45,
-    6403.22
+    3916.15,
+    6461.72
    ],
    "fishing-west": [
-    7930.79,
-    6932.88
+    7940.06,
+    7003.27
    ],
    "fishing-east": [
     9903.58,
-    6955.91
+    7029.91
    ]
   },
   "routes": [
@@ -69745,8 +69745,8 @@
     ],
     "samples": [
      [
-      2979.63,
-      3025.69
+      2988.24,
+      3091.13
      ],
      [
       2979.6299999999997,
@@ -69812,7 +69812,7 @@
     "samples": [
      [
       9043.84,
-      2680.26
+      2768.26
      ],
      [
       9043.839999999998,
@@ -69877,8 +69877,8 @@
     ],
     "samples": [
      [
-      2826.1,
-      6395.55
+      2833.8,
+      6454.05
      ],
      [
       2826.0999999999995,
@@ -69944,7 +69944,7 @@
     "samples": [
      [
       8967.08,
-      6971.26
+      7059.26
      ],
      [
       8967.079999999998,
@@ -70009,8 +70009,8 @@
     ],
     "samples": [
      [
-      6157.58,
-      4545.58
+      6164.89,
+      4601.1
      ],
      [
       6158.44,
@@ -70075,8 +70075,8 @@
     ],
     "samples": [
      [
-      7892.41,
-      4737.48
+      7900.89,
+      4801.92
      ],
      [
       7892.409999999999,
@@ -70142,7 +70142,7 @@
     "samples": [
      [
       2150.6,
-      2971.95
+      3045.95
      ],
      [
       2153.478576388888,
@@ -70208,7 +70208,7 @@
     "samples": [
      [
       3816.34,
-      3025.69
+      3097.69
      ],
      [
       3813.4347569444444,
@@ -70273,8 +70273,8 @@
     ],
     "samples": [
      [
-      8214.81,
-      2672.58
+      8224.08,
+      2742.97
      ],
      [
       8217.688576388888,
@@ -70339,8 +70339,8 @@
     ],
     "samples": [
      [
-      9811.46,
-      2703.28
+      9820.73,
+      2773.67
      ],
      [
       9808.794652777775,
@@ -70406,7 +70406,7 @@
     "samples": [
      [
       1697.7,
-      6349.49
+      6421.49
      ],
      [
       1701.6180555555554,
@@ -70471,8 +70471,8 @@
     ],
     "samples": [
      [
-      3908.45,
-      6403.22
+      3916.15,
+      6461.72
      ],
      [
       3904.6918402777774,
@@ -70537,8 +70537,8 @@
     ],
     "samples": [
      [
-      7930.79,
-      6932.88
+      7940.06,
+      7003.27
      ],
      [
       7934.388229166666,
@@ -70604,7 +70604,7 @@
     "samples": [
      [
       9903.58,
-      6955.91
+      7029.91
      ],
      [
       9903.579999999998,
@@ -70760,73 +70760,73 @@
   "doors": [
    [
     "bakery",
-    2979.63,
-    3025.69
+    2988.24,
+    3091.13
    ],
    [
     "lodge",
     9043.84,
-    2680.26
+    2768.26
    ],
    [
     "sled-workshop",
-    2826.1,
-    6395.55
+    2833.8,
+    6454.05
    ],
    [
     "fishing-hall",
     8967.08,
-    6971.26
+    7059.26
    ],
    [
     "cocoa-hut",
-    6157.58,
-    4545.58
+    6164.89,
+    4601.1
    ],
    [
     "ice-duck-gallery",
-    7892.41,
-    4737.48
+    7900.89,
+    4801.92
    ],
    [
     "bakery-oven",
     2150.6,
-    2971.95
+    3045.95
    ],
    [
     "bakery-store",
     3816.34,
-    3025.69
+    3097.69
    ],
    [
     "lodge-west",
-    8214.81,
-    2672.58
+    8224.08,
+    2742.97
    ],
    [
     "lodge-east",
-    9811.46,
-    2703.28
+    9820.73,
+    2773.67
    ],
    [
     "workshop-store",
     1697.7,
-    6349.49
+    6421.49
    ],
    [
     "tool-shed",
-    3908.45,
-    6403.22
+    3916.15,
+    6461.72
    ],
    [
     "fishing-west",
-    7930.79,
-    6932.88
+    7940.06,
+    7003.27
    ],
    [
     "fishing-east",
     9903.58,
-    6955.91
+    7029.91
    ]
   ],
   "reference": "B2 whole-source.png",

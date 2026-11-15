@@ -1,4 +1,6 @@
 import {outlineBogProps,loadBogScene,bogSceneReady} from './prop-outlines/bog-scene.js';
+import snowSleepers from '../../assets/world/themes/snow/sleepers.json' with {type:'json'};
+import {outlineSnowProps,loadSnowScene,snowSceneReady} from './prop-outlines/snow-scene.js';
 import librarySleepers from '../../assets/world/themes/library/sleepers.json' with {type:'json'};
 import {outlineLibraryProps,loadLibraryScene,librarySceneReady} from './prop-outlines/library-scene.js';
 import communitySleepers from '../../assets/world/themes/community/sleepers.json' with {type:'json'};
@@ -31,11 +33,12 @@ const trimHome = w => ({...w, islets: w.islets.filter(a => ![3930, 3340, 2290, 5
 
 export function makeMap(id, {world, walk = null, harbor, art = null, sea = null, centre = null, addJetty = true, sleepers = null}) {
   const liveBog=art==='/pixi-art/themes/bog-arena/art.json';
-  const enabled=liveBog||hasPropOutlines(id === 'pink' ? 'sunset' : id === 'library' ? 'isle-251' : id === 'community' ? 'isle-250' : id) && id !== 'home';
-  const scene=liveBog?{ready:bogSceneReady,outline:outlineBogProps}:id==='library'?{ready:librarySceneReady,outline:outlineLibraryProps}:id==='community'?{ready:communitySceneReady,outline:outlineCommunityProps}: {ready:pinkSceneReady,outline:outlinePinkProps};
+  const enabled=liveBog||hasPropOutlines(id === 'pink' ? 'sunset' : id === 'library' ? 'isle-251' : id === 'community' ? 'isle-250' : id === 'snow' ? 'isle-55' : id) && id !== 'home';
+  const scene=liveBog?{ready:bogSceneReady,outline:outlineBogProps}:id==='library'?{ready:librarySceneReady,outline:outlineLibraryProps}:id==='community'?{ready:communitySceneReady,outline:outlineCommunityProps}:id==='snow'?{ready:snowSceneReady,outline:outlineSnowProps}: {ready:pinkSceneReady,outline:outlinePinkProps};
   const deferred=enabled&&!scene.ready();
   if(enabled&&!deferred){
     if(id==='pink')sleepers??=pinkSleepers;
+    if(id==='snow'&&world.sleepSpots)sleepers??=snowSleepers;
     if(id==='library'&&world.sleepSpots)sleepers??=librarySleepers;
     if(id==='community')sleepers??=communitySleepers;
     const props=scene.outline(liveBog?world.props:world.props??[]);
@@ -173,7 +176,7 @@ export function registerMap(theme, data) {
 }
 for (const [theme, data] of Object.entries(READY ?? {})) if (THEME_IDS.includes(theme) && theme !== 'home') registerMap(theme, data);
 
-const outlinedScenes={bog:{ready:bogSceneReady,load:loadBogScene},'bog-arena':{ready:bogSceneReady,load:loadBogScene},pink:{ready:pinkSceneReady,load:loadPinkScene},library:{ready:librarySceneReady,load:loadLibraryScene},community:{ready:communitySceneReady,load:loadCommunityScene}};
+const outlinedScenes={snow:{ready:snowSceneReady,load:loadSnowScene},bog:{ready:bogSceneReady,load:loadBogScene},'bog-arena':{ready:bogSceneReady,load:loadBogScene},pink:{ready:pinkSceneReady,load:loadPinkScene},library:{ready:librarySceneReady,load:loadLibraryScene},community:{ready:communitySceneReady,load:loadCommunityScene}};
 const loadedScenes=new Set(Object.entries(outlinedScenes).filter(([,scene])=>scene.ready()).map(([theme])=>theme));
 const pendingScenes=new Map();
 export const islandMapReady=id=>!outlinedScenes[themeOfIsland(id)]||loadedScenes.has(themeOfIsland(id));

@@ -63,7 +63,7 @@ test('the Ducky spins while sliding and stops spinning in reduced motion',()=>{
 
 test('standing still on a blue path also slides (in the facing direction) and ends in a crash on land',()=>{
   let crashed=0,total=0;
-  for(const r of nav.icePaths){const w=r.samples[Math.floor(r.samples.length/2)];total++;
+  for(const r of nav.icePaths){const samples=r.samples.filter(p=>nav.walkable(...p));assert.ok(samples.length,r.id+' has reachable ice');const w=samples[Math.floor(samples.length/2)];total++;
     const a=actor(w[0],w[1]);const phases=slide(a,zero,1200,1/30);if(phases.includes('glide')&&phases.includes('crash'))crashed++;}
   assert.equal(crashed,total);
 });

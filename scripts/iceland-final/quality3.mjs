@@ -102,7 +102,8 @@ export function composeQuality3(root,art,w,report,catalog){
  }
  for(const p of art.props.filter(p=>p.finalKind==='shrub'))p.group=p.scene;
  const harbor=read(path.join(root,'assets/world/themes/snow/harbor.json'));
- const base=makeMap('snow',{world:w,walk:w,harbor,sleepers:[]}).baseWalk;
+ // This temporary composition predates the delivered scene's baked contours.
+ const base=makeMap('snow-layout',{world:w,walk:w,harbor,sleepers:[]}).baseWalk;
  const walk=geometry(base).walkable,sizes=sleepHalfWidths();
  const counts=Object.fromEntries(Object.entries(w.sleepSpots).map(([pose,spots])=>[pose,spots.length]));
  w.sleepSpots=Object.fromEntries(Object.keys(counts).map(pose=>[pose,[]]));report.sleepers=[];

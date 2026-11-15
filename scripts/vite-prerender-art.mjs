@@ -126,7 +126,7 @@ export async function collectPlacedArt(root) {
 }
 
 export function prerenderArt() {
-  let config, manifestURL, manifest, entries, sheetBytes, homeURL, pinkURL, libraryURL, bogURL, communityURL, duckPartsURL, islandsURL;
+  let config, manifestURL, manifest, entries, sheetBytes, homeURL, pinkURL, libraryURL, bogURL, communityURL, snowURL, duckPartsURL, islandsURL;
   const previousDetail=new Map();
   return {
     name: 'prerender-island-art', apply: 'build',
@@ -158,6 +158,9 @@ export function prerenderArt() {
       const library=await readFile(path.join(root,'assets/world/themes/library/scene-pack.json'),'utf8');
       libraryURL=config.base+`${DIRECTORY}/library-${hash(library)}.json`;
       this.emitFile({type:'asset',fileName:libraryURL.slice(config.base.length),source:library});
+      const snow=await readFile(path.join(root,'assets/world/themes/snow/scene-pack.json'),'utf8');
+      snowURL=config.base+`${DIRECTORY}/snow-${hash(snow)}.json`;
+      this.emitFile({type:'asset',fileName:snowURL.slice(config.base.length),source:snow});
       for (const src of new Set(entries.map(e => e.src).filter(src => /\.(svg|png)$/.test(src) && !sizes[src]))) {
         const {width, height} = await sharp(path.join(config.publicDir, src)).metadata();
         sizes[src] = [width, height];
@@ -409,6 +412,7 @@ export function prerenderArt() {
     },
     transform(code, id) {
       if(id.endsWith('/world/prop-outlines/bog-scene.js'))return {code:lazyPinkScene(code,bogURL),map:null};
+      if(id.endsWith('/world/prop-outlines/snow-scene.js'))return {code:lazyPinkScene(code,snowURL),map:null};
       if(id.endsWith('/world/prop-outlines/library-scene.js'))return {code:lazyPinkScene(code,libraryURL),map:null};
       if(id.endsWith('/world/prop-outlines/community-scene.js'))return {code:lazyPinkScene(code,communityURL).replaceAll('Rosybutton','Campfire Commons'),map:null};
       if(id.endsWith('/world/prop-outlines/pink-scene.js'))return {code:lazyPinkScene(code,pinkURL),map:null};
