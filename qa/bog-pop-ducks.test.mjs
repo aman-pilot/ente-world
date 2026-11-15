@@ -7,6 +7,8 @@ import {BOG_OUTLINE_PIXELS,BOG_TEAM_COLOURS} from '../src/features/bog-combat/re
 import {createTeamMarker} from '../src/features/bog-combat/effects.js';
 import {createBogCombat} from '../src/features/bog-combat/sim.js';
 
+// how see-through a Ducky looks: hidden Duckies fade as one flat picture through an alpha filter on the whole rig
+const seen=rig=>rig.root.alpha*(rig.root.filters?.find(f=>'alpha' in f)?.alpha??1);
 test('team markers carry no ring, only a team-tinted name and the hidden icon through both concealment states',()=>{
   for(const team of ['karma','evil']){
     const objects=new Container(),rig={root:new Container()};rig.root.position.set(100,200);rig.root.zIndex=200;
@@ -58,15 +60,15 @@ test('combat fades whole Duckies during spawn hiding and bush hiding, and restor
       for(const p of players)Object.assign(p,state);
       engine.renderLiveDucks(players,1/60,10,true,()=>true);
       for(const {rig}of liveRigs.values()){
-        assert.equal(rig.root.alpha,state.shieldUntil?.4:state.bushId?.5:1,'spawn hiding and bush hiding fade the whole Ducky');assert.equal(rig.root.tint,0xFFFFFF);assert.ok(rig.root.filters==null||rig.root.filters.length===0,'no filter hides or dims the Ducky');
+        assert.equal(seen(rig),state.shieldUntil?.4:state.bushId?.5:1,'spawn hiding and bush hiding fade the whole Ducky as one picture');assert.equal(rig.root.alpha,1);assert.equal(rig.root.tint,0xFFFFFF);
       }
     }
     for(const p of players)p.shieldUntil=17;
     engine.renderLiveDucks(players,1/60,10,false,()=>true);
-    for(const {rig}of liveRigs.values())assert.equal(rig.root.alpha,.4,'new shields hide immediately');
+    for(const {rig}of liveRigs.values())assert.equal(seen(rig),.4,'new shields hide immediately');
     for(const p of players)p.shieldUntil=0;
     engine.renderLiveDucks(players,1/60,10,false,()=>true);
-    for(const {rig}of liveRigs.values())assert.ok(rig.root.alpha>.4&&rig.root.alpha<1,'shield expiry fades back in');
+    for(const {rig}of liveRigs.values())assert.ok(seen(rig)>.4&&seen(rig)<1,'shield expiry fades back in');
     for(let frame=0;frame<30;frame++)engine.renderLiveDucks(players,1/60,10,false,()=>true);
     for(const {rig}of liveRigs.values())assert.equal(rig.root.alpha,1,'fade settles at full opacity');
     engine.renderLiveDucks([],1/60,10,false,()=>true);

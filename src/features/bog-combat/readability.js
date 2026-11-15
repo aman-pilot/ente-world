@@ -1,4 +1,4 @@
-import {Filter,GlProgram,defaultFilterVert} from 'pixi.js';
+import {AlphaFilter,Filter,GlProgram,defaultFilterVert} from 'pixi.js';
 
 export const BOG_OUTLINE_PIXELS=3;
 export const BOG_TEAM_COLOURS=Object.freeze({
@@ -30,16 +30,20 @@ export function createBogReadability(rig) {
     glProgram:GlProgram.from({vertex:defaultFilterVert,fragment,name:'bog-white-sticker'}),
     padding:BOG_OUTLINE_PIXELS+1,resolution:'inherit',antialias:'inherit',
   });
+  // fade the Ducky as one flat picture: plain root.alpha fades every part on its own, so the body showed through the
+  // wings, feet and gun and read as a muddy brown ghost
+  const fade=new AlphaFilter({alpha:1});
   let alpha=null;
   return {outline,update(inBush=false,spawnHidden=false,dt=0,reducedMotion=false){
     const target=spawnHidden?.4:inBush?.5:1;
     // Hide immediately; ease back to full colour when the shield expires.
     alpha=alpha===null||target<alpha||reducedMotion?target:alpha+(target-alpha)*(1-Math.exp(-Math.max(0,dt)/.06));
     if(Math.abs(alpha-target)<.001)alpha=target;
-    root.alpha=alpha;root.tint=0xFFFFFF;
-    if(root.filters?.includes(outline))root.filters=null;
+    root.alpha=1;root.tint=0xFFFFFF;fade.alpha=alpha;
+    if(alpha<1){if(!root.filters?.includes(fade))root.filters=[fade];}
+    else if(root.filters?.includes(fade)||root.filters?.includes(outline))root.filters=null;
   },dispose(){
-    if(!root.destroyed&&root.filters?.includes(outline))root.filters=previous;
-    outline.destroy();
+    if(!root.destroyed&&(root.filters?.includes(outline)||root.filters?.includes(fade)))root.filters=previous;
+    outline.destroy();fade.destroy();
   }};
 }
