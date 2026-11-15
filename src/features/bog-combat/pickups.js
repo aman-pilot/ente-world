@@ -5,7 +5,7 @@ export const PICKUP_KINDS=Object.freeze(['paint','shield']);
 const anchors=[['mid','paint',BOG_AREAS.mid.x,BOG_AREAS.mid.y+110],
   ['site-a','paint',BOG_AREAS['site-a'].x+180,BOG_AREAS['site-a'].y+200],
   ['site-b','shield',BOG_AREAS['site-b'].x-180,BOG_AREAS['site-b'].y+200],
-  ['west-lane','shield',3000,4400],['east-lane','paint',5400,2900]];
+  ['west-lane','shield',2949,4522],['east-lane','paint',5400,2900]];
 export function createPickupSpots(nav){
   const spots=[];
   for(const [id,kind,x,y]of anchors){

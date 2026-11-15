@@ -11,7 +11,7 @@ test('Lantern Cove trims the former blade tips while retaining both headlands',(
   assert.equal(map.landAt(x,y),false,`former blade ${x},${y} is sea`);
   assert.equal(nav.walkable(x,y),false,`former blade ${x},${y} cannot be walked`);
  }
- for(const [x,y] of [[3700,7820],[4900,7670]]){
+ for(const [x,y] of [[3700,7820],[4876,7712]]){
   assert.equal(map.landAt(x,y),true,`headland ${x},${y} remains`);
   assert.equal(nav.walkable(x,y),true,`headland ${x},${y} is accessible`);
  }

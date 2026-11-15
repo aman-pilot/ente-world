@@ -35,7 +35,7 @@ async function buildThemeArt(map, {acquire, release, groundPool, renderer, tilt=
   ]);
   const base = map.art.slice(0, map.art.lastIndexOf('/') + 1);
   const url = src => /^(\/|https?:|data:)/.test(src) ? src : base + src;
-  const outlined = (map.id === 'pink' || map.id === 'library') ? new Map((map.world?.props??[]).map(p=>[p.id,p])) : null;
+  const outlined = (map.id === 'pink' || map.id === 'library' || map.art.includes('/bog-arena/')) ? new Map((map.world?.props??[]).map(p=>[p.id,p])) : null;
   const props = (manifest.props ?? []).map(p=>outlined?.has(p.id)?{...p,...outlined.get(p.id)}:p).filter(p => !(map.id === 'snow' && manifest.icelandFinal && p.finalKind === 'smoke'));
   const allTiles=manifest.ground?.tiles??[],meshEntry=await groundMeshEntry(map.art.includes('/bog-arena/')?'bog-arena':map.id);
   const tiles = meshEntry?allTiles.filter(t=>!t.src.endsWith('.svg')):allTiles, decks = manifest.decks ?? [], flats = manifest.flats ?? [];
