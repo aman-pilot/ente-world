@@ -10,6 +10,7 @@ import outlines from '../src/world/home/building-silhouettes.json' with {type:'j
 import {propOutlineKind} from '../src/world/home/prop-outline-rules.js';
 import pickups from '../src/gameplay/karma-sites.json' with {type:'json'};
 import {atMuseumDoor} from '../src/gameplay/player-motion.js';
+import {blocks} from '../src/world/walk-rule.js';
 const bundle=await build({entryPoints:['src/world/home/placements.js'],bundle:true,platform:'node',format:'esm',write:false});
 const P=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 const props=P.createPlacements(), nav=HOME_MAP.nav();
@@ -36,6 +37,7 @@ test('every Home prop has a generated outline and every solid outline is blocked
     // Include a centroid plus a dense interior lattice, even for tiny props.
     const points=[[xs.reduce((a,b)=>a+b)/xs.length,ys.reduce((a,b)=>a+b)/ys.length]];
     for(let i=1;i<12;i++)for(let j=1;j<12;j++)points.push([Math.min(...xs)+(Math.max(...xs)-Math.min(...xs))*i/12,Math.min(...ys)+(Math.max(...ys)-Math.min(...ys))*j/12]);
+    if(!blocks(p.footprint))continue; // trees, bushes, flowers and scenery are walkable (boss rule)
     for(const [x,y] of points)if(inShape(x,y,p.footprint)){
       assert.equal(client(x,y),false,`${p.id}: client allows ${x},${y}`);
       assert.equal(nav.walkable(x,y),false,`${p.id}: worker allows ${x},${y}`);samples++;
@@ -46,7 +48,7 @@ test('every Home prop has a generated outline and every solid outline is blocked
 
 test('opaque solid art is covered, including flipped props',async()=>{
   const rasters=new Map();
-  for(const p of props.filter(p=>p.outlineKind==='solid')){
+  for(const p of props.filter(p=>p.outlineKind==='solid'&&blocks(p.footprint))){
     if(!rasters.has(p.src))rasters.set(p.src,await sharp('public'+p.src).resize(48,48,{fit:'fill'}).ensureAlpha().raw().toBuffer());
     const data=rasters.get(p.src),w=p.width*(p.scale??1),h=p.height*(p.scale??1);
     for(let y=0;y<48;y++)for(let x=0;x<48;x++)if(data[(y*48+x)*4+3]>240){

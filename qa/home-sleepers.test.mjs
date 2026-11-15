@@ -47,7 +47,7 @@ test('Home retains all hundred residents, their poses and stories on clear groun
    if(!bed.tree)for(const dx of [-22,0,22])assert.ok(ground(bed.x+dx,bed.y),`${bed.pose}: clear ground beneath body`);
    if(relocations.some(m=>m.pose===bed.pose&&m.to[0]===bed.x&&m.to[1]===bed.y)&&bed.pose==='book')assert.equal(P.groundAt(bed.x,bed.y,world),'grass','reader stays on grass');
    const f=sleeperFootprint(bed);
-   assert.equal(walk.walkable(f.x,f.y),false,'server blocks every sleeper');
+   // sleeping Ducks no longer block walking (boss rule)
    const from=reachableNear(bed.x-200,bed.y+65),to=reachableNear(bed.x+200,bed.y+65);
    assert.ok(from&&to,`${bed.pose} at ${bed.x},${bed.y}: approachable from both sides`);
    const approach=[walk.nearest(bed.x,bed.y+100,180),from,to].find(p=>p&&walk.route(HOME_MAP.spawn.x,HOME_MAP.spawn.y,...p).length);
@@ -59,7 +59,7 @@ test('Home retains all hundred residents, their poses and stories on clear groun
    for(let k=0;k<maxSteps&&actor.path.length;k++){
     walkStep(actor,walk,.05,k*.05,{x:0,y:0});
     assert.ok(walk.walkable(actor.x,actor.y),'every simulated server step stays on walkable ground');
-    assert.ok(!inShape(actor.x,actor.y,f),'never steps through a resident');
+    // sleeping Ducks are walkable now (boss rule), so a route may pass over a resident
    }
    assert.ok(Math.hypot(actor.x-to[0],actor.y-to[1])<1,'walk finishes beside the resident');
   }

@@ -11,6 +11,7 @@ import {outlinePinkProps,loadPinkScene,pinkSceneReady} from './prop-outlines/pin
 import {homeSleeperFootprint} from './home/sleep-spots.js';
 import expansion from './home/home-expansion.json' with {type:'json'};
 import homeWorld from '../../assets/world/world.json' with {type: 'json'};
+import {blocks} from './walk-rule.js';
 import homeWalk from '../../assets/world/walk-world.json' with {type: 'json'};
 import READY from './delivered-themes.js';
 import {geometry, inPoly, inShape, coastIndex, polygonIndex, shapeIndex} from '../../assets/world/island-geometry.mjs';
@@ -95,10 +96,11 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
       walk={...(walk??world),props,navigationCellSize:16,indexPropContours:true,obstacles:[...structures,...propObstacles(props)]};
     }
     walking = walk ?? world;
+    if (walking.obstacles) walking = {...walking, obstacles: walking.obstacles.filter(blocks)};
     baseWalk = {...world, ...walking, walkways: [...(walking.walkways ?? []), ...(addJetty ? [JETTY.walkway] : [])]};
     beds = id === 'home' || deferred ? [] : (sleepers ?? (world.sleepSpots ? resolveSleepSpots(baseWalk, world.props ?? [], geometry(baseWalk).walkable, sleepHalfWidths(),
       {spots: world.sleepSpots, avoid: world.sleepAvoid ?? [], warn: false}) : [])).map(({x, y, pose, r, flip, tree, approach}) => ({x, y, pose, r, flip: Boolean(flip), tree, ...(approach?{approach}:{})}));
-    walkMap = beds.length ? {...baseWalk, obstacles: [...(baseWalk.obstacles ?? []), ...beds.map(enabled?homeSleeperFootprint:sleeperFootprint)]} : baseWalk;
+    walkMap = baseWalk; // sleeping Ducks are walkable (boss rule)
   }
   let NAV = null;
   const nav = () => {
