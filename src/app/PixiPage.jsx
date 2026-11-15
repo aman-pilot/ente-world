@@ -211,7 +211,7 @@ export default function PixiPage() {
         <IslandPresence online={online} latestJoin={latestJoin}/>
       </div>
     </div>}
-    {!error && <IslandCamera island={island} ready={cameraReady}/>}
+    {!error && <IslandCamera island={island} ready={cameraReady} player={session?.user?.login}/>}
     {!error && <WorldMap island={island} globeOpen={globeOpen} indoors={indoors}/>}
     {!error && <BogEntry engine={island} travel={travel} status={status} {...BOG_COMBAT}
       accountId={session?.user?.accountId}

@@ -2003,12 +2003,12 @@ export class PixiIsland {
     this.raf = requestAnimationFrame(time => this.tick(time));
   }
 
-  capturePhoto() {
+  capturePhoto({player} = {}) {
     if (this.disposed || !this.photoReady || this.pendingPhoto) {
       return Promise.reject(new Error('The camera is unavailable.'));
     }
     return new Promise((resolve, reject) => {
-      const request = {resolve, reject};
+      const request = {resolve, reject, player};
       request.timeout = setTimeout(() => {
         this.finishPhoto(request, new Error('The photo timed out.'));
       }, 2000);
@@ -2034,7 +2034,7 @@ export class PixiIsland {
     request.encoding = true;
     clearTimeout(request.timeout);
     try {
-      renderPolaroid(this.host, [this.canvas], '#86cee6').then(
+      renderPolaroid(this.host, [this.canvas], '#86cee6', {player: request.player}).then(
         blob => this.finishPhoto(request, null, blob), error => this.finishPhoto(request, error));
     } catch (error) {
       this.finishPhoto(request, error);
