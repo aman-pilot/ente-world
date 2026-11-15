@@ -49,7 +49,7 @@ import {isletUnder} from '../../gameplay/boat-build.js';
 import {HARBOR, harborOf, islandFor, near, seaBoundsFor, destinationsFor, offshoreProgress, boardingPoint, dockingSpot, canDock, islandOffset} from '../../gameplay/islands.js';
 import {isletWalks} from '../../world/islet-walk.js';
 import {reframeIslet} from '../../world/islet-placement.js';
-import {ambientOf, artOf, mapFor, mapOf} from '../../world/island-maps.js';
+import {ambientOf, artOf, mapFor, mapOf, prepareIslandMap, islandMapReady} from '../../world/island-maps.js';
 import {recoverArt, finalTextureSource, isArtPlaceholder, artPlaceholder, settleArtStep} from './art/art-recovery.js';
 import {loadThemeArt} from './art/theme-art.js';
 import {telescopeNear,telescopePeerAt} from './telescope.js';
@@ -223,6 +223,7 @@ export class PixiIsland {
       if(this.room){
         const id=await this.room.waitForIsland();
         await recoverArt(()=>this.prepareIsland(id),{label:'Spawn sheets'});
+        await prepareIslandMap(id);
       }
       this.loaded.push('/pixi-art/water-texture.svg');
       const seaTexture=await acquire('/pixi-art/water-texture.svg');
@@ -244,10 +245,11 @@ export class PixiIsland {
       globalThis.__duckySleepers = beds.map(b => ({pose: b.pose, flip: b.flip, x: Math.round(b.x), y: Math.round(b.y), tree: b.tree}));
       globalThis.__duckySleepersDropped = beds.bad;
       this.room?.configure(this.sim.nav, walk);
-      this.initialSpawn=this.randomArrival&&!this.room?pickWorldSpawn({homeNav:this.sim.nav}):null;
+      this.initialSpawn=this.randomArrival&&!this.room?await pickWorldSpawn({homeNav:this.sim.nav,prepareIsland:prepareIslandMap}):null;
       const startingIsland=this.room ? await this.room.waitForIsland() : this.initialSpawn?.islandId ?? 'home';
       if(this.disposed||!startingIsland)return;
       await recoverArt(()=>this.prepareIsland(startingIsland),{label:'Spawn sheets'});
+      await prepareIslandMap(startingIsland);
       const prepareHome=artOf(startingIsland)==='home';
       this.arrivalRig=await createDuck({outfit:this.player?.outfit,seed:21,isPlayer:true});
       if(this.disposed){this.arrivalRig.dispose();return;}
@@ -820,7 +822,7 @@ export class PixiIsland {
 
   travelOptions() {
     const me=this.player;
-    if (!this.room || !me) return {};
+    if (!this.room || !me || !islandMapReady(this.islandId)) return {};
     if (me.mode === 'sailing') return {dock:Boolean(dockingSpot(me))};
     const nav=this.room.navHere?.() ?? this.sim.nav;
     let best=null;
@@ -1119,7 +1121,11 @@ export class PixiIsland {
       for(const id of this.sheetPreparations.keys())if(id!==current&&id!==islandId)this.releasePreparedSheets(id);
       const retired=this.sheetRetirements?.get(islandId);
       const dpr=this.app?.renderer?.resolution??Math.min(this.renderResolution??globalThis.devicePixelRatio??1,2);
-      const work=retired?retired.then(()=>prepareSheets(islandId,dpr)):prepareSheets(islandId,dpr);
+      const sheets=retired?retired.then(()=>prepareSheets(islandId,dpr)):prepareSheets(islandId,dpr);
+      const work=Promise.all([sheets,prepareIslandMap(islandId)]).then(([lease])=>lease).catch(error=>{
+        void sheets.then(lease=>lease.release(),()=>{});
+        throw error;
+      });
       const job=work.then(lease=>{
         if(this.disposed||this.sheetPreparations.get(islandId)!==job)lease.release();
         else if(lease.tier){
@@ -1159,7 +1165,7 @@ export class PixiIsland {
       // Landing pins can go once all live frames hold their detail sheets.
       state.lease.releaseLanding?.();
       if(this.destinationArt&&this.destinationArt!==mapId)return;
-      this.islandPrefetch??=createIslandPrefetch({getIndex:getIslandIndex,islands:WORLD_ISLANDS,
+      this.islandPrefetch??=createIslandPrefetch({getIndex:getIslandIndex,islands:WORLD_ISLANDS,prepareData:prepareIslandMap,
         distance:(a,b)=>{const p=offsetOf(a.id,b.id);return p.x*p.x+p.y*p.y;},
         selectTier:(data,id)=>selectIslandTier(data,id,this.app.renderer.resolution,this.width,this.height)});
       if(this.artShown===mapId&&!this.trip&&this.player?.mode!=='sailing')this.islandPrefetch.resume(id);
@@ -1190,7 +1196,7 @@ export class PixiIsland {
     if (!map.art) return;
     const pending={id:mapId,ready:false};this.arts.set(mapId,pending);
     let pendingArt;
-    pending.preparation=recoverArt(()=>this.prepareIsland(WORLD_ISLANDS.find(i=>i.theme===mapId)?.id??mapId),{label:`Island ${mapId} sheets`}).then(()=>loadThemeArt(map, {acquire, release, groundPool:this.groundPool, renderer:this.app.renderer, tilt:TILT,prepare:true,dpr:this.app.renderer.resolution,defaultZoom:walkingZoom(this.width,this.height)})).then(async art => {
+    pending.preparation=recoverArt(()=>this.prepareIsland(WORLD_ISLANDS.find(i=>i.theme===mapId)?.id??mapId),{label:`Island ${mapId} sheets`}).then(()=>prepareIslandMap(WORLD_ISLANDS.find(i=>i.theme===mapId)?.id??mapId)).then(()=>loadThemeArt(map, {acquire, release, groundPool:this.groundPool, renderer:this.app.renderer, tilt:TILT,prepare:true,dpr:this.app.renderer.resolution,defaultZoom:walkingZoom(this.width,this.height)})).then(async art => {
       pendingArt = art;
       Object.assign(pending,art);
       if (this.disposed||pending.discarded) {art.destroy(); return;}

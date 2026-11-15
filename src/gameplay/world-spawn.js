@@ -35,7 +35,7 @@ function findPoint({nav, bounds, coast, exit, fallback, home}, occupied, random)
 }
 
 export function pickWorldSpawn({
-  karma = 0, hasRoom = () => true, occupied = [], boats = [], random = Math.random, homeNav,
+  karma = 0, hasRoom = () => true, occupied = [], boats = [], random = Math.random, homeNav, prepareIsland,
 } = {}) {
   const regions = [];
   for (const island of WORLD_ISLANDS) {
@@ -49,21 +49,27 @@ export function pickWorldSpawn({
         Math.hypot(boat.x - water.x, boat.y - water.y) < 149)) regions.push({island, islet});
     }
   }
-  while (regions.length) {
+  const choose=()=>{
+    if(!regions.length)return null;
     const [{island, islet}] = regions.splice(Math.floor(random() * regions.length), 1);
-    const walk = islet ? isletWalk(islet.id) : null;
-    const map = mapOf(island.id);
-    if (map.id !== (island.theme ?? 'home')) continue;
-    const nav = walk?.nav ?? (map.home && homeNav ? homeNav : map.nav());
-    const dock = walk?.land ?? map.HARBOR.land;
-    const exit = nav.nearest(dock.x, dock.y, 180);
-    if (!exit) continue;
-    const point = findPoint({
-      nav, exit, home:map.home && !walk, bounds:walk?.world ?? map,
-      coast:walk?.world.coast ?? map.walk.coast,
-      fallback:walk ? [walk.foot] : [map.spawn, map.JETTY.foot],
-    }, occupied.filter(p => p.islandId === island.id), random);
-    if (point) return {islandId:island.id, ...point, name:walk ? `an islet near ${island.name}` : island.name};
-  }
-  return null;
+    const find=()=>{
+      const walk = islet ? isletWalk(islet.id) : null;
+      const map = mapOf(island.id);
+      if (map.id !== (island.theme ?? 'home')) return choose();
+      const nav = walk?.nav ?? (map.home && homeNav ? homeNav : map.nav());
+      const dock = walk?.land ?? map.HARBOR.land;
+      const exit = nav.nearest(dock.x, dock.y, 180);
+      if (!exit) return choose();
+      const point = findPoint({
+        nav, exit, home:map.home && !walk, bounds:walk?.world ?? map,
+        coast:walk?.world.coast ?? map.walk.coast,
+        fallback:walk ? [walk.foot] : [map.spawn, map.JETTY.foot],
+      }, occupied.filter(p => p.islandId === island.id), random);
+      if (point) return {islandId:island.id, ...point, name:walk ? `an islet near ${island.name}` : island.name};
+      return choose();
+    };
+    // Browser arrivals prepare only the randomly chosen island before asking for navigation.
+    return prepareIsland?Promise.resolve(prepareIsland(island.id)).then(find):find();
+  };
+  return choose();
 }

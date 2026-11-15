@@ -1,5 +1,5 @@
 // HTTP-cache warming only. No renderer, bitmap decoder or texture allocation.
-export function createIslandPrefetch({getIndex,selectTier,islands,distance=(a,b)=>(a.x-b.x)**2+(a.y-b.y)**2,fetchBytes=async(url,signal)=>{
+export function createIslandPrefetch({getIndex,selectTier,islands,prepareData=async()=>{},distance=(a,b)=>(a.x-b.x)**2+(a.y-b.y)**2,fetchBytes=async(url,signal)=>{
   const response=await fetch(url,{priority:'low',signal});
   if(!response.ok)throw Error(`Island prefetch HTTP ${response.status}`);
   await response.arrayBuffer();
@@ -17,6 +17,8 @@ export function createIslandPrefetch({getIndex,selectTier,islands,distance=(a,b)
     running=true;const epoch=generation;controller=new AbortController();
     try{
       const data=await getIndex();
+      if(dead||paused||epoch!==generation)return;
+      await prepareData(next.id);
       if(dead||paused||epoch!==generation)return;
       const tier=selectTier(data,next.id);
       for(const url of new Set([...tier.webp,...tier.ground??[]])){

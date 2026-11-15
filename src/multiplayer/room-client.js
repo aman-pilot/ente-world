@@ -1,7 +1,7 @@
 import {DURATIONS, playEmote, playSailEmote, SAIL_EMOTES, startJump, setWalkDestination, walkStep} from '../gameplay/player-motion.js';
 import {CHAT_INTERVAL, chatText} from './chat.js';
 import {nearbyFriend} from './friends.js';
-import {mapOf} from '../world/island-maps.js';
+import {mapOf,islandMapReady} from '../world/island-maps.js';
 import {getPlayerKarma} from '../features/bog-combat/karma.js';
 import {bogLandingNotice} from '../features/bog-combat/entry.js';
 import {BOAT_UNVEIL} from '../gameplay/boat-build.js';
@@ -258,6 +258,7 @@ export class RoomClient {
   }
 
   predict(command, now) {
+    if(!islandMapReady(this.islandId))return;
     if (command.type==='input' && typeof command.reducedMotion==='boolean') this.player.reducedMotion=command.reducedMotion;
     if (command.type === 'jump') return startJump(this.player);
     if (command.stop === true) {this.player.path=[];this.player.sailTarget=null;this.player.docking=false;this.player.pace=0;this.player.heading=null;}
@@ -288,6 +289,7 @@ export class RoomClient {
   }
 
   destination(x, y) {
+    if(!islandMapReady(this.islandId))return null;
     if (!this.world || !Number.isFinite(x) || !Number.isFinite(y)) return null;
     if (this.player?.mode === 'sailing' && !canSail(x,y,this.islandId)) return null;
     const w = this.worldHere(), o = w.origin ?? {x:0,y:0};
@@ -365,7 +367,7 @@ export class RoomClient {
   }
 
   step(dt, input) {
-    if (!this.player) return;
+    if (!this.player || !islandMapReady(this.islandId)) return;
     const now = nowSeconds();
     const {x,y,turn}=this.player;
     this.prev = {x:x+this.offsetX, y:y+this.offsetY, turn};
