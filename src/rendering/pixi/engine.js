@@ -4,7 +4,7 @@ import {selectIslandTier} from '../../app/ducky-prefetch.js';
 import {swapIslandDetail,detailZoomLimit} from './art/island-detail.js';
 import {loadHomeScene} from '../../world/home/startup-scene.js';
 import {getIslandIndex,warmIslandIndex,loadPrerenderManifest,prepareIsland as prepareIslandSheets} from './art/whole-svg-loader.js';
-import {uploadIsland, nextArtFrame, markArtActivity, mapArtInFrames} from './art/island-preparation.js';
+import {uploadIsland, nextArtFrame, preparationFrame, markArtActivity, mapArtInFrames} from './art/island-preparation.js';
 import {renderPolaroid} from '../shared/polaroid.js';
 import {ART_TEXTURE} from './art/art-texture.js';
 import {createPirateFleet,pirateBoatPoint} from '../../gameplay/pirate-fleet.js';
@@ -1529,7 +1529,9 @@ export class PixiIsland {
   ensureWorldArt() {
     if(this.worldArtPending)return this.worldArtPending;
     this.worldArtPending=(async()=>{
-      await nextArtFrame();
+      // This is requested by sailing, an islet or the globe. Steering must not
+      // indefinitely postpone the previews and scenery needed by that view.
+      await preparationFrame();
       if(this.disposed)return;
       await this.archipelago.loadPreviews((src)=>{this.loaded.push(src);return acquire(src);});
       if(this.disposed)return;
