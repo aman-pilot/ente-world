@@ -424,9 +424,10 @@ export async function createGlobeIntro(canvas, {home, ext = 'webp', neighbours =
     halo.material.uniforms.w.value = 7 * 2 * camera.position.length() * tanH / height;   // 7 px at the ball's distance
     for (const sp of billboards) {
       const {dive, i, lat, r} = sp.userData;
-      // fewer clouds in the centre (the 4 middle horizon ones). The four near-Home clouds are phone-only (the
-      // phone's dive had no clouds at all); they sit on the ball either side of Home, riding it like the rest
-      sp.visible = !(i >= 2 && i <= 5) && (!dive || isPhone);
+      // fewer clouds in the centre (the 4 middle horizon ones, and the two big ones over the sea, left of Home, that
+      // crowded the title as the clouds parted). The four near-Home clouds are phone-only (the phone's dive had no
+      // clouds at all); they sit on the ball either side of Home, riding it like the rest
+      sp.visible = !(i >= 2 && i <= 5) && i !== 8 && i !== 10 && (!dive || isPhone);
       // every cloud on the ball drifts, one slow steady way (the way the ball turns), never back
       const lon = (dive ? NEAR_HOME[i - 12][0] * (1 + 2.5 * smooth01((z - .5) / .4)) : sp.userData.lon) - tc / 1000 * .1, la = dive ? NEAR_HOME[i - 12][1] : lat;
       sp.position.set(Math.sin(lon) * Math.cos(la) * r, Math.sin(la) * r, Math.cos(lon) * Math.cos(la) * r);

@@ -160,12 +160,17 @@ let bootP = 0, whooshAt = Infinity;
 const whooshEase = (() => {const c = (a, b, u) => 3 * a * u * (1 - u) ** 2 + 3 * b * u * u * (1 - u) + u ** 3;
   return x => {if (x <= 0) return 0; if (x >= 1) return 1; let lo = 0, hi = 1; for (let i = 0; i < 24; i++) {const m = (lo + hi) / 2; if (c(.5, .2, m) < x) lo = m; else hi = m;} return c(0, 1, lo);};})();
 function placeWhoosh(clouds, T) {
-  const W = innerWidth, H = innerHeight, at = Math.min(T, whooshAt), p1 = bootP + BOOT_V * Math.max(0, at);
-  const pOf = i => T < whooshAt ? p1 : p1 + (1 - p1) * whooshEase(Math.max(0, T - whooshAt - WHOOSH_ORDER[i] * 35) / WHOOSH_MS);   // all move together, each a beat after the last
+  const W = innerWidth, H = innerHeight, at = Math.min(T, whooshAt), p = bootP + BOOT_V * Math.max(0, at);
+  // the clouds part sideways, like the GitHub-return cover: each one slides off its own side (the low middle one
+  // drops away), growing a little as it goes, each a beat after the last
+  const eOf = i => T < whooshAt ? 0 : whooshEase(Math.max(0, T - whooshAt - WHOOSH_ORDER[i] * 35) / WHOOSH_MS);
   clouds.forEach((node, i) => {
-    const p = pOf(i), c = WHOOSH[i], k = c.w * Math.max(W, H * .75) / 300 * (1.25 + 1.1 * p);   // a tall phone: sized by height too, so the bank fills the screen
-    node.style.transform = `translate(-50%,-50%) translate(${c.x * W * (1 + 1.3 * p)}px,${c.y * H + p * H * 2.4}px) scale(${k})`;
-    node.style.opacity = 1 - Math.min(1, Math.max(0, (p - .82) / .18)) ** 2;   // already off the edge, never pops out
+    const e = eOf(i), c = WHOOSH[i], k = c.w * Math.max(W, H * .75) / 300 * (1.25 + 1.1 * p) * (1 + .35 * e);   // a tall phone: sized by height too, so the bank fills the screen
+    const x = c.x * W * (1 + 1.3 * p), y = c.y * H + p * H * 2.4, half = 150 * k;
+    const down = Math.abs(c.x) < .2 && c.y > .4;
+    const dx = down ? 0 : ((c.x < 0 ? -1 : 1) * (W / 2 + half) - x) * e, dy = down ? (H / 2 + half * .55 - y) * e : 0;
+    node.style.transform = `translate(-50%,-50%) translate(${x + dx}px,${y + dy}px) scale(${k})`;
+    node.style.opacity = e >= 1 ? 0 : 1;   // gone once it is off the edge
   });
 }
 
@@ -184,7 +189,8 @@ export function Landing({signInAvailable, onWatch}) {
   const canvas = useRef(null);
   const [panel, setPanel] = useState(false);
   const [settled] = useState(() => {
-    try {return matchMedia('(prefers-reduced-motion: reduce)').matches || !!sessionStorage.getItem('ew-intro-seen');}
+    // the intro plays on every visit; only reduced motion skips straight to the end screen
+    try {return matchMedia('(prefers-reduced-motion: reduce)').matches;}
     catch {return false;}
   });
 
@@ -326,7 +332,6 @@ export function Landing({signInAvailable, onWatch}) {
       if (document.getElementById('boot-sky')?.dataset.arrive) dropBoot();   // back from GitHub but not signed in: fade the cover
       placeWhoosh(whoosh, 0);
       el.dataset.playing = 'true';
-      try {sessionStorage.setItem('ew-intro-seen', '1');} catch {/* ignore */}
       titleAnimations();
       panelAt = I.panelAt;
       start = performance.now();
