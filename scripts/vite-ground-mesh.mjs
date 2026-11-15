@@ -6,6 +6,8 @@ export function groundMesh(){
  let config,manifestURL;
  return {name:'island-ground-mesh',
   configResolved(value){config=value;},
+  // The ground list is read on every start; fetch it with the page.
+  transformIndexHtml(){return manifestURL?[{tag:'link',attrs:{rel:'preload',as:'fetch',href:manifestURL,crossorigin:''},injectTo:'head'}]:[];},
   async buildStart(){
    const {buildGround,ISLANDS}=await nativeImport(new URL('./ground-mesh/build.mjs',import.meta.url).href);
    const manifest={};

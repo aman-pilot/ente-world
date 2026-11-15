@@ -19,6 +19,10 @@ const nativeImport = new Function('specifier', 'return import(specifier)');
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex').slice(0, 24);
 const DIRECTORY = 'art-prerender';
+// The player's Duck is drawn on every start: its part list and its outfit frames.
+const DUCK_MANIFEST = '/pixi-duck/manifest.json', DUCK_PARTS = '/pixi-duck/frames/';
+export const startupPreloads = urls => [...new Set(urls.filter(Boolean))]
+  .map(href => ({tag:'link',attrs:{rel:'preload',as:'fetch',href,crossorigin:''},injectTo:'head'}));
 const VERSION = 1;
 
 // Uniform screen-density steps keep continuous pieces aligned across sheets.
@@ -122,12 +126,15 @@ export async function collectPlacedArt(root) {
 }
 
 export function prerenderArt() {
-  let config, manifestURL, manifest, entries, sheetBytes, homeURL;
+  let config, manifestURL, manifest, entries, sheetBytes, homeURL, duckPartsURL, islandsURL;
   const previousDetail=new Map();
   return {
     name: 'prerender-island-art', apply: 'build',
     configResolved(value) {config = value;},
-    transformIndexHtml() {return homeURL?[{tag:'link',attrs:{rel:'preload',as:'fetch',href:homeURL,crossorigin:''},injectTo:'head'}]:[];},
+    // Every start reads these small files one after another once the page code runs.
+    // Fetch them with the page instead. The HTML is written after generateBundle,
+    // so the island index name is known here.
+    transformIndexHtml() {return startupPreloads([homeURL,islandsURL,manifestURL,duckPartsURL,manifestURL&&DUCK_MANIFEST]);},
     async buildStart() {
       const start = performance.now(), root = config.root;
       const sharp = require('sharp');
@@ -216,7 +223,9 @@ export function prerenderArt() {
         const members=previousGroups.get(tier.group)??new Set();
         members.add(src+'\0'+tier.url);previousGroups.set(tier.group,members);
       }
-      for(const [group,allPieces] of groups){
+      // Groups are independent, so several are packed at once. A main-detail
+      // group (/8) reads the sheets of its sibling groups, so those run after.
+      const packGroup=async([group,allPieces])=>{
         // A main-detail tier often repeats the old top density. Reuse that
         // exact frame instead of encoding another copy of its entire sheet.
         const pieces=allPieces.filter(p=>{
@@ -225,7 +234,7 @@ export function prerenderArt() {
           if(!same)return true;
           Object.assign(p.tier,same,{group});return false;
         });
-        if(!pieces.length)continue;
+        if(!pieces.length)return;
         const members=previousGroups.get(group);
         const sameMembers=members?.size===pieces.length&&pieces.every(p=>members.has(p.src+'\0'+p.tier.url));
         const lossless=!group.includes('/ground/opaque/'),quality=lossless?92:90;
@@ -236,7 +245,7 @@ export function prerenderArt() {
           for(const [url,bytes]of files){this.emitFile({type:'asset',fileName:url.slice(config.base.length),source:bytes});sheetBytes.set(url,bytes.length);}
           pieces.forEach((p,i)=>{Object.assign(p.tier,old[i]);});
           config.logger.info(`Art sheets ${group}: ${new Set(old.map(t=>t.sheet)).size} reused`);
-          continue;
+          return;
         }
         const sheets=await packArtSheets(pieces,4096,{lossless,quality});
         for(const sheet of sheets){
@@ -249,7 +258,13 @@ export function prerenderArt() {
             group,gutter:2,sheetLimit:4096,sheetEffort:4,sheetQuality:quality});
         }
         config.logger.info(`Art sheets ${group}: ${sheets.length}, ${pieces.filter(p=>p.tier.atlasFallback).length} oversized fallbacks, ${(sheets.reduce((n,s)=>n+s.bytes.length,0)/1048576).toFixed(2)} MiB, ${sheets.map(s=>`${s.width}x${s.height}`).join(' ')}`);
-      }
+      };
+      const packGroups=async list=>{
+        let next=0;
+        await Promise.all(Array.from({length:Math.min(concurrency,list.length)},async()=>{while(next<list.length)await packGroup(list[next++]);}));
+      };
+      await packGroups([...groups].filter(([group])=>!group.endsWith('/8')));
+      await packGroups([...groups].filter(([group])=>group.endsWith('/8')));
       // Extra landing densities append to stable packing group IDs so old
       // sheets remain reusable. Restore nominal order for group tier planning,
       // even where native-size caps make several scales numerically equal.
@@ -278,6 +293,7 @@ export function prerenderArt() {
         this.emitFile({type:'asset',fileName:name,source});parts[dir]=config.base+name;
       }
       const catalog=JSON.stringify({parts}),catalogName=`${DIRECTORY}/catalog-${hash(catalog)}.json`;
+      duckPartsURL=parts[DUCK_PARTS];
       this.emitFile({type:'asset',fileName:catalogName,source:catalog});
       manifestURL = config.base + catalogName;
       const bytes = (await Promise.all(emitted.values())).reduce((a, b) => a + b.length, Buffer.byteLength(json));
@@ -368,6 +384,7 @@ export function prerenderArt() {
       const json=JSON.stringify(index),fileName=`${DIRECTORY}/islands-${hash(json)}.json`;
       this.emitFile({type:'asset',fileName,source:json});
       this.emitFile({type:'asset',fileName:`${DIRECTORY}/islands.json`,source:JSON.stringify({url:config.base+fileName})});
+      islandsURL=config.base+fileName;
       const headers=bundle['_headers'];
       const text=String(headers?.source??await readFile(path.join(config.publicDir,'_headers'),'utf8').catch(error=>{if(error.code==='ENOENT')return '';throw error;}));
       const source=text+'\n/art-prerender/islands.json\n  ! Cache-Control\n  Cache-Control: no-cache\n';
