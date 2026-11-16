@@ -1,3 +1,4 @@
+import {islandHouseCut} from './home-house-rule.mjs';
 import {blocks} from '../src/world/walk-rule.js';
 import {readyTexture} from './ready-texture.mjs';
 import assert from 'node:assert/strict';
@@ -32,7 +33,7 @@ test('all B2 places, fourteen building doors and the harbour are reachable; soli
  assert.ok(ready.ready,ready.problems.join('\n'));
  for(const [name,z]of Object.entries(world.zones))assert.ok(route(...z.spawn),name);
  for(const [name,x,y]of world.iceland2.doors)assert.ok(route(x,y),name+' doorway');
- for(const p of art.props){assert.ok(inPoly(p.x,p.y,world.coast),p.id+' offshore');const solid=map.world.props.find(q=>q.id===p.id);if(solid.outlineKind==='solid'){assert.ok(solid.footprint&&solid.bodyFootprint,p.id+' traced body');if(blocks(solid.footprint,solid))for(const ring of [solid.footprint.poly,...(solid.footprint.parts??[])])for(const [x,y]of ring.filter((_,i)=>i%4===0))assert.equal(nav.walkable(x,y),false,p.id+' solid drawing');}else assert.equal(solid.footprint,undefined,p.id+' walk-over drawing');}
+ for(const p of art.props){assert.ok(inPoly(p.x,p.y,world.coast),p.id+' offshore');const solid=map.world.props.find(q=>q.id===p.id);if(solid.outlineKind==='solid'){assert.ok(solid.footprint&&solid.bodyFootprint,p.id+' traced body');if(blocks(solid.footprint,solid))for(const ring of [solid.footprint.poly,...(solid.footprint.parts??[])])for(const [x,y]of ring.filter((point,i)=>i%4===0&&(islandHouseCut(solid)===null||point[1]>=islandHouseCut(solid))))assert.equal(nav.walkable(x,y),false,p.id+' solid drawing');}else assert.equal(solid.footprint,undefined,p.id+' walk-over drawing');}
  const sites=j('src/gameplay/karma-sites.json').filter(p=>p.region==='isle-55');
  const targets=[...Object.values(world.iceland2.nodes),...Object.values(world.iceland2.shores),world.iceland2.rink.heart,...sites.map(p=>[p.x,p.y])];
  for(const target of targets){assert.ok(nav.walkable(...target));assert.deepEqual(nav.route(map.spawn.x,map.spawn.y,...target).at(-1),target,'exact authored target reachable');}

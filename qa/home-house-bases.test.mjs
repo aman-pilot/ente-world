@@ -56,7 +56,13 @@ test('band clamps, disconnected parts and excluded house names retain their rule
     const o={prop,poly:rect(0,0,300)},body={...o,bodyBlock:true};
     assert.deepEqual(homeHouseBases([o,body]),[o,body]);
   }
+  for(const prop of ['pink-arc-cafe-70','cafe-candy-cart','birdhouse-north','workshop-chair','bakery-yard-woodpile-3','lodge-yard-bench-5','treehouse-hanging-lantern','treehouse-bookshelf','lectern-hall','books-hall','hall-pool','house-stage']){
+    const o={prop,poly:rect(0,0,300)},body={...o,bodyBlock:true};
+    assert.deepEqual(homeHouseBases([o,body],true),[o,body],prop+' remains fully solid on other islands');
+  }
+  assert.equal(homeHouseBases([{prop:'hamlet-lanternloaf-cottage-northwest',poly:rect(0,0,300)}],true)[0].homeHouseBase,true,'a neighbourhood name is not a lantern');
   const world={...raw,props:[],obstacles:[{prop:'cottage',building:true,poly:rect(0,0,300)}]};
   const map=makeMap('other',{world,harbor:{jetty:{foot:[0,0],tip:[0,400]}},addJetty:false});
-  assert.deepEqual(map.walk.obstacles,world.obstacles,'other islands keep full house blockers');
+  assert.equal(map.walk.obstacles[0].homeHouseBase,true,'other islands use house bases');
+  assert.deepEqual(makeMap('bog-arena',{world,harbor:{jetty:{foot:[0,0],tip:[0,400]}},addJetty:false}).walk.obstacles,world.obstacles,'Bog keeps full house blockers');
 });

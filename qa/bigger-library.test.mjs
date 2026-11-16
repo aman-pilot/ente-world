@@ -1,3 +1,4 @@
+import {islandHouseCut} from './home-house-rule.mjs';
 import {blocks} from '../src/world/walk-rule.js';
 import {boardingPoint} from '../src/gameplay/islands.js';
 const walkMoves={"lib-339":{"x":2818.74,"y":705.07},"lib-340":{"x":3412.9,"y":690.9},"lib-54":{"x":1037.1,"y":2666.7},"hamlet-paperboat-mooring-post-midwest":{"x":8095.15,"y":6758.82},"hamlet-paperboat-mooring-post-mideast":{"x":8897.5,"y":6821.25},"lib-166":{"x":3247.8,"y":1060.3},"lib-10":{"x":3552.7,"y":1912.13},"lib-128":{"x":3343.44,"y":1163.47}};
@@ -18,7 +19,7 @@ test('bigger library preserves original composition, canal, sleepers and dry-lan
 });
 test('bigger library destinations, coast walks and moorings are reachable with visible matched solids',()=>{
  const nav=map.nav();for(const z of plan.places){assert(geo.walkable(...z.spawn),z.id+' spawn');assert(nav.route(map.spawn.x,map.spawn.y,...z.spawn).length,z.id+' route');}
- for(const p of art.props.slice(oldArt.props.length)){assert(p.kind==='boat'||p.parent==='hamlet-paperboat-south-jetty'?!map.landAt(p.x,p.y):inPoly(p.x,p.y,world.coast),p.id+' correct land/water placement');const outlined=map.world.props.find(q=>q.id===p.id);for(const o of [outlined?.footprint].filter(o=>o&&blocks(o,outlined)))for(const ring of [o.poly,...(o.parts??[])])for(const point of ring)assert(!geo.walkable(...point),p.id+' traced solid contact');}
+ for(const p of art.props.slice(oldArt.props.length)){assert(p.kind==='boat'||p.parent==='hamlet-paperboat-south-jetty'?!map.landAt(p.x,p.y):inPoly(p.x,p.y,world.coast),p.id+' correct land/water placement');const outlined=map.world.props.find(q=>q.id===p.id);for(const o of [outlined?.footprint].filter(o=>o&&blocks(o,outlined)))for(const ring of [o.poly,...(o.parts??[])])for(const point of ring.filter(point=>islandHouseCut(o)===null||point[1]>=islandHouseCut(o)))assert(!geo.walkable(...point),p.id+' traced solid contact');}
  for(const b of map.boatSpots()){assert(!map.landAt(b.x,b.y),'boat in water');const landing=boardingPoint({...b,islandId:'isle-251'},nav),shore=[landing.x,landing.y];assert(nav.walkable(...shore),`no boarding land ${b.x},${b.y}`);assert(Math.hypot(shore[0]-b.x,shore[1]-b.y)<=280,'boarding within reach');assert(nav.route(map.spawn.x,map.spawn.y,...shore).length,'mooring reachable');}
  assert(nav.route(map.spawn.x,map.spawn.y,map.HARBOR.land.x,map.HARBOR.land.y).length,'jetty route');
 });

@@ -4,6 +4,10 @@ export const propObstacles = props => props.flatMap(p=>[p.footprint,p.bodyFootpr
 
 // On Home, a house blocks only at its base, so Duckies can pass between houses and walk behind roofs.
 const HOUSE = /house|cottage|bakery|cafe|shop|lodge|studio|hall|greenhouse/i, NOT_HOUSE = /lighthouse|shadow|lamp|sign/i;
+// Neighbourhood names also occur on furniture and small bird shelters.
+// Keep the shipped Home rule, but do not apply its broad name match to these
+// non-house props when extending the rule to the other islands.
+const ISLAND_NON_HOUSE = /birdhouse|bench|bookshelf|chair|table|rack|stool|hanging-lantern|paper-rolls|woodpile|mailbox|lectern|books-hall|candy-cart|pink-arc-cafe|pool|stage/i;
 const isHouse = o => { const n = `${o.prop ?? ''} ${o.name ?? ''} ${o.id ?? ''}`; return HOUSE.test(n) && !NOT_HOUSE.test(n); };
 function houseBase(f) {
   const rings = [f.poly, ...(f.parts ?? [])], ys = rings.flat().map(q => q[1]), bottom = Math.max(...ys);
@@ -14,4 +18,7 @@ function houseBase(f) {
   const {parts, ...rest} = f;
   return base.length ? {...rest, homeHouseBase: true, poly: base[0], ...(base.length > 1 ? {parts: base.slice(1)} : {})} : f;
 }
-export const homeHouseBases = obstacles => obstacles.filter(o => !(o.bodyBlock && isHouse(o))).map(o => o.poly && !o.homeHouseBase && isHouse(o) ? houseBase(o) : o);
+export const homeHouseBases = (obstacles, island = false) => {
+  const house = o => isHouse(o) && (!island || !ISLAND_NON_HOUSE.test(`${o.prop ?? ''} ${o.name ?? ''} ${o.id ?? ''}`));
+  return obstacles.filter(o => !(o.bodyBlock && house(o))).map(o => o.poly && !o.homeHouseBase && house(o) ? houseBase(o) : o);
+};

@@ -96,7 +96,8 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
       walk={...(walk??world),props,navigationCellSize:16,indexPropContours:true,obstacles:[...structures,...propObstacles(props)]};
     }
     walking = walk ?? world;
-    if (id === 'home' && walking.obstacles) walking = {...walking, obstacles: homeHouseBases(walking.obstacles)};
+    // Houses block only at their base on every island except Bog, whose buildings are paint-fight cover.
+    if (!/^bog/.test(id) && walking.obstacles) walking = {...walking, obstacles: homeHouseBases(walking.obstacles, id !== 'home')};
     const sources = [...(world.props ?? []), ...(id === 'home' ? [...homeWorld.props.map(p=>({...p,id:Number(p.artboard.replace('Prop ',''))})),...expansion.props] : [])];
     if (walking.obstacles) walking = {...walking, obstacles: walking.obstacles.filter(blockerFilter(sources))};
     baseWalk = {...world, ...walking, walkways: [...(walking.walkways ?? []), ...(addJetty ? [JETTY.walkway] : [])]};
