@@ -8,12 +8,13 @@ import React, {act} from 'react';
 const {outputFiles:[bundle]} = await build({
   entryPoints:[fileURLToPath(new URL('../src/app/PixiPage.jsx',import.meta.url))],
   bundle:true, packages:'external', jsx:'automatic', format:'esm', write:false,
-  loader:{'.css':'empty'}, define:{'import.meta.env.DEV':'false'},
+  loader:{'.css':'empty','.svg':'dataurl'}, define:{'import.meta.env.DEV':'false'},
   plugins:[{name:'headless-island',setup(build) {
     build.onLoad({filter:/\/src\/rendering\/pixi\/engine\.js$/},()=>({contents:`
       export class PixiIsland {
         constructor({room}) {this.room = room; globalThis.toolbarEngines.push(this);}
         mount() {return Promise.resolve();}
+        async prepareIsland() {}
         clearChat() {}
         stopInput() {this.stops = (this.stops ?? 0) + 1;}
         positionChatEditor() {}
@@ -25,7 +26,7 @@ const {outputFiles:[bundle]} = await build({
 });
 const code = ['react','react/jsx-runtime','react-dom','pixi.js'].reduce((text,name)=>
   text.replaceAll(JSON.stringify(name),JSON.stringify(import.meta.resolve(name))),bundle.text);
-const {default:PixiPage} = await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const pageModule = 'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
 
 for (const accountId of ['42','home']) test(`five reconnects and map reloads retain one toolbar and clean up listeners (account ${accountId})`,async t=>{
   const dom = new JSDOM('<div id="root"></div>',{url:'http://localhost/'});
@@ -47,6 +48,8 @@ for (const accountId of ['42','home']) test(`five reconnects and map reloads ret
       receive(message) {this.onmessage({data:JSON.stringify(message)});}
     },
   });
+  // Pixi probes canvas support when imported; the headless engine needs no context.
+  t.mock.method(dom.window.HTMLCanvasElement.prototype,'getContext',() => null);
   t.mock.method(console,'error',(...args)=>warnings.push(args.join(' ')));
   const add = window.addEventListener.bind(window), remove = window.removeEventListener.bind(window);
   t.mock.method(window,'addEventListener',(type,fn,...args)=>{
@@ -65,7 +68,6 @@ for (const accountId of ['42','home']) test(`five reconnects and map reloads ret
   t.mock.method(globalThis,'clearInterval',id=>{intervals.delete(id); cancel(id);});
   const {createRoot} = await import('react-dom/client');
   let root = createRoot(document.getElementById('root'));
-  const mount = ()=>act(async()=>root.render(React.createElement(React.StrictMode,null,React.createElement(PixiPage))));
   const current = ()=>sockets.at(-1);
   const welcome = ()=>act(async()=>{
     current().onopen();
@@ -77,10 +79,12 @@ for (const accountId of ['42','home']) test(`five reconnects and map reloads ret
     assert.equal(document.querySelectorAll('.pixi-profile-button').length,1,'one profile button');
     assert.equal(chatButtons().length,playing ? 1 : 0,'Chat C');
     assert.equal(keydowns.size,playing ? 1 : 0,'one live Chat shortcut');
-    assert.deepEqual([...intervals.values()].sort((a,b)=>a-b),playing ? [80,250,250,500,500,5000] : [80,500,500],
-      'one minimap timer, one travel timer, one telescope timer, the profile outfit and feather-chip watchers and one connection heartbeat');
+    assert.deepEqual([...intervals.values()].sort((a,b)=>a-b),playing ? [80,150,250,250,500,500,5000] : [80,150,500,500],
+      'one minimap timer, one startup canvas timer, one travel timer, one telescope timer, the profile outfit and feather-chip watchers and one connection heartbeat');
   };
   try {
+    const {default:PixiPage} = await import(pageModule);
+    const mount = ()=>act(async()=>root.render(React.createElement(React.StrictMode,null,React.createElement(PixiPage))));
     await mount();
     await welcome();
     counts(true);

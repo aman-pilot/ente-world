@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  test-and-build:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -33,6 +33,18 @@ jobs:
             fi
             sleep 0.1
           done
-          node scripts/globe-svg/check.mjs
-          node --test --test-skip-pattern='^Home retains all hundred residents, their poses and stories on clear ground$' qa/*.test.mjs
+          npm test
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
       - run: npm run build
