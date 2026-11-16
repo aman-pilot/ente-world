@@ -27,7 +27,7 @@
     <script>
       try {
         if (sessionStorage.getItem('ew-arrive') === '1') document.documentElement.classList.add('ew-arrive');
-        else if (!new URLSearchParams(location.search).has('auth') && sessionStorage.getItem('ew-signed-in') === '1') document.documentElement.classList.add('ew-connecting', 'ew-arrive');
+        else if (!new URLSearchParams(location.search).has('auth') && localStorage.getItem('ew-signed-in') === '1') document.documentElement.classList.add('ew-connecting', 'ew-arrive');
       } catch (e) {}
     </script>
     <style>
