@@ -43,6 +43,11 @@ test('music starts on demand, cancels pending playback, advances and releases au
     assert.equal(document.querySelectorAll('option').length,8);
     document.querySelector('section').dispatchEvent(new window.Event('pointerdown',{bubbles:true}));
     assert.equal(stops,1);
+    const options=document.querySelector('details');
+    assert.equal(options.open,false,'secondary controls start collapsed');
+    options.open=true;
+    options.querySelector('select').dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+    assert.equal(options.open,false,'Escape dismisses secondary controls');
     const click=label=>act(async()=>document.querySelector(`[aria-label="${label}"]`).click());
     await click('Play music');
     await click('Pause music');

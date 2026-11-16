@@ -109,22 +109,30 @@ export default function IslandMusic({island}) {
   }
 
   return <section ref={host} className="pixi-music" aria-label="Ente music player"
-    onPointerDown={() => island.current?.stopInput()} onKeyDown={event => event.stopPropagation()}>
+    onPointerDown={() => island.current?.stopInput()} onKeyDown={event => {
+      event.stopPropagation();
+      if (event.key === 'Escape') host.current.querySelector('details').open = false;
+    }}>
+    <button className="pixi-music-play" onClick={active ? pause : start} aria-label={active ? 'Pause music' : 'Play music'}>
+      <span aria-hidden="true">{active ? 'Ⅱ' : '▶'}</span>
+    </button>
     <div className="pixi-music-spectrum" ref={spectrum} role="img" aria-label="Live music frequency spectrum">
-      {Array.from({length:24},(_,i) => <span key={i}/>)}
+      {Array.from({length:12},(_,i) => <span key={i}/>)}
     </div>
-    <div className="pixi-music-controls">
-      <button aria-label="Previous song" onClick={() => choose(track-1)}>‹</button>
-      <button className="pixi-music-play" onClick={active ? pause : start} aria-label={active ? 'Pause music' : 'Play music'}>{active ? 'Pause' : 'Play'}</button>
-      <button aria-label="Next song" onClick={() => choose(track+1)}>›</button>
-      <select aria-label="Music track" value={track} onChange={event => choose(Number(event.target.value))}>
-        {tracks.map((song,i) => <option key={song[0]} value={i}>{song[1]} · {song[2]}</option>)}
-      </select>
-    </div>
-    <div className="pixi-music-footer">
-      <a href="https://music.ente.com/" target="_blank" rel="noreferrer">Music from Ente ↗</a>
-      <label>Volume <input type="range" aria-label="Music volume" min="0" max="1" step=".01" defaultValue=".35" onChange={event => {audio.current.volume=Number(event.target.value);}}/></label>
-    </div>
+    <details className="pixi-music-options">
+      <summary aria-label="Music options">⋯</summary>
+      <div className="pixi-music-menu">
+        <select aria-label="Music track" value={track} onChange={event => choose(Number(event.target.value))}>
+          {tracks.map((song,i) => <option key={song[0]} value={i}>{song[1]} · {song[2]}</option>)}
+        </select>
+        <div className="pixi-music-skip">
+          <button aria-label="Previous song" onClick={() => choose(track-1)}>‹ Previous</button>
+          <button aria-label="Next song" onClick={() => choose(track+1)}>Next ›</button>
+        </div>
+        <label>Volume <input type="range" aria-label="Music volume" min="0" max="1" step=".01" defaultValue=".35" onChange={event => {audio.current.volume=Number(event.target.value);}}/></label>
+        <a href="https://music.ente.com/" target="_blank" rel="noreferrer">Music from Ente ↗</a>
+      </div>
+    </details>
     <span className="pixi-music-status" role="status">{state === 'error' ? 'Could not load music. Press Play to retry.' : state === 'loading' ? 'Loading music…' : ''}</span>
     <audio ref={audio} src={trackUrl(0)} crossOrigin="anonymous" preload="none"
       onEnded={() => choose(track+1)} onError={() => {request.current++;setState('error');}}
