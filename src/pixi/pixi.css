@@ -47,6 +47,60 @@
   cursor: pointer;
 }
 .pixi-live button:disabled { opacity: .65; cursor: default; }
+.pixi-legend {
+  pointer-events: auto;
+  box-sizing: border-box;
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100svh - 32px);
+  padding: 24px;
+  overflow-y: auto;
+  color: #332b23;
+  background: #fff9df;
+  border: 2px solid #564537;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px #332b2340;
+  font: 14px/1.5 system-ui, sans-serif;
+}
+.pixi-legend::backdrop { background: #332b2370; }
+.pixi-legend-trigger {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 2px solid #564537;
+  border-radius: 50%;
+  color: #332b23;
+  background: #fff9df;
+  box-shadow: 0 3px 0 #56453755;
+  font: bold 24px/1 Georgia, serif;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.pixi-legend-trigger:hover { background: #ffda69; }
+.pixi-legend-trigger:focus-visible, .pixi-legend button:focus-visible { outline: 2px solid #564537; outline-offset: 3px; }
+.pixi-legend button { color: inherit; border: 1px solid #564537; border-radius: 10px; cursor: pointer; }
+.pixi-legend header { display: flex; align-items: flex-start; gap: 16px; justify-content: space-between; }
+.pixi-legend header small { color: #735c37; font-size: 10px; letter-spacing: .12em; }
+.pixi-legend h2 { margin: 5px 0 0; font-size: 24px; line-height: 1.2; text-wrap: balance; }
+.pixi-legend header button { min-width: 44px; min-height: 44px; padding: 0; flex-shrink: 0; font-size: 24px; background: transparent; }
+.pixi-legend-intro { margin: 12px 0 20px; color: #735c37; }
+.pixi-legend-entries { border-top: 1px solid #56453730; }
+.pixi-legend details { border-bottom: 1px solid #56453730; }
+.pixi-legend summary { display: flex; align-items: center; gap: 12px; padding: 13px 0; cursor: pointer; list-style: none; }
+.pixi-legend summary::-webkit-details-marker { display: none; }
+.pixi-legend summary::after { content: '+'; margin-left: auto; font-size: 22px; color: #735c37; }
+.pixi-legend details[open] summary::after { content: '−'; }
+.pixi-legend-icon { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: #ffda694d; font-size: 23px; }
+.pixi-legend summary strong { display: block; font-size: 15px; }
+.pixi-legend summary span span { display: block; color: #735c37; font-size: 12px; }
+.pixi-legend details p { margin: 0 0 14px; font-weight: 400; }
+.pixi-legend-footer { margin: 18px 0 0; color: #735c37; font-size: 12px; }
+.pixi-legend summary:focus-visible { outline: 2px solid #564537; outline-offset: 2px; border-radius: 6px; }
 .pixi-star-dialog {
   box-sizing: border-box;
   width: min(440px, calc(100vw - 32px));

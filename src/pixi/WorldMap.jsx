@@ -3,6 +3,7 @@ import {worldIsland} from './world-map.js';
 import {nearbyMapFrame, nearbyHeading, NEARBY_MAP_WIDTH, NEARBY_MAP_HEIGHT} from './nearby-map.js';
 import {BOG_RADAR_ICON, BOG_RADAR_SIZE_PX} from './bog-radar.js';
 import {globePreviewUrl} from './globe-preview.js';
+import IslandLegend from './IslandLegend.jsx';
 
 const width = 1000;
 const scale = width / NEARBY_MAP_WIDTH;
@@ -53,6 +54,7 @@ export default function WorldMap({island}) {
   }, [island, iconSize]);
 
   return <aside className="pixi-world-map" aria-label="Nearby islands">
+    <IslandLegend island={island}/>
     <svg ref={svg} id="pixi-world-map-view" viewBox={`0 0 ${width} ${height}`} role="img"
       aria-label={`Three nearest islands, cropped around ${frame.playing ? 'your duck. White arrow: your duck and direction' : 'the current view. White dot: view centre'}. Paint gun badge: Booquack Bog, pinned to the rim when distant.`}>
       <defs><clipPath id="pixi-world-map-terrain-clip"><circle cx={width / 2} cy={height / 2} r={width / 2}/></clipPath></defs>
