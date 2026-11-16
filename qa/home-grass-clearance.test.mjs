@@ -1,3 +1,4 @@
+import {homeHouseCut} from './home-house-rule.mjs';
 import {blocks} from '../src/world/walk-rule.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -13,9 +14,12 @@ const beds=P.sleepSpots(local,props,geometry(local).walkable,P.sleepHalfWidths(.
 const world=P.computeHomeScene(true).walk;
 const client=geometry(world).walkable,worker=HOME_MAP.nav();
 const oracle=await homeClearanceOracle(props,world);
-const solidOracle=await homeClearanceOracle(props.filter(p=>blocks(p.footprint??{prop:p.id},p)),world);
+// Houses retain feet blockers, but their roofs may overlap the standing body.
+// Keep the actual bases as ground barriers and audit foreground pixels for all other solids.
+const solidOracle=await homeClearanceOracle(props.filter(p=>blocks(p.footprint??{prop:p.id},p)&&homeHouseCut(p)===null),
+  {...world,obstacles:world.obstacles.map(o=>o.homeHouseBase?{...o,building:false}:o)});
 
-test('connected Home grass/sand/path clearing alpha pixels by 30 and front props by the body box is walkable on client and worker',()=>{
+test('connected Home grass/sand/path clearing alpha pixels by 30 and non-house front props by the body box is walkable on client and worker',()=>{
   const result=auditHomeClearance(world,[HOME_MAP.spawn.x,HOME_MAP.spawn.y],solidOracle,[client,worker.walkable]);
   assert.ok(result.connectedBodySafeSamples>100000,'whole island sweep');
   assert.deepEqual(result.violations,[0,0],JSON.stringify(result.examples));
@@ -75,7 +79,7 @@ test('reported bush-over-body point is walkable on both implementations',()=>{
   assert.equal(worker.walkable(3208,-840),true);
 });
 
-test('every spawn-connected 16-unit Home sample has zero blocking-prop foreground pixel/body intersections',()=>{
+test('every spawn-connected 16-unit Home sample has zero non-house blocking-prop foreground pixel/body intersections',()=>{
   for(const [name,walkable] of [['client',client],['worker',worker.walkable]]){
     const result=auditConnectedBodies(world,[HOME_MAP.spawn.x,HOME_MAP.spawn.y],solidOracle,walkable);
     assert.ok(result.samples>100000);

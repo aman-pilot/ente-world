@@ -10,6 +10,7 @@ import {cropSVG, RASTER_ART_BUDGET_BYTES, RASTER_ART_UTILIZATION} from '../src/r
 
 const report = await audit();
 const flush = () => new Promise(setImmediate);
+// Sunbob excludes the shrub removed in #117; Pagepond excludes the three Inkleaf stall props removed in #116.
 const counts = {home: [60, 9, 3261, 803, 11], sunflower: [72, 15, 423, 2147, 0],
   pink: [176, 6, 1321, 999, 0], library: [104, 19, 3146, 1776, 3]};
 

@@ -1,3 +1,4 @@
+import {homeHouseCut} from './home-house-rule.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
@@ -16,7 +17,7 @@ const P=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFil
 const props=P.createPlacements(), nav=HOME_MAP.nav();
 const client=geometry(P.walkWorld(P.trimWorld(HOME_MAP.world),props)).walkable;
 
-test('every Home prop has a generated outline and every solid outline is blocked on client and worker',()=>{
+test('every Home prop has a generated outline and every solid outline or house base is blocked on client and worker',()=>{
   assert.equal(props.length,804,'all main props retained except the 24 approved removals');
   for(const p of props){
     assert.ok(outlines[p.src]?.every(r=>r.length>=3),`${p.id}: art traced`);
@@ -38,7 +39,7 @@ test('every Home prop has a generated outline and every solid outline is blocked
     const points=[[xs.reduce((a,b)=>a+b)/xs.length,ys.reduce((a,b)=>a+b)/ys.length]];
     for(let i=1;i<12;i++)for(let j=1;j<12;j++)points.push([Math.min(...xs)+(Math.max(...xs)-Math.min(...xs))*i/12,Math.min(...ys)+(Math.max(...ys)-Math.min(...ys))*j/12]);
     if(!blocks(p.footprint,p))continue; // trees, bushes, flowers and scenery are walkable (boss rule)
-    for(const [x,y] of points)if(inShape(x,y,p.footprint)){
+    for(const [x,y] of points)if(inShape(x,y,p.footprint) && (homeHouseCut(p) === null || y >= homeHouseCut(p))){
       assert.equal(client(x,y),false,`${p.id}: client allows ${x},${y}`);
       assert.equal(nav.walkable(x,y),false,`${p.id}: worker allows ${x},${y}`);samples++;
     }
@@ -46,13 +47,14 @@ test('every Home prop has a generated outline and every solid outline is blocked
   }
 });
 
-test('opaque solid art is covered, including flipped props',async()=>{
+test('opaque solid art and house bases are covered, including flipped props',async()=>{
   const rasters=new Map();
   for(const p of props.filter(p=>p.outlineKind==='solid'&&blocks(p.footprint,p))){
     if(!rasters.has(p.src))rasters.set(p.src,await sharp('public'+p.src).resize(48,48,{fit:'fill'}).ensureAlpha().raw().toBuffer());
     const data=rasters.get(p.src),w=p.width*(p.scale??1),h=p.height*(p.scale??1);
     for(let y=0;y<48;y++)for(let x=0;x<48;x++)if(data[(y*48+x)*4+3]>240){
       const wx=p.x+(p.flip?p.anchor.x-(x+.5)/48:(x+.5)/48-p.anchor.x)*w,wy=p.y+((y+.5)/48-p.anchor.y)*h;
+      if(homeHouseCut(p) !== null && wy < homeHouseCut(p))continue;
       assert.equal(nav.walkable(wx,wy),false,`${p.id}: visible art permits walking`);
     }
   }

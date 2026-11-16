@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {homeHouseBases} from '../src/world/prop-outlines/islands.js';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
@@ -25,6 +26,8 @@ test('assets/world/walk-world.json matches a fresh build from the current placem
     const walk = {...local, obstacles: [...local.obstacles, ...beds.map(P.sleeperFootprint)]};
     const fresh = Object.fromEntries(['navigationCellSize', 'width', 'height', 'origin', 'coast', 'obstacles', 'walkways', 'bridges', 'islets', 'water', 'boardwalk'].filter(k => k in walk).map(k => [k, walk[k]]));
     const saved = JSON.parse(readFileSync(new URL('../assets/world/walk-world.json', import.meta.url)));
+    // The baked catalogue may retain full art outlines; both runtime paths apply the base rule.
+    saved.obstacles = homeHouseBases(saved.obstacles);
     const built = JSON.parse(JSON.stringify(fresh));
     for (const key of Object.keys(built)) assert.deepEqual(saved[key], built[key], `walk-world.json "${key}" is stale`);
     assert.deepEqual(Object.keys(saved).sort(), Object.keys(built).sort());
