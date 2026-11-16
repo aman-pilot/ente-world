@@ -86,6 +86,17 @@ function makeView(spec){
   root.visible=false;
   return {root,shadow,feet,body,clothes,held,behind,parts,spec,brows,expressions,morph,bodyPart,garments:[]};
 }
+// a quack is two quick pops of the head, "qua-ACK" (the beak stays shut): each rises in 50 ms and settles over 170 ms, the second one bigger
+const QUACK_SNAPS=[[.06,.8],[.32,1]];
+export function quackSnap(t){
+  let open=0;
+  for(const [start,size] of QUACK_SNAPS){
+    const u=t-start;
+    if(u<0||u>=.22)continue;
+    open=Math.max(open,size*(u<.05?1-(1-u/.05)**2:1-((u-.05)/.17)**2));
+  }
+  return open;
+}
 const defaultPose=()=>({sqx:1,sqy:1,bob:0,sway:0,lean:0,breath:0,headY:0,headTilt:0,wingL:0,wingR:0,wingForward:0,footL:0,footR:0,stepL:0,stepR:0,bill:0,eye:1,angry:0,tail:0});
 function samplePose(action,t,walkPhase,reduced,speed=165){
   const p=defaultPose(),s=Math.sin(t*TAU/2.8),dance=Math.sin(t*TAU/1.35),step=Math.sin(walkPhase);
@@ -97,7 +108,7 @@ function samplePose(action,t,walkPhase,reduced,speed=165){
       p.footL=Math.pow(Math.max(0,step),1.3)*17*k;p.footR=Math.pow(Math.max(0,-step),1.3)*17*k;p.stepL=-Math.cos(walkPhase)*26*k;p.stepR=Math.cos(walkPhase)*26*k;
       p.wingL=-Math.sin(walkPhase+.6)*.12*k-.03;p.wingR=-Math.sin(walkPhase+.6)*.12*k+.03;
       p.headY=-Math.cos(c2-.9)*2.6*k;p.headTilt=-Math.sin(walkPhase-.7)*.028*k;p.tail=-Math.sin(walkPhase-1.1)*.2*k;break;}
-    case 2:{const q=Math.max(0,Math.sin(t*TAU/1.1));p.bill=q*.85;p.headY=-q*9;p.bob=3*(1-q);p.wingL=q*.09;p.wingR=-q*.09;break;}
+    case 2:{const q=quackSnap(t);p.headY=-q*11;p.bob=-q*4;p.sqx=1+q*.04;p.sqy=1-q*.04;p.wingL=q*.16;p.wingR=-q*.16;break;}
     case 3:p.sway=dance*.13;p.bob=-Math.abs(dance)*12;p.headTilt=-dance*.10;p.wingL=.35+Math.cos(t*5)*.30;p.wingR=-.35+Math.cos(t*5)*.30;p.footL=Math.max(0,-dance)*11;p.footR=Math.max(0,dance)*11;p.tail=dance*.12;break;
     case 4:p.headTilt=.08;p.wingL=.56;p.wingR=-.56;p.wingForward=.12;p.bob=-3*(1+Math.sin(t*3));break;
     case 5:p.bob=-Math.abs(Math.sin(t*15))*6;p.headY=-4;p.headTilt=Math.sin(t*8)*.04;p.bill=.35+Math.abs(Math.sin(t*13))*.45;p.eye=.38;p.wingL=.17;p.wingR=-.17;break;

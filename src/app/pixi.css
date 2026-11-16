@@ -741,3 +741,7 @@
 @keyframes pixi-centre-in { from { opacity: 0; } }
 @keyframes pixi-btn-in { from { opacity: 0; scale: .6; } }
 @media (prefers-reduced-motion: reduce) { .pixi-centre, .pixi-centre-card :is(button, a) { animation-duration: 1ms !important; } }
+/* a guest sees only the Sign in button, a standalone pill the height of the ente logo beside it */
+.pixi-live--signin { padding: 0; background: none; border: 0; box-shadow: none; }
+.pixi-live--signin .pixi-live-signin { padding: 9px 14px; border-radius: 12px; box-shadow: 0 3px 0 #56453755; }
+@media (max-width: 480px) { .pixi-live--signin .pixi-live-signin { padding: 6px 12px; } }
