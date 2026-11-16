@@ -7,7 +7,7 @@ import {decodeArtBitmap} from './sheet-preparation.js';
 import {activeIslandTiers,plannedSheetTiers,pinnedSheetTiers} from './island-budget.js';
 import {DOMAdapter, extensions, ExtensionType, ImageSource, loadSvg, Rectangle, Texture} from 'pixi.js';
 import {recoverArt, artPlaceholder, isArtPlaceholder, finalTextureSource} from './art-recovery.js';
-import {createArtQueue,mapArtInFrames} from './island-preparation.js';
+import {createArtQueue,mapArtInFrames,uploadIsland} from './island-preparation.js';
 import {textureFootprint} from './texture-footprint.js';
 import sourceSizes from '../../shared/art-source-sizes.json' with {type:'json'};
 
@@ -44,6 +44,26 @@ export function createWholeSVGLoader({queue = createArtQueue(), getManifest=load
 }} = {}) {
   const sheets=new Map();
   const blobs=new Map();
+  const detailUploads=new WeakMap();
+  const uploadDetailSource=(renderer,source,signal)=>new Promise((resolve,reject)=>{
+    let state=detailUploads.get(renderer);
+    if(!state){state={waiting:[],running:false};detailUploads.set(renderer,state);}
+    state.waiting.push({source,signal,resolve,reject});
+    if(state.running)return;
+    state.running=true;
+    void Promise.resolve().then(async()=>{
+      try{
+        while(state.waiting.length){
+          const batch=state.waiting.splice(0,32),active=batch.filter(job=>!job.signal?.aborted);
+          try{
+            await uploadIsland(renderer,[],{sources:active.map(job=>job.source),batchSize:32,batchBytes:8*1048576,frameBudgetMs:4,
+              cancelled:()=>active.every(job=>job.signal?.aborted)});
+            for(const job of batch){if(job.signal?.aborted)job.reject(job.signal.reason);else job.resolve();}
+          }catch(error){for(const job of batch)job.reject(error);}
+        }
+      }finally{state.running=false;}
+    });
+  });
   const sheetBlob=(url,priority='high',signal)=>{
     let held=blobs.get(url);
     if(held?.signal?.aborted){blobs.delete(url);held=undefined;}
@@ -88,16 +108,26 @@ export function createWholeSVGLoader({queue = createArtQueue(), getManifest=load
     loadedSVGTextures.add(texture);texture.once('destroy',()=>loadedSVGTextures.delete(texture));
     return texture;
   };
+  const detailSource=(resource,sheet,reload)=>{
+    const key=`raster-detail:${++detailSerial}`;
+    const source=new ImageSource({resource,resolution:1,autoGenerateMipmaps:!sheet.ground,alphaMode:'premultiplied-alpha'});
+    source.autoGarbageCollect=false;source.label=key;source._sourceOrigin=key;
+    if(reload)cacheBackedPixels(source,reload);else source.once('destroy',()=>resource.close());
+    return source;
+  };
   return {
+    async prepareDetailSource(bitmap,sheet,reload,renderer,{signal,upload=true}={}){
+      const source=detailSource(bitmap,sheet,reload);
+      try{
+        if(upload)await uploadDetailSource(renderer,source,signal);
+        signal?.throwIfAborted();return source;
+      }catch(error){source.destroy();throw error;}
+    },
     async installDetailSheets(result,detail,{signal}={}){
       const installed=[];
       try{
         await mapArtInFrames(result.sheets,async(sheet,i)=>{
-          const key=`raster-detail:${++detailSerial}`,resource=result.bitmaps[i];
-          const source=new ImageSource({resource,resolution:1,autoGenerateMipmaps:!sheet.ground,alphaMode:'premultiplied-alpha'});
-          source.autoGarbageCollect=false;source.label=key;source._sourceOrigin=key;
-          if(result.reloads?.[i])cacheBackedPixels(source,result.reloads[i]);
-          else source.once('destroy',()=>resource.close());
+          const source=result.sources?.[i]??detailSource(result.bitmaps[i],sheet,result.reloads?.[i]),key=source.label;
           const held={source,count:0,pins:1,promise:Promise.resolve(source)};sheets.set(key,held);installed.push([key,held]);
           await mapArtInFrames(sheet.frames,p=>detail.set(p.src,{scale:p.scale,sheet:key,url:key,group:`svg/${sheet.ground?'ground':'props'}/0`,
             padding:p.padding,width:Math.ceil(p.w*p.scale),height:Math.ceil(p.h*p.scale),
@@ -105,7 +135,7 @@ export function createWholeSVGLoader({queue = createArtQueue(), getManifest=load
             sheetWidth:sheet.width,sheetHeight:sheet.height}),{frameBudgetMs:8,batchSize:128,cancelled:()=>signal?.aborted});
         },{frameBudgetMs:8,batchSize:128,cancelled:()=>signal?.aborted});
         signal?.throwIfAborted();
-      }catch(error){for(const [key,h]of installed){h.pins--;freeSheet({sheet:key},h);}result.bitmaps.forEach(b=>b.close());throw error;}
+      }catch(error){for(const [key,h]of installed){h.pins--;freeSheet({sheet:key},h);}result.sources?.forEach(s=>{if(!s.destroyed)s.destroy();});result.bitmaps.forEach(b=>b.close());throw error;}
       let released=false;
       return ()=>{if(released)return;released=true;for(const [key,h]of installed){h.pins--;freeSheet({sheet:key},h);}};
     },
@@ -315,10 +345,15 @@ export function createIslandPreparer({getIndex=getIslandIndex,getManifest=loadPr
       const release=sheetResult.value;let released=false,landingReleased=false;
       const releaseLanding=()=>{if(!landingReleased){landingReleased=true;release();}};
       return {releaseLanding,tier,manifest,landing,detail,activate:()=>{svgActive=true;activate(detail);},
-        prepareDetail:async({signal}={})=>{
+        prepareDetail:async({signal,renderer}={})=>{
           if(!tier.rasterDetail)return loader.prepareTiers([...detail].map(([src,t])=>({...manifest[src],...t})),{priority:'low',signal});
-          const result=await renderDetail(tier.rasterDetail,{signal});
-          if(released||signal?.aborted){result.bitmaps.forEach(b=>b.close());signal?.throwIfAborted();throw Error('Island released during detail preparation');}
+          // Upload each sheet as it decodes, before the next decode in that
+          // lane. Keep GPU pixels, not a whole second island of CPU bitmaps.
+          const wanted=new Set([...loadedSVGTextures].filter(t=>!t.destroyed&&landing.has(t.artKey)).map(t=>t.artKey));
+          const consume=renderer&&loader.prepareDetailSource?(bitmap,sheet,reload)=>loader.prepareDetailSource(bitmap,sheet,reload,renderer,
+            {signal,upload:sheet.frames.some(frame=>wanted.has(frame.src))}):undefined;
+          const result=await renderDetail(tier.rasterDetail,{signal,consume});
+          if(released||signal?.aborted){result.sources?.forEach(s=>s.destroy());result.bitmaps.forEach(b=>b.close());signal?.throwIfAborted();throw Error('Island released during detail preparation');}
           detail.clear();svgRelease?.();svgRelease=undefined;svgActive=false;
           const release=await loader.installDetailSheets(result,detail,{signal});
           if(released){release();throw Error('Island released during detail preparation');}
