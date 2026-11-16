@@ -3,7 +3,7 @@ import {mapPoint} from '../src/world/sphere-coordinates.js';
 import {nonNeighbourLanding} from './non-neighbour-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {ISLANDS,HARBOR,harborOf,SEA_BOUNDS,offshoreProgress,createBoats,applySeaCurrent,canSail,canDock,sailStep,setSailDestination,crossIsland,destinationsFor,boatSpots,boardingPoint,landingSpot,landingApproach,fillMoorings,retireBoat,boatHome,boatSlot,MOORING_CLEAR,SAIL_SPEED} from '../src/gameplay/islands.js';
+import {ISLANDS,HARBOR,harborOf,SEA_BOUNDS,offshoreProgress,createBoats,applySeaCurrent,canSail,canDock,sailStep,setSailDestination,crossIsland,destinationsFor,boatSpots,boardingPoint,landingSpot,landingApproach,fillMoorings,retireBoat,boatHome,boatSlot,MOORING_CLEAR,SAIL_SPEED,harborApproachClear,boatRoom} from '../src/gameplay/islands.js';
 
 import {createNavigation} from '../src/world/navigation.js';
 import {offsetOf} from '../src/world/world-map.js';
@@ -249,7 +249,8 @@ test('docking at another island keeps the arrival boat and leaves both islands m
   assert.equal(countOn(boats,there),perThere+1,'the neighbour shows its own boats plus yours');
   retireBoat(boats,boat); check();
   assert.ok(boats.includes(boat),'the arrival boat remains parked');
-  assert.deepEqual([boat.islandId,boat.x,boat.y,boat.occupant,boat.parked],[there,arrival.x,arrival.y,null,true]);
+  assert.deepEqual([boat.islandId,boat.occupant,boat.parked],[there,null,true]);
+  assert.ok(harborApproachClear(boat));assert.ok(boatRoom(boat,boats));
   const restored=JSON.parse(JSON.stringify(boats));fillMoorings(restored);
   assert.deepEqual(restored.find(b=>b.id===boat.id),boat,'parked boat survives reconciliation after reload');
   assert.ok(mooredAt(boats,there).every(Boolean),`all ${perThere} of ${there}'s moorings are full`);

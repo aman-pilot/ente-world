@@ -10,7 +10,7 @@ import {build} from 'esbuild';
 import {Miniflare, convertV4MiniflareOptions} from 'miniflare';
 import {createNavigation} from '../src/world/navigation.js';
 import {world} from '../server-world.mjs';
-import {HARBOR,harborOf,destinationsFor,canSail,boatSpots,landingSpot,landingApproach} from '../src/gameplay/islands.js';
+import {HARBOR,harborOf,destinationsFor,canSail,boatSpots,landingSpot,landingApproach,harborApproachClear,boatRoom} from '../src/gameplay/islands.js';
 import {DUCK_RADIUS, RUN_SPEED, WALK_SPEED, MUSEUM_DOOR, atMuseumDoor} from '../src/gameplay/player-motion.js';
 import {randomOutfit, validOutfit} from '../src/gameplay/outfits.js';
 
@@ -766,7 +766,7 @@ test('boats board once, cross authoritatively, isolate islands and survive recon
     const id=captain.welcome.id;
     const parked=await eventually(()=>captain.snapshot.boats.find(boat=>boat.id===boatId && !boat.occupant));
     assert.equal(parked.islandId,exit.destination);
-    assert.deepEqual([parked.x,parked.y],[harborOf(exit.destination).water.x,harborOf(exit.destination).water.y]);
+    assert.ok(harborApproachClear(parked)&&boatRoom(parked,captain.snapshot.boats),'the parked boat keeps every dock point and boat gap clear');
     await eventually(()=>watch.snapshot.boats.some(boat=>boat.id===boatId && !boat.occupant));
     await request('/test/restore');
     await eventually(()=>captain.snapshot.boats.some(boat=>boat.id===boatId && boat.parked));
@@ -922,7 +922,7 @@ test('every island always shows all its moored boats: a taken boat is replaced, 
     await eventually(() => a.duck()?.mode==='walking');
     const parked=await eventually(()=>a.snapshot.boats.find(boat=>boat.id===taken && !boat.occupant));
     assert.equal(parked.islandId,exit.destination);
-    assert.deepEqual([parked.x,parked.y],[there.water.x,there.water.y]);
+    assert.ok(harborApproachClear(parked)&&boatRoom(parked,a.snapshot.boats),'the parked boat keeps every dock point and boat gap clear');
     assert.ok(allMoored(a.snapshot),`all ${perThere} of ${exit.destination}'s moorings are full`);
     assert.equal(a.snapshot.boats.filter(v=>v.islandId===exit.destination).length,perThere+1,'the parked arrival stays alongside the existing moorings');
     for (const message of [...a.messages,...b.messages].filter(message => message.type==='snapshot')) assert.ok(message.boats.length>=boatSpots(message.islandId).length,`${message.islandId} showed ${message.boats.length} boats`);
@@ -961,7 +961,8 @@ test('docking beside an island that is not a jetty neighbour lands you on that i
     const parked=await eventually(()=>a.snapshot.boats.find(boat=>boat.id===boatId && !boat.occupant));
     assert.equal(parked.islandId,spot.islandId);
     assert.ok(canSail(parked.x,parked.y,spot.islandId),'boat stays in destination-local water, not the departure coordinate frame');
-    assert.ok(Math.hypot(parked.x-spot.x,parked.y-spot.y)<300,'the boat stays beside the landing');
+    assert.ok(Math.hypot(parked.x-spot.x,parked.y-spot.y)<600,'the boat stays near the landing');
+    assert.ok(harborApproachClear(parked)&&boatRoom(parked,a.snapshot.boats),'the parked boat keeps every dock point and boat gap clear');
     a.send({type:'board',boatId});
     await eventually(()=>a.duck()?.mode==='sailing' && a.duck().boatId===boatId);
   } finally {
