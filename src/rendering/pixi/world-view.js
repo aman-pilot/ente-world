@@ -268,6 +268,7 @@ function makePin(text = 'You', color = PALETTE.sun, icon = null) {
   const body = new Container(); body.addChild(drop, label);
   pin.addChild(shadow, body);
   pin.body = body;
+  pin.label = label; pin.tagWidth = tagWidth;
   return pin;
 }
 
@@ -513,7 +514,11 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
         hoverK += ((hover && pin.visible ? 1.05 : 1) - hoverK) * (1 - Math.exp(-dt * 18));
         pin.scale.set((.8 + .2 * p.face) * hoverK);
       } else pin.visible = false;
-      const shown=new Set();
+      const shown=new Set(),placed=[];
+      // Name tags never overlap: with many friends close together, the pins stay and only the tags that fit
+      // show (your own tag always does). Hover-free and cheap: a few boxes per frame.
+      const fits=(x,y,w)=>{const box={l:x-w/2-4,r:x+w/2+4,t:y-80,b:y-52};if(placed.some(o=>box.l<o.r&&box.r>o.l&&box.t<o.b&&box.b>o.t))return false;placed.push(box);return true;};
+      if (pin.visible) fits(pin.x,pin.y,pin.tagWidth*pin.scale.x);
       for (const friend of this.friends ?? []) {
         let point;
         try {point=friend.mode==='sailing'?seaPoint(friend.islandId,friend):spherePoint(friend.islandId,friend);} catch {continue;}
@@ -526,6 +531,7 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
         fp.visible=fp.alpha>.01;
         fp.body.y=-Math.abs(Math.sin(time*3+(Number(friend.accountId)%7||0)))*6;
         fp.scale.set(.7+.2*Math.max(0,p.face));
+        fp.label.visible=fp.visible&&fits(p.x,p.y,fp.tagWidth*fp.scale.x);
       }
       for (const [account,p] of friendPins) if (!shown.has(account)) {if (p.visible) p.visible=false; if (friendPins.size>40) {p.destroy({children:true});friendPins.delete(account);}}
       if (bogIsland) {

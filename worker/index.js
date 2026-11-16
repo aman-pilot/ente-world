@@ -322,9 +322,11 @@ export class IslandRoom {
       WHERE r.sender_account_id=? ORDER BY r.created_at,r.receiver_account_id`, account).toArray();
     // Where each friend is right now, if they are playing, so the mini-map and globe can show them.
     // Friends only: requests and strangers never get a location.
-    const now = Date.now();
+    const now = Date.now(), playing = new Map();
+    if (friends.length) for (const info of this.connections.values())
+      if (info.actor && info.account && info.expires > now) playing.set(String(info.account), info);
     for (const friend of friends) {
-      const live = [...this.connections.values()].find(info => String(info.account) === String(friend.accountId) && info.actor && info.expires > now);
+      const live = playing.get(String(friend.accountId));
       if (live) friend.where = {islandId:live.actor.islandId, x:Math.round(live.actor.x), y:Math.round(live.actor.y), mode:live.actor.mode};
     }
     return {friends,incoming,outgoing};
