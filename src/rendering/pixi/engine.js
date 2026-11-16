@@ -1982,7 +1982,7 @@ export class PixiIsland {
     }
     this.groundPool?.update(views,Math.min(devicePixelRatio||1,2));
     for(const art of this.arts.values())art.rasterPool?.update(views,Math.min(devicePixelRatio||1,2));
-    this.archipelago?.showLive(solo ? SOLO_HIDDEN : new Set(copies.map(i => i.id)), !solo&&!this.artReady(this.artShown));
+    this.archipelago?.showLive(solo ? SOLO_HIDDEN : new Set(copies.map(i => i.id)), !solo&&this.sailingArtWanted?.has(this.islandId)&&!this.artReady(this.artShown));
     const visitors=this.copyVisitors(copies);
     for (const {o} of visitors) o.visible=false;
     if (this.worldView) this.worldView.liveCopies=target => this.renderLiveCopies(target, copies, visitors);
