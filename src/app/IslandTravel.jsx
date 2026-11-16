@@ -24,7 +24,7 @@ export default function IslandTravel({travel,playing,room,island,notice}) {
   function stop() { island.current?.stopInput(); }
   const touch=typeof matchMedia==='function' && matchMedia('(pointer: coarse)').matches;
   return <>
-    {notice && <p className="pixi-travel-notice" role="status">{notice}</p>}
+    {notice && <p className="pixi-travel-notice" data-feather={/feather/i.test(notice) || undefined} role="status">{notice}</p>}
     {actionLabel(options) && <button className="pixi-travel-action" onClick={() => island.current?.travelAction()}>
       {actionLabel(options)} <kbd>Enter</kbd>
     </button>}

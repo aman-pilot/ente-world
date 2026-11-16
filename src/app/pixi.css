@@ -425,7 +425,11 @@
 .pixi-travel :is(button,select):focus-visible { outline: 3px solid #39472d; outline-offset: 2px; }
 .pixi-travel-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .pixi-steering { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 52px); display: flex; gap: 8px; touch-action: none; z-index: 5; }
-.pixi-travel-notice { position: fixed; left: 50%; transform: translateX(-50%); top: max(88px, calc(env(safe-area-inset-top) + 72px)); margin: 0; padding: 8px 14px; border: 1px solid #564537; border-radius: 999px; color: #332b23; background: #fff9dfed; box-shadow: 0 3px 0 #56453755; font: 14px/1.4 system-ui, sans-serif; z-index: 5; }
+.pixi-travel-notice { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5; box-sizing: border-box; display: flex; align-items: center; gap: 12px; width: max-content; max-width: min(440px, calc(100vw - 32px)); margin: 0; padding: 12px 20px; border: 3px solid #332b23; border-radius: 20px; background: #fff9df; box-shadow: 0 5px 0 #332b23; color: #332b23; font: 700 16px/1.3 'Fredoka', system-ui, sans-serif; text-align: left; text-wrap: pretty; animation: pixi-travel-notice-in 320ms cubic-bezier(.23,1,.32,1) both; }
+.pixi-travel-notice[data-feather] { padding-left: 14px; }
+.pixi-travel-notice[data-feather]::before { content: ''; flex: none; width: 34px; height: 34px; background: url(/pixi-art/karma/golden-feather.svg) center / contain no-repeat; }
+@keyframes pixi-travel-notice-in { from { opacity: 0; transform: translate(-50%, calc(-50% - 8px)) scale(.96); } }
+@media (prefers-reduced-motion: reduce) { .pixi-travel-notice { animation: none; } }
 .pixi-steering button { min-width: 44px; font-size: 22px; touch-action: none; }
 @media (max-width: 600px) {
   .pixi-bottom-hud { position: fixed; left: max(16px, env(safe-area-inset-left)); right: max(16px, env(safe-area-inset-right)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 52px); display: flex; flex-direction: column; gap: 8px; max-height: calc(100svh - 240px); overflow-y: auto; pointer-events: none; }
