@@ -33,7 +33,7 @@ export default function LandingGate() {
       }
     }, showLanding);
   }, []);
-  if (mode === 'signed-in') return <Suspense fallback={<IslandConnecting/>}><PixiPage signedInEntry/></Suspense>;
+  if (mode === 'signed-in') return <Suspense fallback={window.EWArrival?.t0 != null ? null : <IslandConnecting/>}><PixiPage signedInEntry/></Suspense>;
   if (mode === 'game') return <Suspense fallback={<div className="landing-boot"/>}><PixiPage/></Suspense>;
   // Watch as a guest: the GitHub-return cover closes in over the end screen, the game loads behind it, and it parts onto
   // Home the same way (PixiPage takes the cover over; no name tag for a guest)

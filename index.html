@@ -27,7 +27,7 @@
     <script>
       try {
         if (sessionStorage.getItem('ew-arrive') === '1') document.documentElement.classList.add('ew-arrive');
-        else if (!new URLSearchParams(location.search).has('auth') && sessionStorage.getItem('ew-signed-in') === '1') document.documentElement.classList.add('ew-connecting');
+        else if (!new URLSearchParams(location.search).has('auth') && sessionStorage.getItem('ew-signed-in') === '1') document.documentElement.classList.add('ew-connecting', 'ew-arrive');
       } catch (e) {}
     </script>
     <style>
@@ -127,10 +127,8 @@
         var arriving = false;
         try { arriving = sessionStorage.getItem('ew-arrive') === '1'; } catch (e) {}
         if (arriving) EWArrival.mount('cover', 'Landing on your island');
-        else if (document.documentElement.classList.contains('ew-connecting')) {
-          document.querySelector('#boot-sky .island-connecting').innerHTML =
-            '<div class="arrival-loader">' + EWArrival.loader('Connecting to your island') + '</div>';
-        }
+        // a signed-in reload comes in under the same cloud cover, which parts once the island is drawn
+        else if (document.documentElement.classList.contains('ew-connecting')) EWArrival.mount('cover', 'Connecting to your island');
       })();
     </script>
     <script>
