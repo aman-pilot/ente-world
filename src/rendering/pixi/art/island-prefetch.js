@@ -16,9 +16,13 @@ export function createIslandPrefetch({getIndex,selectTier,islands,limit=Infinity
 },idle=callback=>globalThis.requestIdleCallback?requestIdleCallback(callback,{timeout:2000}):setTimeout(callback,100)}={}) {
   // Limit the nearest set before excluding cached islands, so finishing those
   // neighbours never advances into the rest of the world.
+  // Sharp current art resumes warming every frame. The chart is fixed, so
+  // retain its nearest set until the player changes islands.
+  let nearest;
   const candidates=()=>{
+    if(nearest)return nearest;
     const origin=islands.find(i=>i.id===current);if(!origin)return [];
-    return islands.filter(i=>i.id!==current).sort((a,b)=>distance(origin,a)-distance(origin,b)||a.id.localeCompare(b.id)).slice(0,limit);
+    return nearest=islands.filter(i=>i.id!==current).sort((a,b)=>distance(origin,a)-distance(origin,b)||a.id.localeCompare(b.id)).slice(0,limit);
   };
   const done=new Set();let current,paused=true,scheduled=false,running=false,controller,dead=false,generation=0;
   const schedule=()=>{
@@ -46,7 +50,7 @@ export function createIslandPrefetch({getIndex,selectTier,islands,limit=Infinity
   };
   return {
     pause(){paused=true;generation++;controller?.abort();},
-    resume(id){if(current&&current!==id){generation++;controller?.abort();}current=id;done.add(id);paused=false;schedule();},
+    resume(id){if(current!==id){nearest=undefined;if(current){generation++;controller?.abort();}}current=id;done.add(id);paused=false;schedule();},
     destroy(){dead=true;controller?.abort();},
   };
 }
