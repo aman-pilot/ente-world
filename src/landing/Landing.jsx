@@ -26,7 +26,11 @@ export default function LandingGate() {
     }
     initialSession.then(session => {
       rememberSignedIn(!!session.user);
-      if (session.user) setMode('signed-in');
+      if (session.user) {
+        // signed in without the hint (first visit on this browser): go straight to the cloud cover, not the Home-art screen
+        if (window.EWArrival?.t0 == null) window.EWArrival?.mount?.('cover', 'Connecting to your island');
+        setMode('signed-in');
+      }
       else {
         setSignInAvailable(!!session.signInAvailable);
         showLanding();
