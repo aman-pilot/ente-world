@@ -72,16 +72,15 @@
   width: 44px;
   height: 44px;
   padding: 0;
-  border: 2px solid #564537;
-  border-radius: 50%;
+  border: 0;
   color: #332b23;
-  background: #fff9df;
-  box-shadow: 0 3px 0 #56453755;
-  font: bold 24px/1 Georgia, serif;
+  background: transparent;
+  font: 20px/1 Georgia, serif;
   cursor: pointer;
   pointer-events: auto;
 }
-.pixi-legend-trigger:hover { background: #ffda69; }
+.pixi-legend-trigger span { display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid #564537; border-radius: 50%; background: #fff9df; }
+.pixi-legend-trigger:hover span { background: #ffda69; }
 .pixi-legend-trigger:focus-visible, .pixi-legend button:focus-visible { outline: 2px solid #564537; outline-offset: 3px; }
 .pixi-legend button { color: inherit; border: 1px solid #564537; border-radius: 10px; cursor: pointer; }
 .pixi-legend header { display: flex; align-items: flex-start; gap: 16px; justify-content: space-between; }
