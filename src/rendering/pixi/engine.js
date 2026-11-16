@@ -7,7 +7,7 @@ import {loadHomeScene} from '../../world/home/startup-scene.js';
 import {getIslandIndex,warmIslandIndex,loadPrerenderManifest,prepareIsland as prepareIslandSheets} from './art/whole-svg-loader.js';
 import {uploadIsland, nextArtFrame, preparationFrame, markArtActivity, mapArtInFrames} from './art/island-preparation.js';
 import {renderPolaroid} from '../shared/polaroid.js';
-import {ART_TEXTURE} from './art/art-texture.js';
+import {createTextureLeases} from './art/texture-leases.js';
 import {createPirateFleet,pirateBoatPoint} from '../../gameplay/pirate-fleet.js';
 import {createPirateView} from './pirate-view.js';
 import {homePropY, homePropRotation} from './environment/home-motion.js';
@@ -82,7 +82,7 @@ import {clamp, fitZoom, Gestures, movePinch, screenToWorld, TILT, zoomAt} from '
 import {CHAT_DURATION} from '../../multiplayer/chat.js';
 import {sameOutfit} from '../../gameplay/outfits.js';
 
-const textureLeases = new Map();
+const {leases:textureLeases,acquire,release}=createTextureLeases();
 const SOLO_HIDDEN=new Set(WORLD_ISLANDS.map(island=>island.id));
 const ZERO = {x:0,y:0};
 const SIM_STEP = 1 / 60;
@@ -102,27 +102,7 @@ function contactShadow(prop) {
   const [sx,sy] = prop.shadowOffset ?? [nudge*2,nudge];
   return new Graphics().ellipse(sx, sy, rx, ry).fill({color, alpha});
 }
-function acquire(src, resolution = 1, {mipmaps = true} = {}) {
-  let entry = textureLeases.get(src);
-  if (!entry) {
-    entry = {count: 0, resolution, promise: Assets.load({src, data: {resolution, ...(mipmaps ? ART_TEXTURE : {groundPadding:2})}})};
-    // a failed load must not stay cached, or every later attempt at this island fails the same way
-    entry.promise.catch(() => {if (textureLeases.get(src) === entry) textureLeases.delete(src);});
-    textureLeases.set(src, entry);
-  }
-  entry.count++;
-  return entry.promise;
-}
 const acquireGround = (src, resolution) => acquire(src, resolution, {mipmaps: false});
-function release(src) {
-  const entry = textureLeases.get(src);
-  if (!entry || --entry.count) return;
-  entry.promise.then(() => {
-    if (entry.count || textureLeases.get(src) !== entry) return;
-    textureLeases.delete(src);
-    Assets.unload(src).catch(() => {});
-  }).catch(() => {if(textureLeases.get(src)===entry)textureLeases.delete(src);});
-}
 
 // the next island on the fewest-hops sea route from one island to another (null when there is no route)
 function nextIsland(from, to) {
@@ -852,8 +832,7 @@ export class PixiIsland {
     const me=this.player;
     if (!this.room || !me) return 'Your duck is still arriving.';
     if (this.interior?.active) return 'Step outside first.';
-    if (this.islandId === target && me.mode === 'walking') return 'You are already here.';
-    if (!nextIsland(this.islandId, target) && this.islandId !== target) return 'There is no way to sail there from here.';
+    if (this.islandId === target && me.mode === 'walking') return 'You are already here.';    if (!nextIsland(this.islandId, target) && this.islandId !== target) return 'There is no way to sail there from here.';
     this.pauseIslandBackground();
     void this.prepareIsland(target).catch(()=>{});
     this.trip={target, leg:null, boarded:null, docked:false};
@@ -922,10 +901,10 @@ export class PixiIsland {
   }
 
   tap(point) {
-    this.trip=null;
-    if (this.interior?.active) {this.interior.tap(point); return;}
+    if (this.interior?.active) {this.trip=null; this.interior.tap(point); return;}
     if (this.globeT > 0 && this.worldView?.pinAt(point)) {if (this.globeOpen) this.closeGlobe(); else if (!this.globeBusy()) this.flyHome(); return;}
     if (this.globeBusy()) return;   // the globe is a view only: taps never walk, board or sail the hidden Ducky
+    this.trip=null;
     const p = screenToWorld(this.camera, point, this.width, this.height);
     if (this.room && this.player) {
       if (this.player.mode === 'sailing') {
@@ -1573,7 +1552,7 @@ export class PixiIsland {
     const m=this.mapHere();
     this.globeReturn={zoom:this.camera.zoom};
     this.fly=null; this.spin=null; this.follow=false; this.fitMode=false; this.zoomAnchor=null; this.globeAim=null;
-    this.stopInput(); this.trip=null; this.zoomMotion.velocity=0;
+    this.stopInput(); this.zoomMotion.velocity=0;
     this.globeOpen=true; this.quietAt=performance.now();
     Object.assign(this.camera,{x:m.cx,y:m.cy,zoom:this.birdZoom()}); Object.assign(this.target,this.camera);
     this.onGlobeChange?.(true);
@@ -1581,7 +1560,9 @@ export class PixiIsland {
   }
   closeGlobe() {
     if (!this.globeOpen) return false;
-    this.globeOpen=false; this.landOnPlayer(this.globeReturn?.zoom); this.onGlobeChange?.(false);
+    this.globeOpen=false;
+    if(this.trip)Object.assign(this.trip,{leg:null,idleSince:null,stoppedAt:null,docked:false});
+    this.landOnPlayer(this.globeReturn?.zoom); this.onGlobeChange?.(false);
     return true;
   }
   // Keep zooming past a limit to cut between views: out past your island opens the globe, in past the globe's
@@ -1980,7 +1961,7 @@ export class PixiIsland {
     const views=[];
     if(flatVisible) {
       const streams=this.artShown==='home'?[this.homeGroundStream]:this.arts.get(this.artShown)?.groundStreams??[];
-      for(const stream of streams)views.push({stream,camera:this.camera,width:this.viewSpan.width,height:this.viewSpan.height,tilt:TILT});
+      for(const stream of streams)views.push({stream,camera:{...this.camera,...unplaceRigid(this.islandId,this.islandId,this.camera)},width:this.viewSpan.width,height:this.viewSpan.height,tilt:TILT});
       for(const island of copies) {
         const m=mapFor(island.map),streams=island.map==='home'?[this.homeGroundStream]:this.arts.get(island.map)?.groundStreams??[];
         for(const stream of streams)views.push({stream,camera:{...this.camera,...unplaceRigid(this.islandId,island.id,this.camera)},width:this.viewSpan.width,height:this.viewSpan.height,tilt:TILT});

@@ -1,5 +1,6 @@
 import homeMore from '../assets/world/home-sleep-more.json' with {type:'json'};
 import {mapPoint} from '../src/world/sphere-coordinates.js';
+import {nearestSeaX} from '../src/world/flat-layout.js';
 import homeExtra from '../assets/world/home-sleep-extra.json' with {type:'json'};
 import homeOuter from '../assets/world/home-sleep-outer.json' with {type:'json'};
 import {THEMED_ISLANDS} from '../src/world/world-map.js';
@@ -149,7 +150,7 @@ test('c) in every themed island\'s sea: the neighbours fit the camera and sailin
         const p=mapPoint(other.id,id,{x,y});assert.equal(here.landAt(p.x,p.y),false,`${id}/${other.id}: coasts never overlap`);
       }
     }
-    const copies = WORLD_ISLANDS.filter(i => i.id !== id).map(i => ({from:id,id: i.id, x: here.cx + offsetOf(id, i.id).x, y: here.cy + offsetOf(id, i.id).y, width: mapOf(i.id).width, height: mapOf(i.id).height}));
+    const copies = WORLD_ISLANDS.filter(i => i.id !== id).map(i => ({from:id,id: i.id, x: here.cx + nearestSeaX(offsetOf(id, i.id).x,0), y: here.cy + offsetOf(id, i.id).y, width: mapOf(i.id).width, height: mapOf(i.id).height}));
     for (const d of destinationsFor(id)) assert.equal(copyHolding(d.dock.x, d.dock.y, copies, 300, here)?.id, d.destination, `${id}: at ${d.destination}'s jetty`);
     assert.equal(copyHolding(here.spawn.x, here.spawn.y, copies, 300, here), null);
   }

@@ -44,8 +44,8 @@ test('every Home and themed ground join overlaps at any positive zoom, including
   stream.destroy();pool.destroy();root.destroy();textures.forEach(t=>t.destroy(true));
  }
  assert(joins>2000,`checked ${joins} joins`);
- const engine=readFileSync('src/rendering/pixi/engine.js','utf8');
- assert.match(engine,/mipmaps \? ART_TEXTURE : \{groundPadding:2\}/,'all ground acquisition uses extruded edges');
+ const leases=readFileSync('src/rendering/pixi/art/texture-leases.js','utf8');
+ assert.match(leases,/mipmaps\?ART_TEXTURE:\{groundPadding:2\}/,'all ground acquisition uses extruded edges');
 });
 
 test('fractional SVG raster has opaque final texels and extruded corners with unchanged inner coordinates',async t=>{

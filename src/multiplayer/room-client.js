@@ -7,7 +7,7 @@ import {mapOf,islandMapReady} from '../world/island-maps.js';
 import {getPlayerKarma} from '../features/bog-combat/karma.js';
 import {bogLandingNotice} from '../features/bog-combat/entry.js';
 import {BOAT_UNVEIL} from '../gameplay/boat-build.js';
-import {islandFor, harborOf, destinationsFor, near, canSail, dockingSpot, landingApproach, setSailDestination, sailStep, createBoats, fillMoorings, retireBoat, navOf, canWalkTo} from '../gameplay/islands.js';
+import {islandFor, harborOf, destinationsFor, near, canSail, dockingSpot, refusedLandingPosition, landingApproach, setSailDestination, sailStep, createBoats, fillMoorings, retireBoat, navOf, canWalkTo} from '../gameplay/islands.js';
 
 const ZERO = {x:0,y:0};
 const moving = input => input.x !== 0 || input.y !== 0;
@@ -279,6 +279,9 @@ export class RoomClient {
       ? setSailDestination(this.player,command.x,command.y,this.boats) : setWalkDestination(this.player, this.navHere(), command.x, command.y);
     if (command.type === 'disembark' && this.player.mode === 'sailing') {
       const spot=dockingSpot(this.player,Number.isFinite(command.x) ? command : null);
+      if (spot && !spot.islet && bogLandingNotice(spot.islandId,getPlayerKarma({room:this}))) {
+        Object.assign(this.player,refusedLandingPosition(this.player,spot.islandId,this.boats),{sailTarget:null,sailRoute:null,docking:false});
+      }
       if (spot && (spot.islet || !bogLandingNotice(spot.islandId,getPlayerKarma({room:this})))) {
         const approach=spot.harbor ? harborOf(this.islandId).water : landingApproach(this.player,spot,this.boats);
         this.player.sailTarget=null; this.player.sailRoute=null; this.player.docking=false;

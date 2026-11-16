@@ -1,5 +1,5 @@
 import {sphereFrame} from './sphere.js';
-import {flatOffset,FLAT_RING} from './flat-layout.js';
+import {flatOffset,FLAT_RING,nearestSeaX} from './flat-layout.js';
 import world from '../../assets/world/world.json' with {type: 'json'};
 import READY from './delivered-themes.js';
 
@@ -53,14 +53,22 @@ export function offsetOf(a, b) {
   return flatOffset(a,b);
 }
 const LINKS = new Map(WORLD_ISLANDS.map(island => [island.id, new Set()]));
+// Preserve harbour access, then connect the equator by nearest wrapped distance.
 for(const [k,id]of FLAT_RING.entries()){
  LINKS.get('home').add(id); LINKS.get(id).add('home');
  const next=FLAT_RING[(k+1)%FLAT_RING.length];
  LINKS.get(id).add(next); LINKS.get(next).add(id);
 }
+const equator=WORLD_ISLANDS.filter(i=>Math.abs(i.lat)<Math.PI/2);
+for(const island of equator){
+ const closest=equator.filter(i=>i.id!==island.id).map(i=>{
+  const p=offsetOf(island.id,i.id);return {id:i.id,d:Math.hypot(nearestSeaX(p.x,0),p.y)};
+ }).sort((a,b)=>a.d-b.d).slice(0,2);
+ for(const other of closest){LINKS.get(island.id).add(other.id);LINKS.get(other.id).add(island.id);}
+}
 const NEIGHBOURS = new Map();
 export function neighboursOf(id) {
-  if (!NEIGHBOURS.has(id)) NEIGHBOURS.set(id, [...LINKS.get(id)].map(other => ({island: byId.get(other), ...offsetOf(id, other)}))
+  if (!NEIGHBOURS.has(id)) NEIGHBOURS.set(id, [...LINKS.get(id)].map(other => ({island: byId.get(other), ...offsetOf(id, other), x:nearestSeaX(offsetOf(id,other).x,0)}))
     .sort((a, b) => Math.hypot(a.x, a.y) - Math.hypot(b.x, b.y)));
   return NEIGHBOURS.get(id);
 }

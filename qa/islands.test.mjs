@@ -24,7 +24,7 @@ test('Home and six themed islands retain moorings, ring routes and safe harbor p
   for (const island of ISLANDS) {
     assert.equal(boats.filter(boat => boat.islandId===island.id).length,boatSpots(island.id).length);
     assert.ok(boatSpots(island.id).length>=3);
-    assert.equal(destinationsFor(island.id).length,island.id==='home'?6:3);
+    assert.equal(destinationsFor(island.id).length,island.id==='home'?6:['isle-251','sunset'].includes(island.id)?4:3);
   }
   for (const position of [...boats.filter(boat => boat.islandId==='home'),...destinationsFor('home').map(island=>island.dock),HARBOR.water]) assert.ok(canSail(position.x,position.y));
   assert.equal(canSail(HARBOR.land.x,HARBOR.land.y),false);

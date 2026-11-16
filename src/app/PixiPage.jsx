@@ -67,6 +67,11 @@ export default function PixiPage() {
   const [worldDrawn, setWorldDrawn] = useState(false);
 
   useEffect(() => {setTravelNotice('');},[travel.islandId,travel.mode]);
+  useEffect(() => {
+    if (!travelNotice) return;
+    const timer=setTimeout(() => setTravelNotice(''),5000);
+    return () => clearTimeout(timer);
+  },[travelNotice]);
   useEffect(() => {document.getElementById('boot-sky')?.remove();}, []);   // the landing's first frame (index.html) is not part of the game
 
   useEffect(() => {

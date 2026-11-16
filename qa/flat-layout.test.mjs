@@ -15,7 +15,10 @@ test('flat sea is the unchanged globe equirectangular chart',()=>{
  close(SEA_WIDTH,80000);close(SEA_HEIGHT,40000);
  for(const i of WORLD_ISLANDS){close(FLAT_POSITIONS[i.id].x,i.lon*SEA_WIDTH/(2*Math.PI));close(FLAT_POSITIONS[i.id].y,-i.lat*SEA_WIDTH/(2*Math.PI));}
  for(const [k,id]of FLAT_RING.entries()){
-  assert.deepEqual(new Set(neighboursOf(id).map(n=>n.island.id)),new Set(['home',FLAT_RING[(k+5)%6],FLAT_RING[(k+1)%6]]));
+  const expected=new Set(['home',FLAT_RING[(k+5)%6],FLAT_RING[(k+1)%6]]);
+  if(id==='isle-251')expected.add('sunset');
+  if(id==='sunset')expected.add('isle-251');
+  assert.deepEqual(new Set(neighboursOf(id).map(n=>n.island.id)),expected);
  }
  assert.deepEqual(new Set(neighboursOf('home').map(n=>n.island.id)),new Set(FLAT_RING));
 });

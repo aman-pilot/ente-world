@@ -45,9 +45,9 @@ export const destinationsFor = id => {
   if (!DEST.has(id)) {
     const A=mapOf(id);
     DEST.set(id,neighboursOf(id).map(({island,x,y}) => {
-      const B=mapOf(island.id), o=originOffset(id,island.id);
+      const B=mapOf(island.id), o={x:x+A.cx-B.cx,y:y+A.cy-B.cy};
       return {x:A.cx+x, y:A.cy+y, offset:o, destination:island.id, name:island.name, accent:island.accent, map:B.id,
-        dock:placeRigid(id,island.id,B.HARBOR.water), land:placeRigid(id,island.id,B.HARBOR.land)};
+        dock:placeRigid(id,island.id,B.HARBOR.water,{x:A.cx}), land:placeRigid(id,island.id,B.HARBOR.land,{x:A.cx})};
     }));
   }
   return DEST.get(id);
@@ -100,6 +100,17 @@ export function boatRoom(actor,boats=[]) {
 export function freeBoatPosition(actor,boats=[],reach=1040) {
   const others=otherBoatPositions(actor,boats);
   return nearestBoatSpace(actor,p=>others.every(q=>seaBoatSeparated(p,q,BOAT_GAP+1)) && canSail(p.x,p.y,actor.islandId),reach);
+}
+// A refused ticket must leave room to turn and sail away, outside the dock cove.
+export function refusedLandingPosition(actor,islandId,boats=[]) {
+  const m=mapOf(islandId),h=harborOf(islandId);
+  // Keep a visitor in the main chart, so the polar current cannot send it
+  // straight back into the refused cove. Bog-frame sailors have a south apron.
+  const y=actor.islandId===islandId?m.origin.y+m.height+900:m.origin.y-900;
+  const origin=placeRigid(actor.islandId,islandId,{x:h.water.x,y},actor);
+  const others=otherBoatPositions(actor,boats), room=600;
+  return nearestBoatSpace(origin,p=>canSail(p.x,p.y,actor.islandId,BOAT_RADIUS+room) &&
+    others.every(q=>seaBoatSeparated(p,q,BOAT_GAP+room+1)),4160);
 }
 export const MOORING_CLEAR=BOAT_GAP+40;
 let MINT=Date.now();

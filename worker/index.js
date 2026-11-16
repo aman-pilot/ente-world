@@ -10,7 +10,7 @@ import {LiveBogRoom} from './bog-room.js';
 import {DURATIONS, playEmote, playSailEmote, SAIL_EMOTES, startJump, separateActors, setWalkDestination, walkStep, atMuseumDoor} from '../src/gameplay/player-motion.js';
 import {chatText} from '../src/multiplayer/chat.js';
 import {FRIEND_RADIUS} from '../src/multiplayer/friends.js';
-import {applySeaCurrent, migrateSeaPosition, islandFor, destinationsFor, harborOf, boatSpots, boatRoom, freeBoatPosition, createBoats, near, canSail, setSailDestination, sailStep, crossIsland, boardingPoint, dockingSpot, HARBOR_ONLY, landingApproach, fillMoorings, retireBoat, navOf, canWalkTo} from '../src/gameplay/islands.js';
+import {applySeaCurrent, migrateSeaPosition, islandFor, destinationsFor, harborOf, boatSpots, boatRoom, freeBoatPosition, refusedLandingPosition, createBoats, near, canSail, setSailDestination, sailStep, crossIsland, boardingPoint, dockingSpot, HARBOR_ONLY, landingApproach, fillMoorings, retireBoat, navOf, canWalkTo} from '../src/gameplay/islands.js';
 import {randomOutfit, validOutfit} from '../src/gameplay/outfits.js';
 import {pickWorldSpawn} from '../src/gameplay/world-spawn.js';
 import {BUILD_COOLDOWN, buildSpot, strandedIslet} from '../src/gameplay/boat-build.js';
@@ -73,6 +73,12 @@ export class IslandRoom {
     const text=bogLandingNotice(islandId,this.getPlayerKarma(info.actor,info.account));
     if(!text)return true;
     info.landing=null;
+    const waiting=refusedLandingPosition(info.actor,islandId,this.boats);
+    if(waiting){
+      Object.assign(info.actor,waiting,{travel:0});
+      const boat=this.boats.find(b=>b.id===info.actor.boatId && b.occupant===info.actor.id);
+      if(boat)Object.assign(boat,waiting);
+    }
     Object.assign(info.actor,{docking:false,sailTarget:null,sailRoute:null});
     info.input=ZERO;
     if(Date.now()-(info.karmaNoticeAt??-Infinity)>3000){

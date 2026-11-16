@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {patchGeometry} from '../src/rendering/pixi/sphere-mesh.js';
 import {destinationsFor,canSail,landingSpot,BOAT_RADIUS,harborOf} from '../src/gameplay/islands.js';
 import {mapPoint} from '../src/world/sphere-coordinates.js';
+import {wrapSea} from '../src/world/flat-layout.js';
 import {unplaceRigid} from '../src/world/rigid.js';
 import {isletClearance} from '../src/world/islets.js';
 import {WORLD_ISLANDS} from '../src/world/world-map.js';
@@ -20,8 +21,8 @@ test('a neighbour\'s dock target is on its drawn jetty',()=>{
  let worstOld=0;
  for(const [from,to,d]of PAIRS){
   const D=drawn(from,to),h=harborOf(to),water=D(h.water),land=D(h.land);
-  assert.ok(Math.hypot(d.dock.x-water.x,d.dock.y-water.y)<3,`${from}->${to} dock on the drawn jetty`);
-  assert.ok(Math.hypot(d.land.x-land.x,d.land.y-land.y)<3,`${from}->${to} landing on the drawn deck`);
+  assert.ok(Math.hypot(wrapSea(d.dock.x-water.x),d.dock.y-water.y)<3,`${from}->${to} dock on the drawn jetty`);
+  assert.ok(Math.hypot(wrapSea(d.land.x-land.x),d.land.y-land.y)<3,`${from}->${to} landing on the drawn deck`);
   const old=mapPoint(to,from,h.water);worstOld=Math.max(worstOld,Math.hypot(old.x-water.x,old.y-water.y));
  }
  console.log(`# the old warped dock missed the drawn jetty by up to ${worstOld.toFixed(0)} units`);
