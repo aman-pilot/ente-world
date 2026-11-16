@@ -11,6 +11,7 @@ import IslandTravel from './IslandTravel.jsx';
 import IslandStargaze from './IslandStargaze.jsx';
 import IslandProfile from './IslandProfile.jsx';
 import IslandCamera from './IslandCamera.jsx';
+import IslandMusic from './IslandMusic.jsx';
 import WorldMap from './WorldMap.jsx';
 import BogEntry from '../features/bog-combat/BogEntry.jsx';
 import {BOG_COMBAT} from '../features/bog-combat/config.js';
@@ -188,6 +189,7 @@ export default function PixiPage({signedInEntry = false}) {
   <main ref={page} inert={connecting} className={`pixi-page${watchOnly ? ' pixi-page--watch' : ''}`}>
     <div className="pixi-host" ref={host}/>
     <img className="pixi-ente-logo" src="/ente-wordmark-white.svg" alt="Ente" width="844" height="264"/>
+    {!error && <IslandMusic island={island}/>}
     <div className="pixi-chat-layer">
       <div ref={nameLayer}/>
       <div ref={chatLayer} aria-live="polite" aria-relevant="additions text"/>
