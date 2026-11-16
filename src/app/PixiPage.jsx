@@ -63,7 +63,9 @@ export default function PixiPage({signedInEntry = false}) {
   const params = new URLSearchParams(location.search);
   const offline = params.has('offline') || (import.meta.env.DEV && params.get('dev') === '1');
   // back from GitHub: the intro's clouds cover the island until it is drawn, then a name tag, then the star box
-  const [arriving] = useState(() => arrivalPending() || !!window.EWArrival?.guest);   // guests come in under the same cover
+  const [fromGitHub] = useState(arrivalPending);
+  // guests and signed-in reloads come in under the same cover (a reload has no name tag)
+  const [arriving] = useState(() => fromGitHub || !!window.EWArrival?.guest || signedInEntry);
   const [arrived, setArrived] = useState(() => !arriving);
   const [worldDrawn, setWorldDrawn] = useState(false);
 
@@ -182,7 +184,7 @@ export default function PixiPage({signedInEntry = false}) {
   const connecting = signedInEntry && !error && !worldDrawn && (waiting || !CENTRE.has(status));
   const centre = !connecting && !error && !offline && arrived && CENTRE.has(status);
   return <>
-  {connecting && <IslandConnecting/>}
+  {connecting && !arriving && <IslandConnecting/>}
   <main ref={page} inert={connecting} className={`pixi-page${watchOnly ? ' pixi-page--watch' : ''}`}>
     <div className="pixi-host" ref={host}/>
     <img className="pixi-ente-logo" src="/ente-wordmark-white.svg" alt="Ente" width="844" height="264"/>
@@ -237,7 +239,7 @@ export default function PixiPage({signedInEntry = false}) {
         {status === 'expired' && <a href="/auth/github/start" onClick={() => {try {sessionStorage.setItem('ew-arrive', '1');} catch {/* ignore */}}}>Sign in again</a>}
       </div>
     </div>}
-    {arriving && <ArrivalClouds drawn={worldDrawn || error} login={session?.user?.login} onDone={() => setArrived(true)}/>}
+    {arriving && <ArrivalClouds drawn={worldDrawn || error} login={fromGitHub ? session?.user?.login : null} message={!fromGitHub && !window.EWArrival?.guest ? 'Connecting to your island' : undefined} onDone={() => setArrived(true)}/>}
     {starRequired && starDialogOpen && arrived && !connecting && <StarDialog onClose={() => setStarDialogOpen(false)} onConfirm={() => {
       setSession(previous => ({...previous,user:{...previous.user,canPlay:true}}));
       setStarDialogOpen(false);

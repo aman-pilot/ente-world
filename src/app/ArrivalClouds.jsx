@@ -8,7 +8,7 @@ import {ARRIVE_KEY} from './arrival.js';
 // a solid bank: big plain-white clouds packed over a pale inside-the-cloud fill, so nothing shows through while it covers
 const CLOUDS = window.EWArrival?.clouds || [[1, 'l', -34], [2, 'r', -30], [3, 'l', 0], [4, 'r', 4], [5, 'l', 34], [6, 'r', 38], [7, 'b', 60], [8, 'b', 92]];
 
-export default function ArrivalClouds({drawn, login, onDone}) {
+export default function ArrivalClouds({drawn, login, message, onDone}) {
   const [phase, setPhase] = useState('cover');   // cover -> part (the tag pops as the clouds clear) -> gone
   const done = useRef(onDone); done.current = onDone;
   const name = useRef(login); name.current = login;
@@ -43,7 +43,7 @@ export default function ArrivalClouds({drawn, login, onDone}) {
     {CLOUDS.map(([art, side, y], i) => <img key={i} className="arrival-cloud" data-side={side} style={{'--y':`${y}vh`, '--i':i}}
       src={window.EWClouds?.url(art, true)} alt="" aria-hidden="true"/>)}
     {/* a still white cover read as a broken page; the clouds drift and the golden feather floats while the island loads */}
-    <div className="arrival-loader" role="status" aria-label="Loading your island" dangerouslySetInnerHTML={{__html:window.EWArrival?.loader?.(window.EWArrival.guest ? 'Flying to Home' : 'Landing on your island') || ''}}/>
+    <div className="arrival-loader" role="status" aria-label="Loading your island" dangerouslySetInnerHTML={{__html:window.EWArrival?.loader?.(message || (window.EWArrival.guest ? 'Flying to Home' : 'Landing on your island')) || ''}}/>
     {phase === 'part' && login && <div className="arrival-tag" role="status">
       <img className="arrival-avatar" src={`https://github.com/${encodeURIComponent(login)}.png?size=96`} width="48" height="48" alt=""/>
       Hi, <b>@{login}</b>
