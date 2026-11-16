@@ -12,15 +12,15 @@ export async function createPirateView(objects,fleet,{load=url=>Assets.load({src
   return{ship,root,sprite,wake,lastX:0,lastY:0,checkAt:0,clear:true,rings,nextRipple:0,flip:{flip:1,flipAge:0}};
  });
  return{entries,update(id,camera,t,dt,reduced,visible){
-  for(const e of entries){const {ship,root,sprite,wake}=e,p=pirateLocal(id,ship.p);root.visible=fleet.enabled&&visible(p.x,p.y,700);if(!root.visible)continue;
+  for(const e of entries){const {ship,root,sprite,wake}=e,p=pirateLocal(id,ship.p,camera);root.visible=fleet.enabled&&visible(p.x,p.y,700);if(!root.visible)continue;
    if(t>e.checkAt){e.checkAt=t+.25;e.clear=canSail(p.x,p.y,id,330);}root.visible=e.clear;if(!e.clear)continue;
-   const motion=pirateMotion(ship,fleet.time,reduced),ahead=pirateLocal(id,ship.p.map((v,k)=>v+ship.dir[k]*.001)),horizontal=(ahead.x-p.x)/(Math.hypot(ahead.x-p.x,ahead.y-p.y)||1);
+   const motion=pirateMotion(ship,fleet.time,reduced),ahead=pirateLocal(id,ship.p.map((v,k)=>v+ship.dir[k]*.001),p),horizontal=(ahead.x-p.x)/(Math.hypot(ahead.x-p.x,ahead.y-p.y)||1);
    const flip=pirateFacing(e.flip,horizontal,dt);root.position.set(p.x,p.y);root.zIndex=p.y+2;
    root.rotation=-Math.atan2(camera.basis?.b??0,camera.basis?.a??1);
    sprite.scale.x=Math.abs(sprite.scale.x)*flip;sprite.y=motion.bob;sprite.rotation=motion.roll;
    wake.scale.x=flip*2;wake.scale.y=(.85+Math.sin(t*1.3+ship.phase)*.1)*2;wake.alpha=reduced?.35:.4+Math.sin(t*1.5+ship.phase)*.12;
    if(!reduced&&t>e.nextRipple&&ship.velocity>4){e.nextRipple=t+.55;const r=e.rings.reduce((a,b)=>a.at<b.at?a:b);r.p=[...ship.p];r.at=t;}
-   for(const r of e.rings){const age=t-r.at;r.g.visible=!reduced&&age<2.2&&age>=0&&Boolean(r.p);if(!r.g.visible)continue;const old=pirateLocal(id,r.p),size=80+age*45;r.g.position.set(old.x-p.x,old.y-p.y);r.g.scale.set(size);r.g.alpha=(1-age/2.2)*.45;}
+   for(const r of e.rings){const age=t-r.at;r.g.visible=!reduced&&age<2.2&&age>=0&&Boolean(r.p);if(!r.g.visible)continue;const old=pirateLocal(id,r.p,p),size=80+age*45;r.g.position.set(old.x-p.x,old.y-p.y);r.g.scale.set(size);r.g.alpha=(1-age/2.2)*.45;}
   }
  },destroy(){for(const e of entries)e.root.destroy({children:true});}};
 }

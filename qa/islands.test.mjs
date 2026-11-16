@@ -3,7 +3,7 @@ import {mapPoint} from '../src/world/sphere-coordinates.js';
 import {nonNeighbourLanding} from './non-neighbour-fixture.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {ISLANDS,HARBOR,harborOf,SEA_BOUNDS,offshoreProgress,createBoats,canSail,canDock,sailStep,setSailDestination,crossIsland,destinationsFor,boatSpots,boardingPoint,landingSpot,landingApproach,fillMoorings,retireBoat,boatHome,boatSlot,MOORING_CLEAR,SAIL_SPEED} from '../src/gameplay/islands.js';
+import {ISLANDS,HARBOR,harborOf,SEA_BOUNDS,offshoreProgress,createBoats,applySeaCurrent,canSail,canDock,sailStep,setSailDestination,crossIsland,destinationsFor,boatSpots,boardingPoint,landingSpot,landingApproach,fillMoorings,retireBoat,boatHome,boatSlot,MOORING_CLEAR,SAIL_SPEED} from '../src/gameplay/islands.js';
 
 import {createNavigation} from '../src/world/navigation.js';
 import {offsetOf} from '../src/world/world-map.js';
@@ -31,7 +31,7 @@ test('Home and six themed islands retain moorings, ring routes and safe harbor p
   assert.equal(canSail(4140,1520),true);
   assert.equal(canSail(1640,2630),true);
   assert.equal(canSail(-1600,-1200),true);
-  assert.equal(canSail(SEA_BOUNDS.x0-1,0),false);
+  assert.equal(canSail(SEA_BOUNDS.x0-1,0),canSail(SEA_BOUNDS.x0-1+80000,0));
   for (const island of destinationsFor('home')) {const m=mapOf(island.destination),at=mapPoint(island.destination,'home',m.spawn); assert.equal(canSail(at.x,at.y),false,'a neighbour spawn is real land');}
   assert.equal(canSail(NaN,200),false);
   assert.equal(canDock(sailor()),true);
@@ -98,11 +98,12 @@ test('a tapped neighbour is reached by sailing round the coasts', () => {
     let distance=0,at=a;
     for(const point of route){distance+=Math.hypot(point.x-at.x,point.y-at.y);at=point;}
     const maxSteps=Math.ceil(distance/(SAIL_SPEED*.05))+route.length;
-    for (let i=0;i<maxSteps && a.sailTarget;i++) {assert.ok(canSail(a.x,a.y)); sailStep(a,.05,ZERO);}
+    for (let i=0;i<maxSteps && a.sailTarget;i++) {assert.ok(canSail(a.x,a.y)); sailStep(a,.05,ZERO);if(applySeaCurrent(a))break;}
     assert.equal(a.sailTarget,null,'the planned voyage finishes');
-    assert.ok(Math.hypot(a.x-destination.dock.x,a.y-destination.dock.y)<1,'arrived at the named jetty');
-    assert.ok(canSail(a.x,a.y),'arrival remains in open water');
-    assert.equal(crossIsland(a),true);
+    const arrived=a.islandId===destination.destination?harborOf(a.islandId).water:destination.dock;
+    assert.ok(Math.hypot(a.x-arrived.x,a.y-arrived.y)<1,'arrived at the named jetty');
+    assert.ok(canSail(a.x,a.y,a.islandId),'arrival remains in open water');
+    if(a.islandId!==destination.destination)assert.equal(crossIsland(a),true);
     assert.equal(a.islandId,destination.destination);
   }
 });
@@ -120,6 +121,7 @@ test('clouds build offshore before destination islands are reached', () => {
     const maxSteps=Math.ceil(distance/(SAIL_SPEED*.05))+route.length;
     for (let i=0;i<maxSteps && a.sailTarget;i++) {
       sailStep(a,.05,ZERO);
+      if(applySeaCurrent(a))break;
       assert.ok(canSail(a.x,a.y,'home'),'the complete voyage stays in open water');
       clouds ||= offshoreProgress(a)>0;
       if (crossIsland(a)) break;
@@ -135,7 +137,7 @@ test('any boat can be boarded from nearby sand, and you can land on any shore yo
     assert.ok(Math.hypot(deck.x-boat.x,deck.y-boat.y)>40 && Math.hypot(deck.x-boat.x,deck.y-boat.y)<300,boat.id);
   }
   assert.ok(landingSpot({islandId:'home',...HARBOR.water}),'the harbor shore is in reach');
-  const openSea={islandId:'home',x:-8000,y:0};
+  const openSea={islandId:'home',x:-8000,y:16000};
   assert.ok(canSail(openSea.x,openSea.y,openSea.islandId),'fixture is open navigable water');
   assert.equal(landingSpot(openSea),null,'open sea: nothing to land on');
   const there=landingSpot({islandId:'home',...destinationsFor('home')[0].dock});

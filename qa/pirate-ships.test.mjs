@@ -47,5 +47,11 @@ test('Pixi water motion reuses four ripple rings per ship, is non-interactive an
  const p=pirateLocal('home',fleet.ships[0].p),rings=view.entries.flatMap(e=>e.rings.map(r=>r.g));fleet.ships[0].velocity=20;
  for(let k=0;k<100;k++)view.update('home',{...p},k/30,1/30,false,(x,y)=>Math.hypot(x-p.x,y-p.y)<1000);
  assert.equal(view.entries[0].root.eventMode,'none');assert.ok(view.entries[0].root.visible);assert.equal(rings.length,72);assert.deepEqual(view.entries.flatMap(e=>e.rings.map(r=>r.g)),rings);assert.ok(view.entries[0].rings.some(r=>r.g.visible));
+ for(const winding of [-2,2]){
+  const camera={...p,x:p.x+winding*80000};
+  view.update('home',camera,3.5,.016,false,(x,y)=>Math.hypot(x-camera.x,y-camera.y)<1000);
+  assert.ok(view.entries[0].root.visible);assert.ok(Math.abs(view.entries[0].root.x-camera.x)<1e-7);
+  const boat=pirateBoatPoint({islandId:'home',...camera},'home');assert.ok(Math.abs(boat[0]-p.x)<1e-7);
+ }
  fleet.enabled=false;view.update('home',p,4,.016,false,()=>true);assert.ok(view.entries.every(e=>!e.root.visible));view.destroy();assert.equal(objects.children.length,0);objects.destroy();
 });

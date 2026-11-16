@@ -1,3 +1,4 @@
+import {wrapSea} from '../src/world/flat-layout.js';
 import {planIslandArt as mainArtPlan,mainWalkingZoomCeiling} from '../scripts/ground-mesh/main-art-plan.mjs';
 import {groundTiles} from '../scripts/ground-mesh/build.mjs';
 import {WORLD_ISLANDS,offsetOf} from '../src/world/world-map.js';
@@ -155,11 +156,11 @@ test('lifting the loading clamp restores main zoom even beyond the detail texel 
 test('prefetch nearest order follows the actual sailing chart rather than globe anchors',async()=>{
  const idle=[],seen=[];
  const prefetch=createIslandPrefetch({islands:WORLD_ISLANDS,idle:fn=>idle.push(fn),
-  distance:(a,b)=>{const p=offsetOf(a.id,b.id);return p.x*p.x+p.y*p.y;},
+  distance:(a,b)=>{const p=offsetOf(a.id,b.id);return wrapSea(p.x)**2+p.y*p.y;},
   getIndex:async()=>({}),selectTier:(_data,id)=>({webp:[id]}),fetchBytes:async url=>{seen.push(url);}});
  prefetch.resume('isle-251');
  while(idle.length){idle.shift()();await flush();}
- assert.deepEqual(new Set(seen.slice(0,3)),new Set(['blossom','isle-249','home']));
+ assert.deepEqual(new Set(seen.slice(0,3)),new Set(['blossom','sunset','home']));
  assert(seen.indexOf('sunset')<seen.indexOf('isle-55'),'flat chart puts Rosybutton before Iceland from Pagepond');prefetch.destroy();
 });
 

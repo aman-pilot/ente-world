@@ -1,3 +1,5 @@
+import {seaViewPose} from '../src/world/sea-view.js';
+import {SEA_VERSION,FLAT_ISLETS} from '../src/world/flat-layout.js';
 import {unplaceRigid} from '../src/world/rigid.js';
 import {reframeIslet} from '../src/world/islet-placement.js';
 import {ISLETS} from '../src/world/islets.js';
@@ -8,7 +10,7 @@ import {LiveBogRoom} from './bog-room.js';
 import {DURATIONS, playEmote, playSailEmote, SAIL_EMOTES, startJump, separateActors, setWalkDestination, walkStep, atMuseumDoor} from '../src/gameplay/player-motion.js';
 import {chatText} from '../src/multiplayer/chat.js';
 import {FRIEND_RADIUS} from '../src/multiplayer/friends.js';
-import {islandFor, destinationsFor, harborOf, boatSpots, boatRoom, freeBoatPosition, createBoats, near, canSail, setSailDestination, sailStep, crossIsland, boardingPoint, dockingSpot, HARBOR_ONLY, landingApproach, fillMoorings, retireBoat, navOf, canWalkTo} from '../src/gameplay/islands.js';
+import {applySeaCurrent, migrateSeaPosition, islandFor, destinationsFor, harborOf, boatSpots, boatRoom, freeBoatPosition, createBoats, near, canSail, setSailDestination, sailStep, crossIsland, boardingPoint, dockingSpot, HARBOR_ONLY, landingApproach, fillMoorings, retireBoat, navOf, canWalkTo} from '../src/gameplay/islands.js';
 import {randomOutfit, validOutfit} from '../src/gameplay/outfits.js';
 import {pickWorldSpawn} from '../src/gameplay/world-spawn.js';
 import {BUILD_COOLDOWN, buildSpot, strandedIslet} from '../src/gameplay/boat-build.js';
@@ -32,6 +34,8 @@ function publicPose(actor) {
   return {id,x,y,turn,travel,action,emoteVersion,outfit,jumpLeft,islandId,mode,boatId,exitLocked,karma:actor.karma??0,
     ice:mode==='walking'?actor.ice??null:null,reducedMotion:actor.reducedMotion===true};
 }
+// Persist the chart version privately; wire poses keep their existing public shape.
+const savedPose=actor=>({...publicPose(actor),seaVersion:actor.seaVersion??SEA_VERSION});
 // a built boat's owner is an account id: clients only learn which boats are theirs (from their own self block)
 function wireBoat({owner, ...boat}) {
   return owner ? {...boat, built:true} : boat;
@@ -49,6 +53,7 @@ function recoverIsland(actor) {
     Object.assign(actor,{islandId:'home',mode:'walking',boatId:null,x,y,turn:0,path:[],
       sailTarget:null,sailRoute:null,docking:false,exitLocked:false,heading:null,pace:0});
   }
+  if(actor)migrateSeaPosition(actor);
   return actor;
 }
 const islandCounts = connections => {
@@ -121,6 +126,13 @@ export class IslandRoom {
     this.sql.exec('CREATE TABLE IF NOT EXISTS boat_states (id TEXT PRIMARY KEY, state TEXT NOT NULL)');
     const rows = this.sql.exec('SELECT id,state FROM boat_states').toArray();
     const boats = saved ? JSON.parse(saved.state) : rows.length ? rows.map(row => JSON.parse(row.state)) : createBoats();
+    for(const boat of boats) {
+      if(boat.seaVersion!==SEA_VERSION && islandFor(boat.islandId) && (boat.occupant||boat.parked)) {
+        const pose={...boat,mode:'sailing'};migrateSeaPosition(pose);Object.assign(boat,{x:pose.x,y:pose.y});
+        if(boat.landing){const landing={...boat.landing,islandId:boat.islandId,mode:'walking'};migrateSeaPosition(landing);boat.landing=near(pose,landing,420)?{x:landing.x,y:landing.y}:null;}
+      }
+      boat.seaVersion=SEA_VERSION;
+    }
     this.boats = boats.filter(boat => boat?.parked !== true || boat.occupant ||
       (islandFor(boat.islandId) && canSail(boat.x,boat.y,boat.islandId)));
     this.savedBoatRows = new Map(saved ? [] : rows.map(row => [row.id, row.state]));
@@ -135,7 +147,8 @@ export class IslandRoom {
       const login = info.login ?? (actor ? this.session(info.digest)?.login : null);
       const restored = {...info, actor, islandId:actor?.islandId ?? (islandFor(info.islandId) ? info.islandId : 'home'), login, input:ZERO, inputExpires:0, tokens:30, tokenTime:Date.now()};
       this.connections.set(socket, restored);
-      if (this.recoverSailingPosition(actor)) this.attach(socket, restored);
+      this.recoverSailingPosition(actor);
+      this.attach(socket, restored);
     }
     this.reconcileBoats();
     this.karma=new RoomKarma(this);
@@ -149,6 +162,7 @@ export class IslandRoom {
   navFor(islandId='home') { return navOf(islandId); }
 
   saveBoats() {
+    for(const boat of this.boats)boat.seaVersion=SEA_VERSION;
     const next = new Map(this.boats.map(boat => [String(boat.id), JSON.stringify(boat)]));
     const save = () => {
       for (const [id, state] of next) if (this.savedBoatRows.get(id) !== state) {
@@ -184,14 +198,18 @@ export class IslandRoom {
   recoverSailingPosition(actor) {
     if (actor?.mode !== 'sailing') return false;
     const boat = this.boats.find(boat => boat.id === actor.boatId && boat.occupant === actor.id);
-    if (!boat || (canSail(actor.x,actor.y,actor.islandId) && boatRoom(actor,this.boats))) return false;
+    if(!boat)return false;
+    if(canSail(actor.x,actor.y,actor.islandId) && boatRoom(actor,this.boats)) {
+      if(boat.x!==actor.x||boat.y!==actor.y||boat.islandId!==actor.islandId){Object.assign(boat,{x:actor.x,y:actor.y,islandId:actor.islandId,seaVersion:SEA_VERSION});return true;}
+      return false;
+    }
     const reserved=[...this.boats,...boatSpots(actor.islandId).map((p,i)=>({...p,islandId:actor.islandId,id:`reserved-${i}`}))];
     const position=freeBoatPosition(actor,reserved,520) ??
       freeBoatPosition({...actor,...harborOf(actor.islandId).water},reserved,4160);
     if (!position) return false;
     const {x, y} = position, docking=actor.docking && near(position,harborOf(actor.islandId).water,650);
-    Object.assign(actor, {x, y, travel:0, sailTarget:null, sailRoute:null, docking:Boolean(docking), dockTarget:docking?position:null, exitLocked:false});
-    Object.assign(boat, {x, y, islandId:actor.islandId});
+    Object.assign(actor, {x, y, travel:0, sailTarget:null, sailRoute:null, docking:Boolean(docking), dockTarget:docking?position:null, exitLocked:false,seaVersion:SEA_VERSION});
+    Object.assign(boat, {x, y, islandId:actor.islandId,seaVersion:SEA_VERSION});
     return true;
   }
 
@@ -402,7 +420,7 @@ export class IslandRoom {
   saveLocation(account, actor) {
     const {islandId, x, y, turn, mode} = actor;
     this.sql.exec('INSERT OR REPLACE INTO last_locations VALUES(?,?)',
-      account, JSON.stringify({islandId, x, y, turn, mode}));
+      account, JSON.stringify({islandId, x, y, turn, mode,seaVersion:SEA_VERSION}));
   }
 
   standable({islandId = 'home', x, y}) {
@@ -509,7 +527,7 @@ export class IslandRoom {
 
   attach(socket, info) {
     const {actor,account,digest,expires,login,ack,lastDestination,lastEmote,tokens,tokenTime,islandId,deltas} = info;
-    socket.serializeAttachment({actor:actor ? publicPose(actor) : null, account,digest,expires,login,ack,lastDestination,lastEmote,tokens,tokenTime,islandId,deltas});
+    socket.serializeAttachment({actor:actor ? savedPose(actor) : null, account,digest,expires,login,ack,lastDestination,lastEmote,tokens,tokenTime,islandId,deltas});
   }
 
   send(socket, message) {
@@ -535,12 +553,23 @@ export class IslandRoom {
     const shared = new Map(), empty = {guests:[], named:[]};
     const text = (islandId, named, info) => {
       const combatSelf=!!info.actor&&combatAccounts.has(info.account);
-      const key = `${named ? 1 : 0}|${islandId}${combatSelf?'|'+info.account:''}`;
+      // Main-island walkers share a canonical packet, including wrapped sailors.
+      // Islet visitors and sailors need the periodic image around their position.
+      const actor=info.actor,m=mapOf(islandId);
+      const onIslet=actor&&ISLETS.some(i=>{if(i.home!==actor.islandId)return false;const p=FLAT_ISLETS[i.id];return near(actor,{x:m.cx+p.x,y:m.cy+p.y},i.radius+200);});
+      const chartViewer=actor&&(actor.mode==='sailing'||onIslet)?actor:null;
+      const localViewer={islandId,x:m.cx,y:m.cy};
+      const key = `${named ? 1 : 0}|${islandId}${chartViewer?'|sea:'+chartViewer.id:''}${combatSelf?'|'+info.account:''}`;
       if (!shared.has(key)) {
         const group = groups.get(islandId) ?? empty;
-        const poses=named?group.named:group.guests;
+        let poses=named?group.named:group.guests;
+        if(chartViewer) {
+          poses=[...groups.values()].flatMap(g=>named?g.named:g.guests).map(p=>seaViewPose(info.actor,p,p.islandId===islandId?Infinity:8000))
+            .filter(p=>p && (p.islandId===islandId || info.actor.mode==='sailing' || p.mode==='sailing'));
+        } else if(localViewer)poses=poses.map(p=>seaViewPose(localViewer,p));
+        const visibleBoats=chartViewer?this.boats.map(b=>seaViewPose(info.actor,b,b.islandId===islandId?Infinity:8000)).filter(Boolean):this.boats.filter(b=>b.islandId===islandId).map(b=>localViewer?seaViewPose(localViewer,b):b);
         const players=combatSelf?[...poses,{...wirePose(info.actor),...(named?{login:info.login,accountId:info.account}:{})}]:poses;
-        shared.set(key, `{"type":"snapshot","epoch":${JSON.stringify(this.epoch)},"tick":${tick},"online":${online},"islandId":${JSON.stringify(islandId)},"boats":${JSON.stringify(this.boats.filter(boat => boat.islandId === islandId).map(wireBoat))},"players":${JSON.stringify(players)},"self":`);
+        shared.set(key, `{"type":"snapshot","epoch":${JSON.stringify(this.epoch)},"tick":${tick},"online":${online},"islandId":${JSON.stringify(islandId)},"boats":${JSON.stringify(visibleBoats.map(wireBoat))},"players":${JSON.stringify(players)},"self":`);
       }
       return shared.get(key);
     };
@@ -810,7 +839,12 @@ export class IslandRoom {
       if (now >= info.inputExpires) info.input = ZERO;
       if (actor.mode === 'sailing') {
         this.recoverSailingPosition(actor);
+        const beforeCurrent=actor.islandId;
         sailStep(actor,.05,info.input,now/1000,this.boats);
+        if(applySeaCurrent(actor,roomOn,this.boats)) {
+          counts.set(beforeCurrent,(counts.get(beforeCurrent)??1)-1);counts.set(actor.islandId,(counts.get(actor.islandId)??0)+1);
+          info.islandId=actor.islandId;info.landing=null;info.boarding=null;info.input=ZERO;info.inputExpires=0;
+        } else if(actor.seaCurrent)full(socket,info);
         const boat=this.boats.find(boat => boat.id === actor.boatId && boat.occupant === actor.id);
         if (!boat) info.landing=null;
         if (boat) {
@@ -826,7 +860,8 @@ export class IslandRoom {
             if (spot.islandId !== actor.islandId && !roomOn(spot.islandId)) {full(socket,info); actor.sailTarget=null; actor.sailRoute=null;}
             else {
             if(!spot.islet&&!this.chargeBogLanding(socket,info,spot.islandId))continue;
-            if (spot.islandId !== actor.islandId) {counts.set(actor.islandId,(counts.get(actor.islandId) ?? 1)-1); counts.set(spot.islandId,(counts.get(spot.islandId) ?? 0)+1); Object.assign(actor,spot.islet?reframeIslet(actor.islandId,spot.islandId,ISLETS.find(i=>i.id===spot.islet),actor):unplaceRigid(actor.islandId,spot.islandId,actor)); actor.islandId=spot.islandId; info.islandId=spot.islandId;}
+            if (spot.islandId !== actor.islandId) {counts.set(actor.islandId,(counts.get(actor.islandId) ?? 1)-1); counts.set(spot.islandId,(counts.get(spot.islandId) ?? 0)+1);}
+            Object.assign(actor,spot.islet?reframeIslet(actor.islandId,spot.islandId,ISLETS.find(i=>i.id===spot.islet),actor):unplaceRigid(actor.islandId,spot.islandId,actor)); actor.islandId=spot.islandId; info.islandId=spot.islandId;
             Object.assign(boat,{x:actor.x,y:actor.y,islandId:actor.islandId});
             this.parkBoat(boat,spot);
             Object.assign(actor,{x:spot.x,y:spot.y,mode:'walking',boatId:null,path:[],travel:0,pace:0,heading:null,docking:false,sailTarget:null,sailRoute:null});
@@ -834,6 +869,7 @@ export class IslandRoom {
             }
           } else if (actor.docking && near(actor,actor.dockTarget??harborOf(actor.islandId).water,12)) {
             if (!this.allowLanding(socket,info,actor.islandId)||!this.chargeBogLanding(socket,info,actor.islandId)) continue;
+            Object.assign(boat,unplaceRigid(actor.islandId,actor.islandId,boat));
             this.parkBoat(boat);
             Object.assign(actor,{...harborOf(actor.islandId).land,mode:'walking',boatId:null,path:[],travel:0,pace:0,heading:null,docking:false,sailTarget:null});
             info.input=ZERO;
@@ -893,7 +929,7 @@ export class IslandRoom {
       const now = Date.now();
       if (this.session(info.digest,now)) {
         this.sql.exec('INSERT OR REPLACE INTO resumes VALUES(?,?,?)',
-          info.account, JSON.stringify(publicPose(info.actor)), now+RESUME_MS);
+          info.account, JSON.stringify(savedPose(info.actor)), now+RESUME_MS);
       }
     }
     if (info.actor && !this.session(info.digest)) this.releaseBoat(info.actor.id);

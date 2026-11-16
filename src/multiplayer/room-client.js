@@ -1,3 +1,4 @@
+import {nearestSeaX} from '../world/flat-layout.js';
 import {takeArrivalSocket} from '../app/arrival-start.js';
 import {DURATIONS, playEmote, playSailEmote, SAIL_EMOTES, startJump, setWalkDestination, walkStep} from '../gameplay/player-motion.js';
 import {CHAT_INTERVAL, chatText} from './chat.js';
@@ -18,6 +19,12 @@ function sample(track, now) {
   const turn = to.turn - from.turn;
   return {...to, jumpLeft:Math.max(0,(to.jumpLeft ?? 0)-(now-start)), x:from.x+(to.x-from.x)*blend, y:from.y+(to.y-from.y)*blend,
     turn:from.turn+Math.atan2(Math.sin(turn), Math.cos(turn))*blend};
+}
+
+// A nearest-image change must stay offscreen, rather than interpolate across a world.
+function periodicFrom(last,to,now){
+ const from=last?sample(last,now):to;
+ return {...from,x:nearestSeaX(from.x,to.x)};
 }
 
 export class RoomClient {
@@ -203,7 +210,7 @@ export class RoomClient {
     const boatTracks=new Map();
     for (const boat of boats) {
       const last=this.boatTracks.get(boat.id);
-      boatTracks.set(boat.id,{from:last?sample(last,now):boat,to:boat,start:now});
+      boatTracks.set(boat.id,{from:periodicFrom(last,boat,now),to:boat,start:now});
     }
     this.boatTracks=boatTracks;
     this.boats=boats;
@@ -225,7 +232,7 @@ export class RoomClient {
         } else this.prev = null;
       } else {
         const last = this.tracks.get(pose.id);
-        tracks.set(pose.id, {from:last ? sample(last, now) : pose, to:pose, start:now});
+        tracks.set(pose.id, {from:periodicFrom(last,pose,now), to:pose, start:now});
       }
     }
     this.tracks = tracks;

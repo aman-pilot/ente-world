@@ -120,6 +120,17 @@ test('production islet props sort with Duckies by their foot, preserve the compl
    }
    view.update(i.home,camera,1024,1024,true);
    assert.ok(view.transient().every(o=>!o.visible),'all ground and tall art disappear before globe scene capture');
+   // The same complete artwork and tall pieces stay centred after east/west laps.
+   for(const winding of [-1,1]){
+    const wrapped={...camera,x:camera.x+80000*winding};view.update(i.home,wrapped,1024,1024,false);
+    assert.ok(v.root.visible);assert.ok(Math.abs(v.root.x-wrapped.x)<1e-7);
+    for(const {piece,sprite}of v.props){
+     assert.ok(sprite.visible);assert.ok(Math.abs((sprite.x-wrapped.x)-(piece.foot[0]-512)*k)<1e-7);
+     assert.ok(Math.abs((sprite.y-wrapped.y)-(piece.foot[1]-512)*k)<1e-7);
+     assert.equal(sprite.zIndex,sprite.y);
+    }
+   }
+
   }
  }finally{view?.destroy();renderer.destroy();globalThis.fetch=oldFetch;dom.window.close();}
 });

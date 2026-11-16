@@ -1,3 +1,4 @@
+import {nearestSeaX} from '../../world/flat-layout.js';
 import {createArtQueue, preparationFrame} from './art/island-preparation.js';
 import {Container,Graphics,Matrix,RenderTexture} from 'pixi.js';
 import {ISLETS,ISLET_ART,ISLET_META,ISLET_VIEWBOX} from '../../world/islets.js';
@@ -59,18 +60,19 @@ export async function createIsletView(app,scene,objects){
   update(id,camera,width,height,onGlobe){
    layer.visible=!onGlobe;
    if(onGlobe){for(const v of views)for(const p of v.props)p.sprite.visible=false;return;}
-   if(from!==id){
-    from=id;
-    placed=views.map(({i,root,props})=>{const r=isletPlacement(id,i);
+   {
+    placed=views.map(({i,root,props},n)=>{const base=isletPlacement(id,i),r={...base,x:nearestSeaX(base.x,camera.x)};
+     if(from===id&&placed[n]?.x===r.x)return placed[n];
      const k=i.width/ISLET_VIEWBOX;
-     for(const {piece,sprite}of props){const p=placeIslet(id,i,[(piece.foot[0]-512)*k,(piece.foot[1]-512)*k]);
+     for(const {piece,sprite}of props){const p=placeIslet(id,i,[(piece.foot[0]-512)*k,(piece.foot[1]-512)*k],camera);
       sprite.position.set(p.x,p.y);sprite.zIndex=p.y;sprite.rotation=Math.atan2(r.sin,r.cos);
      }
      root.setFromMatrix(new Matrix(r.cos,r.sin,-r.sin,r.cos,r.x,r.y));return r;
     });
+    from=id;
    }
    const hw=width/(2*camera.zoom),hh=height/(2*camera.zoom);
-   for(const v of views){const {i}=v,p=isletPlacement(id,i);
+   for(const v of views){const {i}=v,p=placed[views.indexOf(v)];
     v.root.visible=Math.abs(p.x-camera.x)<hw+i.width&&Math.abs(p.y-camera.y)<hh+i.width;
     for(const prop of v.props)prop.sprite.visible=v.root.visible;
    }
