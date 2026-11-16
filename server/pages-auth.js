@@ -38,7 +38,7 @@ function redirect(to, cookies = []) {
 }
 
 function room(env) {
-  return env.ISLAND.get(env.ISLAND.idFromName('main-island'));
+  return env.ISLAND.get(env.ISLAND.idFromName(env.ISLAND_ROOM_NAME ?? 'main-island'));
 }
 
 function call(env, path, data) {
