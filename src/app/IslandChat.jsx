@@ -40,7 +40,7 @@ export default function IslandChat({room, island, editor}) {
       <path d="M20.5 11.5a7 7 0 0 1-7 7H9l-5.5 2v-4.7A7 7 0 0 1 9 4.5h4.5a7 7 0 0 1 7 7Z"/>
       <path d="M8.5 11.5h7"/>
     </svg>
-    <span>Chat</span>
+    <span>Chat</span>{' '}
     <kbd aria-hidden="true">C</kbd>
   </button>;
 
