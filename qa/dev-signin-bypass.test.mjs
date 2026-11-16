@@ -45,8 +45,12 @@ for (const {name,dev,query,offline,signInAvailable=true} of [
   assert.equal(document.querySelector('a[href="?offline"]'),null);
   if (offline) {
     assert.equal(document.querySelector('.pixi-live a[href="/"]').textContent,'Back to live');
+    assert.equal(document.querySelector('.pixi-guest-signin'),null);
   } else {
-    assert.equal(Boolean(document.querySelector('.pixi-live a[href="/auth/github/start"]')),signInAvailable);
+    assert.equal(document.querySelector('.pixi-live a[href="/auth/github/start"]'),null);
+    const signIn=document.querySelector('.pixi-guest-signin');
+    if (signInAvailable) assert.equal(signIn.getAttribute('href'),'/auth/github/start');
+    else assert.equal(signIn.disabled,true);
   }
   assert.equal(document.body.textContent.includes('Playing without sign-in'),offline);
   assert.equal(document.body.textContent.includes('Sign out'),false);
