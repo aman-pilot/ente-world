@@ -7,7 +7,7 @@ import {outlineLibraryProps,loadLibraryScene,librarySceneReady} from './prop-out
 import communitySleepers from '../../assets/world/themes/community/sleepers.json' with {type:'json'};
 import {outlineCommunityProps,loadCommunityScene,communitySceneReady} from './prop-outlines/community-scene.js';
 import pinkSleepers from '../../assets/world/themes/pink/sleepers.json' with {type:'json'};
-import {hasPropOutlines,propObstacles} from './prop-outlines/islands.js';
+import {hasPropOutlines,propObstacles,homeHouseBases} from './prop-outlines/islands.js';
 import {outlinePinkProps,loadPinkScene,pinkSceneReady} from './prop-outlines/pink-scene.js';
 import expansion from './home/home-expansion.json' with {type:'json'};
 import homeWorld from '../../assets/world/world.json' with {type: 'json'};
@@ -96,6 +96,7 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
       walk={...(walk??world),props,navigationCellSize:16,indexPropContours:true,obstacles:[...structures,...propObstacles(props)]};
     }
     walking = walk ?? world;
+    if (id === 'home' && walking.obstacles) walking = {...walking, obstacles: homeHouseBases(walking.obstacles)};
     const sources = [...(world.props ?? []), ...(id === 'home' ? [...homeWorld.props.map(p=>({...p,id:Number(p.artboard.replace('Prop ',''))})),...expansion.props] : [])];
     if (walking.obstacles) walking = {...walking, obstacles: walking.obstacles.filter(blockerFilter(sources))};
     baseWalk = {...world, ...walking, walkways: [...(walking.walkways ?? []), ...(addJetty ? [JETTY.walkway] : [])]};

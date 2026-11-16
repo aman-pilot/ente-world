@@ -29,7 +29,9 @@ test('five Home communities have distinct homes, meaningful workplaces and reach
  for(const c of E.communities){assert.ok(c.residents.length>15);assert.ok(c.homes.length>=(c.id==='reedwhistle'?2:3),c.id);assert.ok(c.workplaces.length>=2,c.id);
   for(const id of c.workplaces){const p=E.props.find(p=>p.id===id);assert.equal(p.zone,c.id);assert.equal(p.communityRole,'workplace');}
   for(const id of c.homes){const p=rendered.get(id);homes++;assert.equal(p.zone,c.id);assert.ok(HOME_MAP.landAt(p.x,p.y));
-   assert.ok(!nav.walkable(...p.footprint.poly[0]),'house base is solid');const door=p.door;assert.ok(nav.walkable(...door),`${c.name} ${id} door`);
+   const base=HOME_MAP.walk.obstacles.find(o=>o.prop===id&&!o.bodyBlock);
+   const bottom=base.poly.reduce((a,b)=>a[1]>b[1]?a:b);
+   assert.ok(!nav.walkable(...bottom),'house base is solid');const door=p.door;assert.ok(nav.walkable(...door),`${c.name} ${id} door`);
    assert.deepEqual(nav.route(HOME_MAP.spawn.x,HOME_MAP.spawn.y,...door).at(-1),door,`${c.name} ${id} doorstep route`);
   }
  }

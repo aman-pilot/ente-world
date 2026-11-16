@@ -10,8 +10,9 @@ import {cropSVG, RASTER_ART_BUDGET_BYTES, RASTER_ART_UTILIZATION} from '../src/r
 
 const report = await audit();
 const flush = () => new Promise(setImmediate);
-const counts = {home: [60, 9, 3261, 803, 11], sunflower: [72, 15, 423, 2148, 0],
-  pink: [176, 6, 1321, 999, 0], library: [104, 19, 3146, 1779, 3]};
+// Sunbob excludes the shrub removed in #117; Pagepond excludes the three Inkleaf stall props removed in #116.
+const counts = {home: [60, 9, 3261, 803, 11], sunflower: [72, 15, 423, 2147, 0],
+  pink: [176, 6, 1321, 999, 0], library: [104, 19, 3146, 1776, 3]};
 
 test('sharpness audit visits every live static layer, including generated Home decals and floating pads', () => {
   for (const island of report.islands) {
