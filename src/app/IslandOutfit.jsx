@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {Application} from 'pixi.js';
 import {createDuck, getDuckWardrobe} from '../rendering/pixi/duck.js';
+import {prepareTreePixels, releaseArtPixels} from '../rendering/pixi/art/pixel-residency.js';
 import {OUTFIT_OPTIONS, randomOutfit, sameOutfit} from '../gameplay/outfits.js';
 
 const outfitRows = {cap:'Hats', shades:'Glasses', shoes:'Shoes'};
@@ -18,10 +19,17 @@ export function OutfitGrid({wardrobe, slot, outfit, disabled, onChange}) {
   </div>;
 }
 
+async function previewPixels(app, duck) {
+  const sources = await prepareTreePixels(app.renderer, duck.root);
+  app.render();
+  for (const source of sources) releaseArtPixels(source);
+}
+
 function OutfitPreview({outfit, onBusy, onError}) {
   const host = useRef(null);
   const rig = useRef(null);
   const initial = useRef(outfit);
+  const pixi = useRef(null);
 
   useEffect(() => {
     const app = new Application();
@@ -40,7 +48,14 @@ function OutfitPreview({outfit, onBusy, onError}) {
         if (disposed) {duck.dispose(); return;}
         duck.root.scale.set(.95);
         duck.root.position.set(180,320);
+        // the game frees its copy of each picture once it is on the game's GPU; this preview has its own GPU,
+        // so it reloads those pictures (from the browser cache) before it draws them
+        app.ticker.stop();
         app.stage.addChild(duck.root);
+        await previewPixels(app, duck);
+        if (disposed) return;
+        app.ticker.start();
+        pixi.current = app;
         rig.current = duck;
         const reduced = matchMedia('(prefers-reduced-motion: reduce)');
         let elapsed = 0;
@@ -58,6 +73,7 @@ function OutfitPreview({outfit, onBusy, onError}) {
     return () => {
       disposed = true;
       rig.current = null;
+      pixi.current = null;
       duck?.dispose();
       if (initialized) app.destroy({removeView:true,releaseGlobalResources:false},{children:true});
     };
@@ -66,11 +82,13 @@ function OutfitPreview({outfit, onBusy, onError}) {
   useEffect(() => {
     if (!rig.current) return;
     let active = true;
+    const app = pixi.current, duck = rig.current;
     onBusy(true);
     onError('');
-    rig.current.setOutfit(outfit).catch(() => {
+    app?.ticker.stop();
+    duck.setOutfit(outfit).then(() => active && app && previewPixels(app, duck)).catch(() => {
       if (active) onError('This outfit could not load. Randomize to try another.');
-    }).finally(() => {if (active) onBusy(false);});
+    }).finally(() => {if (active) {app?.ticker.start(); onBusy(false);}});
     return () => {active = false;};
   }, [outfit,onBusy,onError]);
 
