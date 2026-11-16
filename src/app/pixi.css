@@ -148,7 +148,8 @@
   color: #332b23;
   font: 600 14px/1.35 system-ui, sans-serif;
 }
-.pixi-page:has(.bog-combat-dock, .bog-combat-hud) .pixi-camera { display: none; }
+.pixi-page:has(.bog-combat-dock, .bog-combat-hud) .pixi-camera,
+.pixi-page:has(.pixi-stargaze[open]) > .pixi-camera { display: none; }
 .pixi-polaroid button, .pixi-polaroid a {
   box-sizing: border-box;
   display: inline-flex;
@@ -547,6 +548,7 @@
 .pixi-stargaze-lens canvas { display: block; width: 100%; height: 100%; border-radius: 50%; touch-action: none; }
 .pixi-stargaze-tag { position: absolute; z-index: 1; box-sizing: border-box; transform: translate(-50%, -50%); max-width: min(260px, 70%); padding: 7px 12px; border: 1px solid #5a6242; border-radius: 12px; background: #fff0c7; color: #39472d; font: 600 14px/1.3 ui-rounded, "Trebuchet MS", system-ui, sans-serif; text-align: center; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 8px #07181826; }
 .pixi-stargaze-tag[hidden] { display: none; }
+button.pixi-stargaze-tag { overflow: hidden; text-overflow: ellipsis; }
 .pixi-stargaze-name { z-index: 2; pointer-events: none; cursor: inherit; white-space: normal; overflow-wrap: anywhere; }
 .pixi-stargaze-tag:hover { background: #ffe4a0; }
 .pixi-stargaze-close:focus-visible, .pixi-stargaze-tag:focus-visible { outline: 2px solid #fff0c7; outline-offset: 5px; }

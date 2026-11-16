@@ -100,7 +100,7 @@ function Polaroid({file, onClose}) {
   </dialog>;
 }
 
-export default function IslandCamera({island, ready, player}) {
+export default function IslandCamera({island, ready, player, capture}) {
   const button = useRef(null);
   const request = useRef(null);
   const [busy, setBusy] = useState(false);
@@ -111,13 +111,15 @@ export default function IslandCamera({island, ready, player}) {
 
   async function takePhoto() {
     if (!ready || !island.current || request.current || file) return;
-    const pending = island.current.capturePhoto({player});
+    const parentDialog = button.current.closest('dialog');
+    const pending = capture ? capture() : island.current.capturePhoto({player});
     request.current = pending;
     setBusy(true);
     setError('');
     try {
       const blob = await pending;
-      if (request.current !== pending || document.querySelector('dialog:modal, .bog-combat-dock')) return;
+      if (request.current !== pending || parentDialog?.open === false || document.querySelector('.bog-combat-dock')) return;
+      if (Array.from(document.querySelectorAll('dialog:modal')).some(dialog => dialog !== parentDialog)) return;
       island.current?.stopInput();
       setFile(new File([blob], `ente-world-${Date.now()}.png`, {type:'image/png'}));
     } catch {
