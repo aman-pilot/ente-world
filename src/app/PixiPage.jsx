@@ -184,9 +184,9 @@ export default function PixiPage() {
         takes over outfit, friends and sign out */}
     {!error && (() => {
       const message = notice || arrival || (offline ? 'Playing without sign-in' : centre ? '' : notices[status])
-        || (guest ? 'Sign in to explore and play' : starRequired ? notices['star-required'] : status === 'playing' ? '' : 'Watching live');
+        || (guest ? '' : starRequired ? notices['star-required'] : status === 'playing' ? '' : 'Watching live');
       const actions = offline || starRequired || (!centre && (retryLive || retryPlay)) || guest;
-      return (message || actions) && <aside className="pixi-live" aria-label="Live island">
+      return (message || actions) && <aside className={`pixi-live${guest && !message ? ' pixi-live--signin' : ''}`} aria-label="Live island">
         {message && <div role="status">{message}</div>}
         {offline && <a href={location.pathname}>Back to live</a>}
         {guest && (session.signInAvailable

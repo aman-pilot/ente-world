@@ -1,5 +1,14 @@
 import {Container,Graphics,Text} from 'pixi.js';
 import {PALETTE} from '../shared/palette.js';
+const QUACK_PAPER=0xffffff,QUACK_INK=0x332b23;
+const QUACK_FONT='Fredoka, "Arial Rounded MT Bold", Arial, sans-serif',QUACK_FONT_FALLBACK='"Arial Rounded MT Bold", Arial, sans-serif';
+// the Quack cloud pops with each head pop (duck.js quackSnap: .06 s and .32 s): a springy entrance, then a second kick
+export function quackPop(time){
+  const u=(time-.06)/.3,k=time-.32;
+  const enter=u<=0?.4:u>=1?1:1-Math.exp(-6*u)*Math.cos(u*9)*.6;
+  const kick=k>0&&k<.3?Math.sin(k/.3*Math.PI)*.1:0;
+  return enter+kick;
+}
 const durations={2:1.3,4:1.5,5:1.55,6:1.55,7:2.3,8:1.5,9:1.75};
 export function bubblePose(action,time,reduced=false){
   const duration=durations[action];
@@ -15,7 +24,18 @@ export function createDuckFeedback(isPlayer){
     .roundRect(-187,-190,375,234,87).fill(0xffffff).stroke({color:0x232323,width:8});bubble.addChild(card);
   const icons=new Map();
   const text=(value,size)=>{const node=new Text({text:value,style:{fontFamily:'Arial,sans-serif',fontWeight:'900',fontSize:size,fill:0x232323}});node.anchor.set(.5);return node;};
-  icons.set(2,text('QUACK!',70));
+  // Quack: a white cloud puff (the intro clouds) in the game's ink, with two thought dots trailing down to Ducky's head
+  const quack=new Container();
+  const puffs=[[-114,-15,76],[-8,-68,91],[114,-30,84],[68,61,68],[-61,68,68]],dots=[[-168,124,22],[-208,172,12]];
+  const cloud=new Graphics();
+  for(const [x,y,r] of [...puffs,...dots])cloud.circle(x,y,r).fill(QUACK_PAPER).stroke({color:QUACK_INK,width:9});
+  // cover the outlines where the puffs overlap, so only the cloud's outer edge is inked
+  for(const [x,y,r] of puffs)cloud.circle(x,y,r-4.5).fill(QUACK_PAPER);
+  cloud.rect(-114,-68,228,129).fill(QUACK_PAPER);
+  const word=new Text({text:'Quack',style:{fontFamily:QUACK_FONT_FALLBACK,fontWeight:'700',fontSize:92,fill:QUACK_INK,letterSpacing:1}});
+  word.anchor.set(.5);word.y=-2;
+  if(typeof document!=='undefined')document.fonts?.load?.('700 92px Fredoka').then(()=>{if(!word.destroyed)word.style.fontFamily=QUACK_FONT;}).catch(()=>{});
+  quack.addChild(cloud,word);icons.set(2,quack);
   const heart=new Graphics().moveTo(0,69).bezierCurveTo(-130,-18,-72,-110,0,-52).bezierCurveTo(72,-110,130,-18,0,69).fill(0xff669d).stroke({color:0x232323,width:8});
   heart.moveTo(-55,-30).quadraticCurveTo(-50,-49,-32,-49).stroke({color:0xffffff,width:7});icons.set(4,heart);
   const laugh=new Graphics().ellipse(-47,-27,9,13).ellipse(47,-27,9,13).fill(0x232323)
@@ -33,7 +53,8 @@ export function createDuckFeedback(isPlayer){
   for(const [action,icon]of icons){icon.label=`Bubble icon ${action}`;icon.y=-73;icon.visible=false;bubble.addChild(icon);}
   function update(action,time,reduced,persistentSleep=false){
     const pose=bubblePose(action,time,reduced);bubble.visible=pose.visible;bubble.alpha=pose.alpha;bubble.scale.set(pose.scale);bubble.y=-660+pose.y;
-    card.tint=action===8?0xffe8e5:0xffffff;for(const [value,icon]of icons)icon.visible=value===action;
+    card.tint=action===8?0xffe8e5:0xffffff;card.visible=action!==2;for(const [value,icon]of icons)icon.visible=value===action;
+    if(action===2&&pose.visible&&!reduced){bubble.scale.set(quackPop(time));quack.rotation=Math.sin(time*22)*Math.max(0,.6-time)*.05;}
     bubble.emoteAction=pose.visible?action:0;
     sleep.visible=persistentSleep&&action===7;
     if(sleep.visible){
