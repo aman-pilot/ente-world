@@ -31,10 +31,18 @@ export default function IslandChat({room, island, editor}) {
     island.current?.canvas?.focus({preventScroll:true});
   }
 
-  if (!open) return <button type="button" aria-keyshortcuts="C" onClick={() => {
+  if (!open) return <button type="button" aria-label="Chat" aria-keyshortcuts="C" onClick={() => {
     island.current?.stopInput();
     setOpen(true);
-  }}>Chat <kbd aria-hidden="true">C</kbd></button>;
+  }}>
+    <svg className="pixi-chat-icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.5 11.5a7 7 0 0 1-7 7H9l-5.5 2v-4.7A7 7 0 0 1 9 4.5h4.5a7 7 0 0 1 7 7Z"/>
+      <path d="M8.5 11.5h7"/>
+    </svg>
+    <span>Chat</span>{' '}
+    <kbd aria-hidden="true">C</kbd>
+  </button>;
 
   return <form className="pixi-chat" aria-label="Island chat" onSubmit={event => {
     event.preventDefault();

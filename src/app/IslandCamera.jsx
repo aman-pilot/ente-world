@@ -133,9 +133,10 @@ export default function IslandCamera({island, ready, player, capture}) {
   }
 
   return <div className="pixi-camera">
-    <button type="button" ref={button} aria-label="Take photo" title="Take photo"
+    <button type="button" ref={button} aria-label="Camera: take photo" title="Take photo"
       aria-busy={busy} aria-haspopup="dialog" disabled={!ready} onClick={takePhoto}>
       <CameraIcon/>
+      <span className="pixi-camera-label">Camera</span>
     </button>
     <div className="pixi-camera-error" role="status">{error}</div>
     {file && <Polaroid file={file} onClose={() => {setFile(null); button.current.focus();}}/>}

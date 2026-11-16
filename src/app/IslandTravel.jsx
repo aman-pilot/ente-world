@@ -5,6 +5,13 @@ import {MATERIAL_NAMES} from '../gameplay/boat-build.js';
 const actionLabel = options => options.take ? 'Take boat' : options.dock ? 'Dock'
   : options.build ? 'Build boat' : options.collect ? `Pick up ${MATERIAL_NAMES[options.collect]}` : null;
 
+const directions = [
+  {name: 'north', x: 0, y: -1},
+  {name: 'west', x: -1, y: 0},
+  {name: 'east', x: 1, y: 0},
+  {name: 'south', x: 0, y: 1},
+];
+
 export default function IslandTravel({travel,playing,room,island,notice}) {
   const sailing=playing && travel.mode==='sailing';
   const [options,setOptions]=useState({});
@@ -28,12 +35,14 @@ export default function IslandTravel({travel,playing,room,island,notice}) {
     {actionLabel(options) && <button className="pixi-travel-action" onClick={() => island.current?.travelAction()}>
       {actionLabel(options)} <kbd>Enter</kbd>
     </button>}
-    {sailing && touch && <div className="pixi-steering" aria-label="Boat steering">
-      {[[0,-1,'↑','North'],[-1,0,'←','West'],[0,1,'↓','South'],[1,0,'→','East']].map(([x,y,arrow,name]) =>
-        <button key={name} aria-label={`Steer ${name.toLowerCase()}`} onPointerDown={event => steer(event,x,y)}
+    {sailing && touch && <div className="pixi-steering" role="group" aria-label="Boat steering">
+      <span className="pixi-steering-compass" aria-hidden="true"/>
+      {directions.map(({name,x,y}) =>
+        <button key={name} type="button" data-direction={name} aria-label={`Steer ${name}`}
+          onPointerDown={event => steer(event,x,y)}
           onPointerUp={stop} onPointerCancel={stop} onLostPointerCapture={stop}
           onKeyDown={event => {if ([' ','Enter'].includes(event.key)) {event.preventDefault(); if (island.current) island.current.touchInput={x,y};}}}
-          onKeyUp={stop} onBlur={stop}>{arrow}</button>)}
+          onKeyUp={stop} onBlur={stop}/>)}
     </div>}
   </>;
 }
