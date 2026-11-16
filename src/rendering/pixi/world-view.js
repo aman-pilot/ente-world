@@ -347,6 +347,7 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
       finally {mesh.visible = false;}
     },
     pinIn: 0,
+    tagsOut: 0,
     // Set by the engine: the globe opens only from the globe button.
     globeWanted: true,
     update(t, width, height, time, cam, arch, worldSize, floorZoom, idle, me, reduced=false) {
@@ -363,7 +364,7 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
         shader.resources.uWorld = worldTex.source;
         if (old) setTimeout(() => old.destroy(true), 0);
       }
-      if (!on) {if(worldTex&&time-lastGlobeTime>3){shader.resources.uWorld=blank.source;worldTex.destroy(true);worldTex=null;worldVersion=-1;}scene.visible=true;life.visible=pin.visible=bogPin.visible=false;this.pinIn=0;this.worldAt=null;return;}
+      if (!on) {if(worldTex&&time-lastGlobeTime>3){shader.resources.uWorld=blank.source;worldTex.destroy(true);worldTex=null;worldVersion=-1;}scene.visible=true;life.visible=pin.visible=bogPin.visible=false;this.pinIn=this.tagsOut=0;this.worldAt=null;return;}
       if (width !== w || height !== h) {w = width; h = height; rt.resize(w, h); mesh.scale.set(w, h); shader.resources.uScene = rt.source;}
       const live=t < .97 && cam.zoom > .065;
       if (live) {scene.visible = true; app.renderer.render({container: scene, target: rt, clear: true}); this.liveCopies?.(rt);}
@@ -490,7 +491,9 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
           }
         }
       } else ripples.length = 0;
-      this.pinIn = me ? ease((t - .12) / .15) : 0;
+      // Island name tags leave as the globe arrives, with or without your own pin (guests have none).
+      this.tagsOut = ease((t - .12) / .15);
+      this.pinIn = me ? this.tagsOut : 0;
       if (me) {
         const point=me.mode==='sailing'?seaPoint(id,me):spherePoint(id,me),p=project(me.x,me.y,point);
         this.seaPin={...lonLat(point),heading:me.turn??0};
