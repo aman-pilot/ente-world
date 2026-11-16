@@ -49,7 +49,7 @@ export default function IslandStargaze({island, playing, offline = false}) {
     const id = setInterval(() => {
       const options = island.current?.telescopeOptions?.() ?? {};
       if (!options.telescope) setWalking(false);
-      else if (options.at || performance.now()-started > 6000) {setWalking(false); setOpen(true);}
+      else if (options.at || performance.now()-started > 3000) {setWalking(false); setOpen(true);}
     }, 120);
     return () => clearInterval(id);
   }, [walking, island]);

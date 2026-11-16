@@ -54,7 +54,7 @@ import {reframeIslet} from '../../world/islet-placement.js';
 import {ambientOf, artOf, mapFor, mapOf, prepareIslandMap, islandMapReady} from '../../world/island-maps.js';
 import {recoverArt, finalTextureSource, isArtPlaceholder, artPlaceholder, settleArtStep} from './art/art-recovery.js';
 import {loadThemeArt} from './art/theme-art.js';
-import {telescopeNear,telescopePeerAt} from './telescope.js';
+import {telescopeNear,telescopePeerAt, telescopeArrived} from './telescope.js';
 import {setSailingHarbor} from './sailing-fx.js';
 import {createButterfly,butterflyPose} from './environment/butterflies.js';
 import {loadPondDuckies} from './environment/pond-duckies.js';
@@ -889,7 +889,7 @@ export class PixiIsland {
     const me=this.player;
     if (!me || me.mode === 'sailing' || this.interior?.active) return {};
     const props=this.artProps(this.artShown), spot=telescopeNear(props, me);
-    return spot ? {telescope:spot.id, at:Boolean(telescopePeerAt(props, me))} : {};
+    return spot ? {telescope:spot.id, at:telescopeArrived(props, me, spot)} : {};
   }
   telescopeAction() {
     if (this.globeBusy()) return false;
