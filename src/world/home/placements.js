@@ -1,4 +1,5 @@
 import {solidBuilding} from './building-footprints.js';
+import {homeHouseBases} from '../prop-outlines/islands.js';
 import homeRoutes from './home-routes.json';
 import homeOriginalWorld from './home-original-world.json';
 import expansion from './home-expansion.json';
@@ -100,7 +101,7 @@ export const trimWorld = w => trimWith(w, OLD_JETTY, OLD_PAD);
 const placeWorld = w => trimWith(w, new Set([3940, 3320, 2320]), new Set([3930, 3340, 2290]));
 const archMid = ARCHES.map(({a, b}) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]);
 const underArch = w => archMid.some(([x, y]) => Math.hypot((w.a[0] + w.b[0]) / 2 - x, (w.a[1] + w.b[1]) / 2 - y) < 60) ? {...w, boatPassUnder: true} : w;
-export const walkWorld = (world, props) => ({...world, navigationCellSize: 16, coast: expansion.coast, obstacles: [...obstaclesFor(props, homeOriginalWorld), ...(expansion.obstacles ?? [])],
+export const walkWorld = (world, props) => ({...world, navigationCellSize: 16, coast: expansion.coast, obstacles: homeHouseBases([...obstaclesFor(props, homeOriginalWorld), ...(expansion.obstacles ?? [])]),
   water: [...world.water, ...(expansion.riverWater ?? [])], bridges: [...world.bridges.filter(b => !(b.x === 1640 && b.y === 2630)), ...(expansion.riverBridges ?? [])],
   walkways: [...world.walkways.filter(w => !(expansion.homeArches && w.a[0] === 1130 && w.a[1] === 3080)).map(underArch), ...(expansion.walkways ?? []).map(underArch)]});
 

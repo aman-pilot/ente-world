@@ -1,3 +1,4 @@
+import {homeHouseCut} from './home-house-rule.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
@@ -14,7 +15,7 @@ const props = createPlacements();
 // a replacement asset cannot silently lose its blocker.
 const buildings = props.filter(p => [0,1,2,3,34,46,47,48].includes(p.id) || p.communityRole || /bandstand|garden-shed|grain-silo|windmill|harvest-barn|smokehouse|bread-oven|kiln|pottery-drying-rack/.test(p.src));
 
-test('every opaque Home building sample is solid in the shared worker map', async () => {
+test('every opaque Home building sample outside the house roof exception is solid in the shared worker map', async () => {
   const nav = HOME_MAP.nav();
   assert.ok(buildings.length >= 35);
   for (const p of buildings) {
@@ -25,7 +26,9 @@ test('every opaque Home building sample is solid in the shared worker map', asyn
       const u=(x+.5)/info.width, v=(y+.5)/info.height;
       const wx=p.x+(p.flip?p.anchor.x-u:u-p.anchor.x)*p.width*(p.scale??1);
       const wy=p.y+(v-p.anchor.y)*p.height*(p.scale??1);
-      for (const dx of [-22,0,22]) assert.equal(nav.walkable(wx+dx,wy),false,`${p.id}: Ducky body can overlap drawn art at ${wx+dx},${wy}`);
+      const cut=homeHouseCut(p);
+      if(cut !== null && wy < cut)continue;
+      for (const dx of cut === null ? [-22,0,22] : [0]) assert.equal(nav.walkable(wx+dx,wy),false,`${p.id}: Ducky body can overlap drawn art at ${wx+dx},${wy}`);
       samples++;
     }
     assert.ok(samples>20,`${p.id}: sampled visible art`);
