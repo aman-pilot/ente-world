@@ -132,7 +132,7 @@
 }
 .pixi-online {
   position: fixed;
-  bottom: max(16px, env(safe-area-inset-bottom));
+  bottom: var(--pixi-hud-bottom);
   left: max(16px, env(safe-area-inset-left));
   display: flex;
   align-items: center;
@@ -146,7 +146,7 @@
   position: fixed;
   z-index: 6;
   left: max(16px, env(safe-area-inset-left));
-  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 48px);
+  bottom: calc(var(--pixi-hud-bottom) + 48px);
   color: #332b23;
   font: 600 14px/1.35 system-ui, sans-serif;
 }
@@ -530,8 +530,9 @@
 @media (prefers-reduced-motion: reduce) { .pixi-travel-action { animation: none; } }
 
 .pixi-page {
+  --pixi-hud-bottom: max(16px, env(safe-area-inset-bottom));
   --world-map-width: 220px;
-  --world-map-bottom: calc(max(16px, env(safe-area-inset-bottom)) + 8px);
+  --world-map-bottom: calc(var(--pixi-hud-bottom) + 8px);
   --world-map-height: calc(var(--world-map-width) + 8px);
 }
 .pixi-world-map {
@@ -556,7 +557,7 @@
 .pixi-world-map:not(:disabled):active { scale: .98; }
 .pixi-world-map:disabled { cursor: default; pointer-events: none; }
 .pixi-world-map--hidden { opacity: 0; pointer-events: none; }
-.pixi-world-back { position: fixed; z-index: 5; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 8px; padding: 10px 16px; border: 2px solid #564537; border-radius: 999px; background: #fff9df; box-shadow: 0 3px 0 #56453755; color: #332b23; font: 700 15px/1.2 system-ui, sans-serif; cursor: pointer; transition: scale 160ms var(--pixi-ease-out), translate 120ms var(--pixi-ease-out), box-shadow 120ms var(--pixi-ease-out); }
+.pixi-world-back { position: fixed; z-index: 5; right: max(16px, env(safe-area-inset-right)); bottom: var(--pixi-hud-bottom); display: flex; align-items: center; gap: 8px; padding: 10px 16px; border: 2px solid #564537; border-radius: 999px; background: #fff9df; box-shadow: 0 3px 0 #56453755; color: #332b23; font: 700 15px/1.2 system-ui, sans-serif; cursor: pointer; transition: scale 160ms var(--pixi-ease-out), translate 120ms var(--pixi-ease-out), box-shadow 120ms var(--pixi-ease-out); }
 .pixi-world-back svg { width: 18px; height: 18px; }
 @media (hover: hover) { .pixi-world-back:hover { scale: 1.03; } }
 .pixi-world-back:active { translate: 0 2px; box-shadow: 0 1px 0 #56453755; }
@@ -736,7 +737,6 @@ button.pixi-stargaze-tag { overflow: hidden; text-overflow: ellipsis; }
 }
 .pixi-live { top: calc(max(16px, env(safe-area-inset-top)) + 68px); right: max(16px, env(safe-area-inset-right)); }
 .pixi-page--watch .pixi-live { top: max(16px, env(safe-area-inset-top)); }
-.pixi-live .pixi-live-signin { display: inline-flex; align-items: center; gap: 6px; }
 .pixi-profile-head { display: flex; flex-direction: column; align-items: center; gap: 0; }
 .pixi-profile-avatar { position: relative; width: 156px; height: 156px; }
 .pixi-profile-avatar > img, .pixi-profile-avatar > .pixi-profile-blank { width: 100%; height: 100%; border: 2px solid #564537; border-radius: 50%; object-position: 50% 50%; border-width: 2.5px; background: radial-gradient(circle at 50% 38%, #e6f6fd, #bfe6f5 72%); object-fit: cover; padding: 0; box-sizing: border-box; }
@@ -867,7 +867,34 @@ button.pixi-stargaze-tag { overflow: hidden; text-overflow: ellipsis; }
 @keyframes pixi-centre-in { from { opacity: 0; } }
 @keyframes pixi-btn-in { from { opacity: 0; scale: .6; } }
 @media (prefers-reduced-motion: reduce) { .pixi-centre, .pixi-centre-card :is(button, a) { animation-duration: 1ms !important; } }
-/* a guest sees only the Sign in button, a standalone pill the height of the ente logo beside it */
-.pixi-live--signin { padding: 0; background: none; border: 0; box-shadow: none; }
-.pixi-live--signin .pixi-live-signin { padding: 9px 14px; border-radius: 12px; box-shadow: 0 3px 0 #56453755; }
-@media (max-width: 480px) { .pixi-live--signin .pixi-live-signin { padding: 6px 12px; } }
+.pixi-guest-signin {
+  position: fixed;
+  z-index: 5;
+  bottom: max(24px, calc(env(safe-area-inset-bottom) + 8px));
+  left: 50%;
+  translate: -50%;
+  box-sizing: border-box;
+  width: min(304px, calc(100% - 40px));
+  min-height: 64px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 3px solid #564537;
+  border-radius: 22px;
+  background: #ffda69;
+  box-shadow: 0 5px 0 #564537;
+  color: #332b23;
+  font: 700 24px/1.2 'Fredoka', system-ui, sans-serif;
+  text-align: center;
+  text-decoration: none;
+}
+a.pixi-guest-signin:hover { background: #ffd24a; }
+a.pixi-guest-signin:active { translate: -50% 5px; box-shadow: none; }
+.pixi-guest-signin:focus-visible { outline: 3px solid #fff9df; outline-offset: 4px; }
+.pixi-guest-signin:disabled { background: #fff9df; }
+@media (max-width: 800px) {
+  .pixi-page:has(.pixi-guest-signin) { --pixi-hud-bottom: calc(max(16px, env(safe-area-inset-bottom)) + 68px); }
+  .pixi-guest-signin { min-height: 52px; font-size: 20px; }
+}

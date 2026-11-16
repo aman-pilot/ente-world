@@ -176,10 +176,10 @@ export default function PixiPage({signedInEntry = false}) {
   const retryLive = status === 'spectators-full';
   const starRequired = session?.user && !session.user.canPlay;
   const retryPlay = session?.user?.canPlay && ['players-full','taken-over','watching'].includes(status);
-  // a visitor who cannot play yet only watches: no duck, so no profile circle, and the sign-in ask sits top right
+  // a visitor who cannot play yet only watches: no duck, so no profile circle
   const watchOnly = !offline && status !== 'playing' && (guest || starRequired);
   // waiting and problems take the middle of the screen with the golden feather (the same loader as the cloud
-  // cover); passing information (watching, sign in, landed, star) stays small at the top right
+  // cover); passing information (watching, landed, star) stays small at the top right
   const waiting = status === 'connecting' || status === 'reconnecting';
   const connecting = signedInEntry && !error && !worldDrawn && (waiting || !CENTRE.has(status));
   const centre = !connecting && !error && !offline && arrived && CENTRE.has(status);
@@ -197,13 +197,10 @@ export default function PixiPage({signedInEntry = false}) {
     {!error && (() => {
       const message = notice || arrival || (offline ? 'Playing without sign-in' : centre ? '' : notices[status])
         || (guest ? '' : starRequired ? notices['star-required'] : status === 'playing' ? '' : 'Watching live');
-      const actions = offline || starRequired || (!centre && (retryLive || retryPlay)) || guest;
-      return (message || actions) && <aside className={`pixi-live${guest && !message ? ' pixi-live--signin' : ''}`} aria-label="Live island">
+      const actions = offline || starRequired || (!centre && (retryLive || retryPlay));
+      return (message || actions) && <aside className="pixi-live" aria-label="Live island">
         {message && <div role="status">{message}</div>}
         {offline && <a href={location.pathname}>Back to live</a>}
-        {guest && (session.signInAvailable
-          ? <a className="pixi-live-signin" href="/auth/github/start" onClick={() => {try {sessionStorage.setItem('ew-arrive', '1');} catch {/* ignore */}}}><img src="/github-mark.svg" width="16" height="16" alt=""/>Sign in</a>
-          : <button disabled>Sign-in unavailable</button>)}
         {starRequired && <button onClick={() => setStarDialogOpen(true)}>Unlock play</button>}
         {retryLive && !centre && <button onClick={() => room.current?.connect(room.current.wantsPlay)}>Retry live view</button>}
         {retryPlay && !centre && <button onClick={() => room.current?.connect()}>
@@ -211,6 +208,9 @@ export default function PixiPage({signedInEntry = false}) {
         </button>}
       </aside>;
     })()}
+    {!error && guest && (session.signInAvailable
+      ? <a className="pixi-guest-signin" href="/auth/github/start" onClick={() => {try {sessionStorage.setItem('ew-arrive', '1');} catch {/* ignore */}}}><img src="/github-mark.svg" width="24" height="24" alt=""/>Sign in</a>
+      : <button type="button" className="pixi-guest-signin" disabled>Sign-in unavailable</button>)}
     {!error && !watchOnly && (session?.user || status === 'playing' || offline) && <IslandProfile session={session} room={room} island={island}
       status={status} indoors={indoors} notificationHost={notificationHost} offline={offline} onSignOut={logout} signingOut={signingOut}/>}
     {!error && status === 'playing' && <div className="pixi-chat-dock">
