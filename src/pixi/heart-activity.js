@@ -56,11 +56,14 @@ export function createHeartLocations(islands, mapOf, random = Math.random, islet
     return {island, points, weight, bag: [], recent: []};
   });
   let islandBag = [];
-  return () => {
+  return (occupied = null) => {
+    const eligible = pool => !occupied || occupied[pool.island.id] > 0;
+    islandBag = islandBag.filter(eligible);
     // Shuffled rounds keep all islands alive, rather than repeatedly drawing
     // the same random island. Each island has its own non-repeating land bag.
-    if (!islandBag.length) islandBag = shuffle(pools.flatMap(pool => Array(pool.weight).fill(pool)));
+    if (!islandBag.length) islandBag = shuffle(pools.filter(eligible).flatMap(pool => Array(pool.weight).fill(pool)));
     const pool = islandBag.pop();
+    if (!pool) return null;
     if (!pool.bag.length) pool.bag = shuffle([...pool.points]);
     const distance = p => pool.recent.length ? Math.min(...pool.recent.map(q => (p.x-q.x)**2+(p.y-q.y)**2)) : 1;
     let best = pool.bag.length - 1;

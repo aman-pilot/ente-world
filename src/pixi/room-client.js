@@ -61,6 +61,7 @@ export class RoomClient {
     this.updateNearby();
     this.seq = 0;
     this.tick = -1;
+    this.islandPresence = {};
     this.snapshotPlayers = new Map();
     this.snapshotBoats = new Map();
     this.karma=0;this.feathers=[];this.featherIsland=null;
@@ -158,8 +159,9 @@ export class RoomClient {
     };
   }
 
-  snapshot({epoch,tick,players,self,online,islandId='home',boats=[]}) {
+  snapshot({epoch,tick,players,self,online,islandPresence={},islandId='home',boats=[]}) {
     if (epoch === this.epoch && tick <= this.tick) return;
+    this.islandPresence = islandPresence;
     this.snapshotPlayers = new Map(players.map(p => [p.id, p]));
     this.snapshotBoats = new Map(boats.map(b => [b.id, b]));
     const own=players.find(pose => pose.id === this.id);
