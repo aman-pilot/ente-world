@@ -24,7 +24,7 @@ test('star dialog retries without navigation, explains failures, and confirms ve
   globalThis.fetch = async (url,options) => {
     assert.equal(url,'/api/play-access');
     assert.equal(options.method,'POST');
-    return Response.json(response,{status});
+    return status === 401 ? new Response(null,{status}) : Response.json(response,{status});
   };
   const root = createRoot(document.getElementById('root'));
   try {
@@ -46,6 +46,14 @@ test('star dialog retries without navigation, explains failures, and confirms ve
     assert.equal(confirmed,1);
     await act(async () => document.querySelector('button:last-child').click());
     assert.equal(closed,1);
+    status = 401;
+    await act(async () => retry.click());
+    const actions = [...document.querySelectorAll('dialog a, dialog button')];
+    assert.deepEqual(actions.map(action => action.textContent),['Sign in again']);
+    assert.equal(actions[0].getAttribute('href'),'/auth/github/start');
+    assert.equal(document.activeElement,actions[0]);
+    assert.match(document.getElementById('star-sign-in-message').textContent,/signed out.*verify your star/);
+    assert.equal(confirmed,1);
   } finally {
     await act(async () => root.unmount());
     dom.window.close();
