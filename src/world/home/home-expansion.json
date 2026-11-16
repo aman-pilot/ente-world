@@ -7499,7 +7499,7 @@
       "asset": "rowing-boat-cradle",
       "src": "/pixi-art/home-hamlets/reedwhistle/rowing-boat-cradle.svg",
       "x": 4255,
-      "y": 5190,
+      "y": 5030,
       "width": 329.6,
       "height": 168.8,
       "scale": 1,
@@ -7521,7 +7521,7 @@
         "ry": 24
       },
       "communityRole": "workplace",
-      "z": 5190,
+      "z": 5030,
       "shadowOffset": [
         8,
         -16

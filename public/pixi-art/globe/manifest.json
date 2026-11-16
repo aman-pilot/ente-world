@@ -3,7 +3,7 @@
     "sources": {
       "version": 1,
       "theme": "home",
-      "modelSha256": "d0ef6330ed001d2f9acc61669f3fdc0b7080037145f2ed1724ef71ab207e65fb",
+      "modelSha256": "17d2df788d5d770471a8ae8d7058bc9f319b1534fad86d901b6f457a2dcd3293",
       "files": [
         {
           "path": "assets/manifest.json",
@@ -1007,7 +1007,7 @@
         },
         {
           "path": "src/world/home/home-expansion.json",
-          "sha256": "2e0e0e23a774a5861ae9a785686bed2562ea2b72e8645032274e9ea9f4706915"
+          "sha256": "e72d039ffdfc3a0b10fd553252950cf89c0d906c0d5587bc3a32f01256c717ed"
         },
         {
           "path": "src/world/home/home-original-world.json",
@@ -1066,11 +1066,11 @@
           "sha256": "939595f5fbd64d88d0b7b11d0695db67edb515664887aef8efc894b9140fcbaf"
         }
       ],
-      "sha256": "c720a7c7784a7151caa7b47433262fd80ca10c8da25f051f6cbffc061b014b44"
+      "sha256": "4932545139ae5cb1bb33710cb173d4a8bedd83b4a7bccc81f0a42c67749e26fb"
     },
     "groundSha256": "dddbf340591c9c37fbe7ffb512aa8561b0dd33aec741be13b64e96b528c9ab21",
     "src": "/pixi-art/globe/home.svg",
-    "sha256": "160abdfc2b5ab3ddc359a545cf3d6d85f416ed555c32bd3d4d30e34a3aaa25c2",
+    "sha256": "854d6f0f1e036e3401de133504c89cb660bb35d34965767fb533f2e100797174",
     "width": 1024,
     "height": 768,
     "bytes": 1149147,
