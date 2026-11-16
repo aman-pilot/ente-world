@@ -193,3 +193,15 @@ test('the globe pin does not jump when you dock or set sail, including at the po
   assert.ok(deg<2,`${i.id}: the pin moves ${deg.toFixed(2)} degrees when docking`);
  }
 });
+
+test('sailing round the side of Iceland or Bog does not throw you back to its harbour',()=>{
+ for(const [id,sign]of [['isle-55',-1],['isle-249',1]]){
+  const m=mapOf(id),c=FLAT_POSITIONS[id];
+  for(const side of [-1,1]){
+   const x=c.x+side*(m.width/2+2000),p={...local(id,x,sign*21000),mode:'sailing',path:[],action:0};
+   assert.ok(canSail(p.x,p.y,id),`${id} side ${side} is open water`);
+   for(let n=0;n<10;n++)sailStep(p,.05,{x:0,y:sign});
+   assert.equal(p.seaCurrent,undefined,`${id} side ${side}: no current beside the island`);
+  }
+ }
+});
