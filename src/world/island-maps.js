@@ -283,7 +283,18 @@ export function ambientOf(map) {
     .sort(([a], [b]) => (b === 'plaza') - (a === 'plaza')).map(([name, z]) => ({name, at: [z.x, z.y]}));
   const given = map.world.ambient ?? {};
   const ring = (k, n, r) => [map.spawn.x + Math.cos(k / n * 6.283 + .4) * r, map.spawn.y + Math.sin(k / n * 6.283 + .4) * r * .7];
-  const birds = Array.from({length: 6}, (_, k) => given.birds?.[k] ?? zones[k]?.at ?? ring(k, 6, 900)).map(onLand);
+  // Birds hover low and drift about 90 to each side, so a spot on a prop (the Campfire fire sits on the plaza
+  // centre) makes a bird look perched on it. Move such a spot to the nearest clear ground.
+  const walk = map.nav?.(), clear = ([x, y]) => [-90, 0, 90].every(dx => walk.walkable(x + dx, y));
+  const offProps = p => {
+    if (!walk?.walkable || clear(p)) return p;
+    for (let r = 80; r <= 960; r += 80) for (let i = 0; i < 16; i++) {
+      const q = [Math.round(p[0] + Math.cos(i * Math.PI / 8) * r), Math.round(p[1] + Math.sin(i * Math.PI / 8) * r)];
+      if (clear(q)) return q;
+    }
+    return p;
+  };
+  const birds = Array.from({length: 6}, (_, k) => given.birds?.[k] ?? zones[k]?.at ?? ring(k, 6, 900)).map(onLand).map(offProps);
   const garden = zones.find(z => /garden|flower|field|meadow|heart|tree|story/i.test(z.name)) ?? zones[1] ?? zones[0];
   const butterflies = Array.from({length: 2}, (_, k) => given.butterflies?.[k] ?? (garden ? [garden.at[0] + 120 + k*480, garden.at[1] + 60] : ring(k, 2, 500))).map(onLand);
   return {birds, butterflies};
