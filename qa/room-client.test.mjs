@@ -16,7 +16,7 @@ function setup() {
   return {room,events,sent};
 }
 const packet=(tick,islandId='home',mode='walking')=>({epoch:'epoch',tick,islandId,online:2,
-  players:[{id:'player',islandId,mode,x:mode==='sailing'?3960:1800,y:mode==='sailing'?6400:430,turn:0,action:0,emoteVersion:0,travel:0}],
+  players:[{id:'player',boatId:mode==='sailing'?'home-0':null,islandId,mode,x:mode==='sailing'?3960:1800,y:mode==='sailing'?6400:430,turn:0,action:0,emoteVersion:0,travel:0}],
   boats:[{id:'home-0',islandId,x:mode==='sailing'?3960:1800,y:mode==='sailing'?6400:430,turn:0,occupant:mode==='sailing'?'player':null}],
   self:{ack:0,path:[],emoteLeft:0},
 });

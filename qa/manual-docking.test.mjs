@@ -1,3 +1,4 @@
+import {placeIslet} from '../src/world/islet-placement.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {makeRoom,addPlayer} from './room-harness.mjs';
@@ -31,6 +32,7 @@ test('tapping a nearby beach docks at the selected spot even within harbor range
   const room = await makeRoom();
   t.after(() => clearInterval(room.timer));
   const boat = room.boats.find(boat => boat.id === 'home-0');
+  Object.assign(boat, {x:3830, y:5905}); // sail it close to the beach first
   const {actor, socket} = addPlayer(room, 9878, {...boat, mode:'sailing'});
   actor.boatId = boat.id;
   boat.occupant = actor.id;
@@ -65,7 +67,7 @@ test('Dock at the far side of a detached islet leaves the boat by that shore', a
   const room = await makeRoom();
   t.after(() => clearInterval(room.timer));
   const islet = isletWalk('sea-1-1');
-  const {actor, socket} = addPlayer(room, 9879, {islandId:islet.id, x:3472, y:13666, mode:'sailing'});
+  const {actor, socket} = addPlayer(room, 9879, {islandId:islet.id, ...placeIslet(islet.id,islet.islet,[-728,66]), mode:'sailing'});
   const boat = room.boats.find(boat => boat.islandId === islet.id);
   Object.assign(boat, {x:actor.x, y:actor.y, occupant:actor.id});
   actor.boatId = boat.id;

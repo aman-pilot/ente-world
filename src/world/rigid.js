@@ -1,3 +1,4 @@
+import {nearestSeaX,wrapSea} from './flat-layout.js';
 import {mapOf,mapsVersion} from './island-maps.js';
 import {mapPoint} from './sphere-coordinates.js';
 
@@ -11,7 +12,7 @@ export function shearOf({a,b,c,d}){
  return {shearDeg:Math.abs(Math.acos(Math.max(-1,Math.min(1,cos)))*180/Math.PI-90),ratio:Math.max(ex/ny,ny/ex)};
 }
 const cache=new Map();let cacheVersion=-1;
-export function flatRigid(from,to){
+export function flatRigid(from,to,reference=null){
  if(cacheVersion!==mapsVersion()){cacheVersion=mapsVersion();cache.clear();}
  const key=from+'>'+to;let r=cache.get(key);
  if(!r){
@@ -20,7 +21,7 @@ export function flatRigid(from,to){
   r={a:1,b:0,c:0,d:1,x:c.x,y:c.y};
   r.cx=m.cx;r.cy=m.cy;cache.set(key,r);
  }
- return r;
+ return reference===null?r:{...r,x:nearestSeaX(r.x,reference.x)};
 }
-export function placeRigid(from,to,p){const r=flatRigid(from,to),x=p.x-r.cx,y=p.y-r.cy;return {x:r.x+r.a*x+r.c*y,y:r.y+r.b*x+r.d*y};}
-export function unplaceRigid(from,to,p){const r=flatRigid(from,to),x=p.x-r.x,y=p.y-r.y;return {x:r.cx+r.a*x+r.b*y,y:r.cy+r.c*x+r.d*y};}
+export function placeRigid(from,to,p,reference=null){const r=flatRigid(from,to,reference),x=p.x-r.cx,y=p.y-r.cy;return {x:r.x+r.a*x+r.c*y,y:r.y+r.b*x+r.d*y};}
+export function unplaceRigid(from,to,p){const r=flatRigid(from,to),x=wrapSea(p.x-r.x),y=p.y-r.y;return {x:r.cx+r.a*x+r.b*y,y:r.cy+r.c*x+r.d*y};}

@@ -1,5 +1,6 @@
 import {nonNeighbourLanding} from './non-neighbour-fixture.mjs';
 import {mapOf} from '../src/world/island-maps.js';
+import {mapPoint} from '../src/world/sphere-coordinates.js';
 import {navOf, originOffset} from '../src/gameplay/islands.js';
 import assert from 'node:assert/strict';
 import test, {after, before} from 'node:test';
@@ -820,19 +821,26 @@ test('docking off a beach sails the boat in beside the sand before the Ducky hop
   await request('/test/reset-boats');
   const login=await signIn(9310), a=await socket(login.session);
   const setup=(pose,steps=0) => request('/test/travel',{method:'POST',body:JSON.stringify({id:a.welcome.id,pose,steps})});
-  const far={x:boatSpots()[5].x-170,y:boatSpots()[5].y}, spot=landingSpot({islandId:'home',...far}); spot.approach=landingApproach({islandId:'home',...far},spot); const gap=p => Math.hypot(p.x-spot.approach.x,p.y-spot.approach.y);
+  // An unmoored stretch of Home's north beach leaves the approach clear.
+  const far={x:4160,y:1560}, spot=landingSpot({islandId:'home',...far});
+  assert.ok(boatSpots().every(b => Math.hypot(far.x-b.x,far.y-b.y)>=360));
+  spot.approach=landingApproach({islandId:'home',...far},spot);
+  const gap=p => Math.hypot(p.x-spot.approach.x,p.y-spot.approach.y);
   try {
     await eventually(() => a.snapshot?.boats?.length);
     let boatId=null;
     const boat=() => a.snapshot.boats.find(b => b.id===boatId);
-    const boardHarbor=async () => {
-      await setup({...HARBOR.land,mode:'walking',path:[]});
-      await eventually(() => a.snapshot.boats.some(b => !b.occupant && b.id.split('~')[0]==='home-0' && b.x===boatSpots()[0].x));
-      boatId=a.snapshot.boats.find(b => !b.occupant && b.id.split('~')[0]==='home-0' && b.x===boatSpots()[0].x).id;
+    const boardBoat=async () => {
+      // Reuse the beached boat so later landings do not start on another boat.
+      await setup({...(boatId ? {x:spot.x,y:spot.y} : HARBOR.land),mode:'walking',path:[]});
+      if (!boatId) {
+        await eventually(() => a.snapshot.boats.some(b => !b.occupant && b.id.split('~')[0]==='home-0' && b.x===boatSpots()[0].x));
+        boatId=a.snapshot.boats.find(b => !b.occupant && b.id.split('~')[0]==='home-0' && b.x===boatSpots()[0].x).id;
+      }
       a.send({type:'board',boatId});
       await eventually(() => a.duck()?.mode==='sailing');
     };
-    await boardHarbor();
+    await boardBoat();
     await setup({...far,sailTarget:null,sailRoute:null,docking:false},1);
     assert.ok(gap(far)>200,'the boat starts well out from the shore');
     a.send({type:'disembark'});
@@ -848,18 +856,18 @@ test('docking off a beach sails the boat in beside the sand before the Ducky hop
     await eventually(()=>boat()?.parked);
     assert.deepEqual([boat().x,boat().y],[parked.x,parked.y],'worker restoration preserves the beach landing');
     assert.ok(closest<=60,`the Ducky was still aboard within two ticks of the shore (${closest.toFixed(0)} px out)`);
-    await boardHarbor();
+    await boardBoat();
     await setup({...spot.approach,sailTarget:null,sailRoute:null,docking:false},1);
     a.send({type:'disembark'});
     await eventually(() => a.duck()?.mode==='walking');
-    await boardHarbor();
+    await boardBoat();
     await setup({...far,sailTarget:null,sailRoute:null,docking:false},1);
     a.send({type:'disembark'});
     await delay(100);
     a.send({type:'input',x:0,y:0,stop:true});
     await eventually(() => a.duck()?.mode==='walking');
     assert.deepEqual([a.duck().x,a.duck().y],[spot.x,spot.y],'still hops out onto the sand');
-    await boardHarbor();
+    await boardBoat();
     await setup({...far,sailTarget:null,sailRoute:null,docking:false},1);
     a.send({type:'disembark'});
     a.send({type:'input',x:1,y:0});
@@ -916,7 +924,7 @@ test('every island always shows all its moored boats: a taken boat is replaced, 
     assert.equal(parked.islandId,exit.destination);
     assert.deepEqual([parked.x,parked.y],[there.water.x,there.water.y]);
     assert.ok(allMoored(a.snapshot),`all ${perThere} of ${exit.destination}'s moorings are full`);
-    assert.equal(a.snapshot.boats.length,perThere+1,'the parked arrival stays alongside the existing moorings');
+    assert.equal(a.snapshot.boats.filter(v=>v.islandId===exit.destination).length,perThere+1,'the parked arrival stays alongside the existing moorings');
     for (const message of [...a.messages,...b.messages].filter(message => message.type==='snapshot')) assert.ok(message.boats.length>=boatSpots(message.islandId).length,`${message.islandId} showed ${message.boats.length} boats`);
   } finally {
     a.close();
@@ -1076,4 +1084,47 @@ test('a signed-out duck returns to its saved island after the room restarts', as
   } finally {
     clients.forEach(client => client.close());
   }
+});
+
+test('wrapping sea: two real sockets see seam neighbours, currents keep Bog ticket, and saved sea versions restore safely', async()=>{
+  await request('/test/expire-session');await request('/test/expire-resume');await request('/test/reset-boats');
+  const first=await signIn(9505),second=await signIn(9506),a=await socket(first.session),b=await socket(second.session);
+  const setup=(c,pose,steps=0)=>request('/test/travel',{method:'POST',body:JSON.stringify({id:c.welcome.id,pose,steps})});
+  try{
+    for(const [c,slot]of [[a,0],[b,1]]){
+      await eventually(()=>c.duck());const boat=c.snapshot.boats.filter(v=>!v.occupant)[slot];
+      await position(c,{...navOf('home').nearest(boat.x,boat.y,300).reduce((o,v,k)=>(o[k?'y':'x']=v,o),{}),path:[]});
+      c.send({type:'board',boatId:boat.id});await eventually(()=>c.duck()?.mode==='sailing');
+      if(c===a){
+        await setup(a,{x:HARBOR.water.x+80000,y:HARBOR.water.y,seaVersion:1},1);
+        await eventually(()=>Math.abs((b.duck(a.welcome.id)?.x??Infinity)-HARBOR.water.x)<.1);
+        assert.ok(b.snapshot.boats.some(v=>v.occupant===a.welcome.id&&Math.abs(v.x-HARBOR.water.x)<.1),'a walker sees the returned sailor and boat after a full lap');
+        await setup(a,{...HARBOR.water},1);
+      }
+    }
+    const home=mapOf('home');
+    await setup(a,{islandId:'home',x:home.cx+39990,y:home.cy+14000,seaVersion:1,sailTarget:null,sailRoute:null,docking:false});
+    // Same geographic latitude, opposite stored longitude and different island frames.
+    const peer=mapPoint('home','sunset',{x:home.cx-39510,y:home.cy+14000});
+    await setup(b,{islandId:'sunset',...peer,seaVersion:1,sailTarget:null,sailRoute:null,docking:false});
+    await eventually(()=>a.duck(b.welcome.id)&&b.duck(a.welcome.id)&&Math.abs(a.duck(b.welcome.id).x-a.duck().x-500)<.1&&Math.abs(b.duck(a.welcome.id).x-b.duck().x+500)<.1);
+    assert.ok(Math.abs(a.duck(b.welcome.id).x-a.duck().x-500)<.1);
+    assert.ok(Math.abs(b.duck(a.welcome.id).x-b.duck().x+500)<.1);
+    const oldX=a.duck().x;a.send({type:'input',x:1,y:0});
+    await eventually(()=>a.duck().x>oldX+40);a.send({type:'input',x:0,y:0});await delay(100);
+    assert.ok(a.duck().x-oldX<200,'no seam coordinate jump');
+    assert.ok(a.snapshot.boats.some(v=>v.occupant===b.welcome.id&&Math.abs(v.x-a.duck().x)<600));
+    const saved={x:a.duck().x,y:a.duck().y},epoch=a.snapshot.epoch;await request('/test/restore');
+    await eventually(()=>a.snapshot.epoch!==epoch&&Math.abs(a.duck().x-saved.x)<1);assert.ok(Math.abs(a.duck().y-saved.y)<1);
+    await setup(a,{seaVersion:0});await request('/test/restore');
+    await eventually(()=>Math.abs(a.duck().x-HARBOR.water.x)<1);assert.ok(Math.abs(a.duck().y-HARBOR.water.y)<1);
+    await setup(a,{islandId:'home',x:home.cx+30000,y:home.cy+19990,seaVersion:1});
+    a.send({type:'input',x:0,y:1});await eventually(()=>a.snapshot.islandId==='isle-249');
+    assert.equal(a.duck().mode,'sailing');assert.ok(Math.abs(a.duck().x-harborOf('isle-249').water.x)<1);
+    a.send({type:'disembark'});await eventually(()=>a.messages.some(m=>m.type==='travel-notice'&&/feather|karma|ticket/i.test(m.text)));
+    assert.equal(a.duck().mode,'sailing','Bog current never bypasses the paid entry');
+    await setup(b,{islandId:'home',x:home.cx+30000,y:home.cy-19990,seaVersion:1});
+    b.send({type:'input',x:0,y:-1});await eventually(()=>b.snapshot.islandId==='isle-55');
+    assert.equal(b.duck().mode,'sailing');b.send({type:'disembark'});await eventually(()=>b.duck().mode==='walking');
+  }finally{a.close();b.close();}
 });

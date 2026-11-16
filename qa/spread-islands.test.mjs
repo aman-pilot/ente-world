@@ -1,3 +1,4 @@
+import {nearestSeaX} from '../src/world/flat-layout.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {WORLD_ISLANDS,FINISHED_THEMES,THEMED_ISLANDS,ISLAND_COUNT,layoutWorld,sizeOfTheme} from '../src/world/world-map.js';
@@ -30,7 +31,7 @@ test('every real map fits inside each sailing envelope, including negative origi
  for(const from of WORLD_ISLANDS){
   const bounds=seaBoundsFor(from.id);
   for(const to of WORLD_ISLANDS){
-   const map=mapOf(to.id),offset=originOffset(from.id,to.id),x=offset.x+map.origin.x,y=offset.y+map.origin.y;
+   const map=mapOf(to.id),offset=originOffset(from.id,to.id),x=nearestSeaX(offset.x+map.cx,mapOf(from.id).cx)-map.width/2,y=offset.y+map.origin.y;
    assert.ok(x-BOAT_RADIUS>=bounds.x0&&y-BOAT_RADIUS>=bounds.y0&&x+map.width+BOAT_RADIUS<=bounds.x1&&y+map.height+BOAT_RADIUS<=bounds.y1,`${from.id}/${to.id}: room outside the entire map`);
   }
  }

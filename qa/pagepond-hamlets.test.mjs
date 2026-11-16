@@ -3,6 +3,8 @@ import {spread} from '../scripts/pagepond-rework/design.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {mapFor} from '../src/world/island-maps.js';
+import {paperboatMoorings} from '../scripts/pagepond-boats/config.mjs';
 import {auditPagepond} from '../scripts/pagepond-hamlets/audit.mjs';
 import {checkTheme} from '../scripts/theme-index.mjs';
 const read=p=>JSON.parse(fs.readFileSync(p));
@@ -22,7 +24,15 @@ test('Pagepond approved hamlets use vector pieces, centre-sized houses and bound
 });
 
 test('Pagepond walks every bridge, path end, prop and approved sleeper with zero new overlaps',()=>{
- const audit=auditPagepond();assert.deepEqual(audit.issues,[],JSON.stringify(audit.issues));assert.equal(audit.overlaps,0);assert.equal(audit.walkIssues,0);assert(audit.checked.props>900);assert(audit.checked.bridges>=14);assert.equal(audit.checked.sleepers,checkTheme('library').sleepers.length);assert.equal(audit.checked.boats,3);
+ // Audit the live resolved fleet instead of the old overlapping authored berths.
+ const authored=read('assets/world/themes/library/harbor.json').boats,spots=mapFor('library').boatSpots();
+ const saved=paperboatMoorings.map(p=>({...p}));
+ let audit;
+ try {
+  for(const p of paperboatMoorings){const slot=authored.findIndex(b=>b.x===p.x&&b.y===p.y);assert(slot>=0);Object.assign(p,{x:spots[slot].x,y:spots[slot].y});}
+  audit=auditPagepond();
+ } finally {paperboatMoorings.forEach((p,i)=>Object.assign(p,saved[i]));}
+ assert.deepEqual(audit.issues,[],JSON.stringify(audit.issues));assert.equal(audit.overlaps,0);assert.equal(audit.walkIssues,0);assert(audit.checked.props>900);assert(audit.checked.bridges>=14);assert.equal(audit.checked.sleepers,checkTheme('library').sleepers.length);assert.equal(audit.checked.boats,3);
 });
 
 test('Pagepond keeps the original forty within 250 approved sleepers and places hamlet residents only at supplied rest points',()=>{

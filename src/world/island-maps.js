@@ -1,3 +1,4 @@
+import {BOAT_GAP,boatSeparated,nearestBoatSpace} from '../gameplay/boat-spacing.js';
 import {outlineBogProps,loadBogScene,bogSceneReady} from './prop-outlines/bog-scene.js';
 import snowSleepers from '../../assets/world/themes/snow/sleepers.json' with {type:'json'};
 import {outlineSnowProps,loadSnowScene,snowSceneReady} from './prop-outlines/snow-scene.js';
@@ -110,9 +111,46 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
   };
   const shoreFor = (x, y, reach = 280) => {const p = nav().nearest(x, y, reach); return p ? {x: Math.round(p[0]), y: Math.round(p[1])} : null;};
   const localWet = (x, y) => !landAt(x, y) && Array.from({length: 16}, (_, i) => i * Math.PI / 8).every(a => !landAt(x + Math.cos(a) * BOAT_RADIUS, y + Math.sin(a) * BOAT_RADIUS));
+  // Use the authored collision shapes, before deferred walking preparation changes
+  // them, so server and browser pick identical slots even during island prefetch.
+  const MOORING_HULL=160;
+  const mooringProps=(world.props ?? []).filter(p=>p.width&&p.height).map(p=>{
+    const w=p.width*(p.scale??1),h=p.height*(p.scale??1),x=p.x-w*(p.anchor?.x??.5),y=p.y-h*(p.anchor?.y??1);
+    return {poly:[[x,y],[x+w,y],[x+w,y+h],[x,y+h]]};
+  });
+  const mooringObstacles = [...mooringProps,...(walking.obstacles ?? []),...(walking.bridges ?? []).map(b=>b.poly?b:{x:b.x,y:b.y,rx:b.w/2,ry:b.h/2})];
+  const mooringNear=shapeIndex(mooringObstacles.map(o=>({...o,clearance:MOORING_HULL+16})),MOORING_HULL+16);
+  const boardingGround=geometry({...world,...walking,indexPropContours:false,walkways:[...walkways,JETTY.walkway]}).walkable;
+  const mooringBoardable = p => {
+    if(near(p,HARBOR.water,600)){
+      const t=Math.max(AXIS*JETTY.wetFrom,Math.min(AXIS-44,(p.x-FOOT.x)*DIR.x+(p.y-FOOT.y)*DIR.y));
+      const q=along(t);
+      return near(p,q,295) && boardingGround(q.x,q.y);
+    }
+    for(let r=40;r<=260;r+=40)for(let k=0;k<24;k++){
+      const a=k*Math.PI/12;
+      if(boardingGround(p.x+Math.cos(a)*r,p.y+Math.sin(a)*r))return true;
+    }
+    return false;
+  };
+  const mooringWet = p => localWet(p.x,p.y) && !mooringNear(p.x,p.y).some(o=>inShape(p.x,p.y,o,MOORING_HULL+16)) &&
+    Array.from({length:16},(_,k)=>k*Math.PI/8).every(a=>{
+      const x=p.x+Math.cos(a)*MOORING_HULL,y=p.y+Math.sin(a)*MOORING_HULL;
+      return !landAt(x,y);
+    });
+  const spaceMoorings = spots => {
+    const placed=[];
+    for(const spot of spots){
+      const at=nearestBoatSpace(spot,p=>boatSeparated(p,HARBOR.water,BOAT_GAP+24) && placed.every(q=>boatSeparated(p,q,BOAT_GAP+1)) && mooringWet(p) && mooringBoardable(p));
+      if(!at)throw Error(`No safe mooring on ${id}`);
+      placed.push({...spot,...at});
+    }
+    // HARBOR and boatSpots describe the same harbour slots.
+    return placed;
+  };
   let SPOTS = null;
   const boatSpots = () => SPOTS ??= (() => {
-    if (harbor.boats?.length) return harbor.boats.map(({x, y, turn}) => ({x: Math.round(x), y: Math.round(y), turn: turn ?? Math.PI}));
+    if (harbor.boats?.length) return spaceMoorings(harbor.boats.map(({x, y, turn}) => ({x: Math.round(x), y: Math.round(y), turn: turn ?? Math.PI})));
     const spots = [0, 1, 2].map(i => ({...moorings[i], turn: Math.PI}));
     const c = centre ?? coastCentre(walking.coast);
     for (const [cx, cy, rx, ry] of islets) {
@@ -130,8 +168,9 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
         }
       }
     }
-    return spots;
+    return spaceMoorings(spots);
   })();
+  Object.defineProperty(HARBOR,'moorings',{enumerable:true,get:()=>boatSpots().slice(0,moorings.length).map(({x,y})=>({x,y}))});
   let FIELD = null;
   const field = () => FIELD ??= landDistance(landAt, W, H, world.origin);
   const spawn = harbor.spawn ?? world.zones?.plaza?.spawn ?? [W / 2, H / 2];

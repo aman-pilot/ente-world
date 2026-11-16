@@ -98,7 +98,7 @@ export async function createBoatBuildView(game) {
       if (!state || !me || me.mode !== 'walking') return {};
       const item = state.items.find(near);
       if (item) return {collect: item.kind};
-      if (state.items.every(item => item.taken) && buildSpot(game.islandId, me)) return {build: true};
+      if (state.items.every(item => item.taken) && buildSpot(game.islandId, me, room.boats)) return {build: true};
       return {};
     },
     collect() {

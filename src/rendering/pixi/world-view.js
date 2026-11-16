@@ -1,5 +1,5 @@
 import {horizonRatio,pixelChart,lensAngle} from '../../world/sphere-projection.js';
-import {spherePoint,localPoint,viewFrame} from '../../world/sphere-coordinates.js';
+import {spherePoint,localPoint,viewFrame,seaPoint,seaHeading} from '../../world/sphere-coordinates.js';
 import {WORLD_GEO,worldIsland,WORLD_ISLANDS} from '../../world/world-map.js';
 import {dot,expMap} from '../../world/sphere.js';
 import {flatRigid} from '../../world/rigid.js';
@@ -324,6 +324,7 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
   life.addChild(glows, rings, hearts);
   const sprite = (pool, tex) => {const sp = pool.children.find(c => !c.visible) ?? pool.addChild(new Sprite(tex)); sp.texture = tex; sp.anchor.set(.5); sp.visible = true; return sp;};
   const pin = makePin();
+  const bearing=new Graphics();pin.addChild(bearing);
   // Booquack Bog's pin: always shown on the globe so players know where the Bog is
   const bogPin = makePin('Booquack Bog', 0xb98cf0, BOG_RADAR_ICON), bogIsland = WORLD_ISLANDS.find(island => island.id === 'isle-249');
   app.stage.addChildAt(life, app.stage.getChildIndex(mesh) + 1);
@@ -391,8 +392,8 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
       this.debug={ball,horizon,atlasSize:4096,source:live?'live':'atlas',colourBlends:0};
       this.globe={w,h,Rp,Rw,ball,view,id,basis,camera:{x:cam.x,y:cam.y}};
       const G=globeScreen({id,cam,ball,w,h,basis}),stickerOf=G.sticker;
-      const project=(x,y)=>{
-        const p=spherePoint(id,{x,y}),vz=dot(p,view.center);
+      const project=(x,y,point=null)=>{
+        const p=point??spherePoint(id,{x,y}),vz=dot(p,view.center);
         if(ball>.5&&vz<=0)return {x:0,y:0,face:-1};
         const s=G.screenOf(p);if(!s)return {x:0,y:0,face:-1};
         return {x:s.x,y:s.y,face:ball>.5?vz:1};
@@ -406,7 +407,7 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
         let st=stickerOf(S,ball>=.25?4:16);
         if(st&&ball>.5&&st.depth<=0)st=null;
         if(!st&&!facing(island.center,Math.hypot(mi.width,mi.height)/2))return;
-        const F=flatRigid(id,island.id);let mode=worldTex?1:0;
+        const F=flatRigid(id,island.id,cam);let mode=worldTex?1:0;
         if(live&&st&&paint===0){
           let inside=true;
           for(let gy=0;gy<=8&&inside;gy++)for(let gx=0;gx<=8;gx++){
@@ -491,7 +492,14 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
       } else ripples.length = 0;
       this.pinIn = me ? ease((t - .12) / .15) : 0;
       if (me) {
-        const p = project(me.x, me.y);
+        const point=me.mode==='sailing'?seaPoint(id,me):spherePoint(id,me),p=project(me.x,me.y,point);
+        this.seaPin={...lonLat(point),heading:me.turn??0};
+        bearing.clear();
+        if(me.mode==='sailing') {
+          const dir=seaHeading(id,me,me.turn??0),a=.025;
+          const tip=G.screenOf(point.map((v,k)=>v*Math.cos(a)+dir[k]*Math.sin(a)));
+          if(tip){const angle=Math.atan2(tip.y-p.y,tip.x-p.x);bearing.moveTo(Math.cos(angle)*12,Math.sin(angle)*12).lineTo(Math.cos(angle)*35,Math.sin(angle)*35).stroke({color:0xffda69,width:4});}
+        }
         pin.position.set(p.x, p.y);
         pin.alpha = this.pinIn * ease(p.face / .25);
         pin.visible = pin.alpha > .01;
@@ -514,7 +522,7 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
       return Math.abs(dx) < Math.max(32, 26 * k) && dy > -Math.max(90, 84 * k) && dy < 16;
     },
     hoverPin(on) {hover = on;},
-    pinPoint() {return pin.visible ? {x: pin.x, y: pin.y, alpha: pin.alpha, scale: pin.scale.x} : null;},
+    pinPoint() {return pin.visible ? {x: pin.x, y: pin.y, alpha: pin.alpha, scale: pin.scale.x,...this.seaPin} : null;},
     grab(from, to, camera, aim) {
       const g = this.globe;
       if (!g || g.ball < .3) return null;

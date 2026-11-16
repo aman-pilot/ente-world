@@ -1,3 +1,6 @@
+import {BOAT_GAP,boatSeparated,nearestBoatSpace} from './boat-spacing.js';
+export {BOAT_GAP} from './boat-spacing.js';
+import {SEA_WIDTH,SEA_HEIGHT,SEA_VERSION,FLAT_RADIUS,FLAT_RING,FLAT_POSITIONS,FLAT_ISLETS,GLOBE_ISLET_OFFSETS,nearestSeaX,wrapSea} from '../world/flat-layout.js';
 import {placeRigid,unplaceRigid,flatRigid} from '../world/rigid.js';
 import {SAIL_EMOTES} from './player-motion.js';
 import {placeIslet,unplaceIslet} from '../world/islet-placement.js';
@@ -22,18 +25,17 @@ export function boardingPoint(boat,nav) {
   const dock=isletWalks(boat.islandId ?? 'home').find(w=>near(boat,w.water,150));
   if(dock)return {...dock.land};
   const map=mapOf(boat.islandId ?? 'home'), {HARBOR:harbor,JETTY:jetty}=map, {foot,dir,length,along}=jetty;
-  if (!near(boat,harbor.water,600)) return shoreFor(boat.x,boat.y,nav ?? navOf(boat.islandId ?? 'home'),280,map) ?? {x:Math.round(boat.x),y:Math.round(boat.y)};
+  if (!near(boat,harbor.water,600)) return shoreFor(boat.x,boat.y,nav ?? navOf(boat.islandId ?? 'home'),320,map) ?? {x:Math.round(boat.x),y:Math.round(boat.y)};
   const t=Math.max(length*jetty.wetFrom,Math.min(length-44,(boat.x-foot.x)*dir.x+(boat.y-foot.y)*dir.y));
   const side=Math.sign((boat.x-foot.x)*-dir.y+(boat.y-foot.y)*dir.x)*(t >= length-45 ? 0 : 18), p=along(t,side);
   return {x:Math.round(p.x),y:Math.round(p.y)};
 }
 export const BOAT_RADIUS = 46;
 export const SAIL_SPEED = 570;   // 1.5x the old 380
-const MARGIN=1800;
-const DEST=new Map(), BOUNDS=new Map(), OBSTACLES=new Map(), GRIDS=new Map(),CAP=new Map();
+const DEST=new Map(), BOUNDS=new Map(), GRIDS=new Map(),CAP=new Map();
 const candidateScratch=[];
 let SEEN=-1;
-const fresh=() => {if (SEEN !== mapsVersion()) {SEEN=mapsVersion(); for (const cache of [DEST,BOUNDS,OBSTACLES,GRIDS,CAP]) cache.clear();}};
+const fresh=() => {if (SEEN !== mapsVersion()) {SEEN=mapsVersion(); for (const cache of [DEST,BOUNDS,GRIDS,CAP]) cache.clear();}};
 export function originOffset(from,to) {
   const c=offsetOf(from,to), A=mapOf(from), B=mapOf(to);
   return {x:c.x+A.cx-B.cx, y:c.y+A.cy-B.cy};
@@ -43,9 +45,9 @@ export const destinationsFor = id => {
   if (!DEST.has(id)) {
     const A=mapOf(id);
     DEST.set(id,neighboursOf(id).map(({island,x,y}) => {
-      const B=mapOf(island.id), o=originOffset(id,island.id);
+      const B=mapOf(island.id), o={x:x+A.cx-B.cx,y:y+A.cy-B.cy};
       return {x:A.cx+x, y:A.cy+y, offset:o, destination:island.id, name:island.name, accent:island.accent, map:B.id,
-        dock:placeRigid(id,island.id,B.HARBOR.water), land:placeRigid(id,island.id,B.HARBOR.land)};
+        dock:placeRigid(id,island.id,B.HARBOR.water,{x:A.cx}), land:placeRigid(id,island.id,B.HARBOR.land,{x:A.cx})};
     }));
   }
   return DEST.get(id);
@@ -53,18 +55,16 @@ export const destinationsFor = id => {
 export function seaBoundsFor(id='home') {
   fresh();
   if (!BOUNDS.has(id)) {
-    const boxes=WORLD_ISLANDS.map(island => {const B=mapOf(island.id),o=originOffset(id,island.id);
-      return {x:o.x+B.origin.x,y:o.y+B.origin.y,w:B.width,h:B.height};});
-    for(const i of ISLETS){const p=placeIslet(id,i,[0,0]);boxes.push({x:p.x-i.width/2,y:p.y-i.width/2,w:i.width,h:i.width});}
-    const margin=Math.max(MARGIN,...boxes.map(o=>Math.max(o.w,o.h)/2));
-    BOUNDS.set(id,{x0:Math.min(...boxes.map(o=>o.x))-margin,y0:Math.min(...boxes.map(o=>o.y))-margin-1200,
-      x1:Math.max(...boxes.map(o=>o.x+o.w))+margin,y1:Math.max(...boxes.map(o=>o.y+o.h))+margin});
+    const m=mapOf(id),c=FLAT_POSITIONS[id];
+    // Extra polar coast room preserves existing harbours, moorings and walking.
+    BOUNDS.set(id,{x0:m.cx-SEA_WIDTH/2-20000,x1:m.cx+SEA_WIDTH/2+20000,
+      y0:m.cy-c.y-SEA_HEIGHT/2-7000,y1:m.cy-c.y+SEA_HEIGHT/2+7000});
   }
   return BOUNDS.get(id);
 }
 export const SEA_BOUNDS = seaBoundsFor('home');
 export const offshoreProgress = player => player ? Math.max(0,Math.min(1,(660-player.y-450)/850)) : 1;
-export const near = (a,b,radius) => Math.hypot(a.x-b.x,a.y-b.y) <= radius;
+export const near = (a,b,radius) => Math.hypot(wrapSea(a.x-b.x),a.y-b.y) <= radius;
 
 export const boatSpots=(islandId='home') => mapOf(islandId).boatSpots();
 const mooredBoat=(islandId,slot,id=`${islandId}-${slot}`) => {
@@ -89,7 +89,30 @@ export const boatHome = boat => mooringOf(boat).home;
 export const boatSlot = boat => mooringOf(boat).slot;
 export const boatSpot = boat => boatSpots(boatHome(boat))[boatSlot(boat)] ?? boatSpots(boatHome(boat))[0];
 
-export const MOORING_CLEAR=300;
+const seaBoatSeparated=(a,b,gap)=>boatSeparated({...a,x:nearestSeaX(a.x,b.x)},b,gap);
+
+// Compare in the actor's island frame, including boats sailing in a neighbour's frame.
+const otherBoatPositions = (actor,boats) => boats.filter(b=>b.id!==(actor.boatId??actor.id))
+  .map(b=>{const p=b.islandId===actor.islandId?b:placeRigid(actor.islandId,b.islandId,b);return {...p,x:nearestSeaX(p.x,actor.x)};});
+export function boatRoom(actor,boats=[]) {
+  return otherBoatPositions(actor,boats).every(p=>seaBoatSeparated(actor,p,BOAT_GAP+.1));
+}
+export function freeBoatPosition(actor,boats=[],reach=1040) {
+  const others=otherBoatPositions(actor,boats);
+  return nearestBoatSpace(actor,p=>others.every(q=>seaBoatSeparated(p,q,BOAT_GAP+1)) && canSail(p.x,p.y,actor.islandId),reach);
+}
+// A refused ticket must leave room to turn and sail away, outside the dock cove.
+export function refusedLandingPosition(actor,islandId,boats=[]) {
+  const m=mapOf(islandId),h=harborOf(islandId);
+  // Keep a visitor in the main chart, so the polar current cannot send it
+  // straight back into the refused cove. Bog-frame sailors have a south apron.
+  const y=actor.islandId===islandId?m.origin.y+m.height+900:m.origin.y-900;
+  const origin=placeRigid(actor.islandId,islandId,{x:h.water.x,y},actor);
+  const others=otherBoatPositions(actor,boats), room=600;
+  return nearestBoatSpace(origin,p=>canSail(p.x,p.y,actor.islandId,BOAT_RADIUS+room) &&
+    others.every(q=>seaBoatSeparated(p,q,BOAT_GAP+room+1)),4160);
+}
+export const MOORING_CLEAR=BOAT_GAP+40;
 let MINT=Date.now();
 function nextBoatId(islandId,slot,ids) {
   const base=`${islandId}-${slot}`;
@@ -101,22 +124,30 @@ const atMooring = (boat,spot) => boat.islandId === boatHome(boat) && boat.x === 
 export function fillMoorings(boats) {
   const SPOTS=new Map(), spotsOf=id => {if (!SPOTS.has(id)) SPOTS.set(id,boatSpots(id)); return SPOTS.get(id);};
   const held=new Set(), ids=new Set(), keep=[];
+  let moved=false;
   const keyOf=boat => mooringOf(boat).key;
   const valid=boat => typeof boat?.id === 'string' && islandFor(boatHome(boat)) && spotsOf(boatHome(boat))[boatSlot(boat)];
   const spotOf=boat => spotsOf(boatHome(boat))[boatSlot(boat)];
   for (const boat of boats) {
     if (!valid(boat) || boat.occupant || ids.has(boat.id) || !atMooring(boat,spotOf(boat)) || held.has(keyOf(boat))) continue;
+    if (!boatRoom(boat,boats.filter(b=>b.occupant))) continue;
     held.add(keyOf(boat)); ids.add(boat.id); keep.push(boat);
   }
   for (const boat of boats) {
     if (!valid(boat) || ids.has(boat.id) || (!boat.occupant && boat.parked !== true)) continue;
     if (!islandFor(boat.islandId) || !Number.isFinite(boat.x) || !Number.isFinite(boat.y)) continue;
     if (boat.occupant && boat.islandId === boatHome(boat) && near(boat,spotOf(boat),MOORING_CLEAR)) held.add(keyOf(boat));
+    if (!boat.occupant) {
+      const at=freeBoatPosition(boat,[...keep,...boats.filter(b=>b.occupant)]);
+      if (!at) continue;
+      if (at.x!==boat.x || at.y!==boat.y) {Object.assign(boat,at); moved=true;}
+    }
     ids.add(boat.id); keep.push(boat);
   }
-  let changed=keep.length !== boats.length;
+  let changed=moved || keep.length !== boats.length;
   for (const island of ISLANDS) for (let slot=0,spots=spotsOf(island.id);slot<spots.length;slot++) {
     if (held.has(`${island.id}|${slot}`)) continue;
+    if (!boatRoom({...spots[slot],islandId:island.id},keep)) continue;
     const id=nextBoatId(island.id,slot,ids);
     ids.add(id); keep.push({...mooredBoat(island.id,slot,id),spawnedAt:Date.now()}); changed=true;
   }
@@ -128,9 +159,11 @@ export function retireBoat(boats,boat,landing=null) {
   boat.occupant=null; boat.parked=true;
   if (landing) boat.landing={x:landing.x,y:landing.y};
   else if (boat.landing) boat.landing=null;
-  if (!landing && !boat.owner && boat.islandId === home && near(boat,spot,MOORING_CLEAR) && !boats.some(other => other !== boat && !other.occupant && boatHome(other) === home && boatSlot(other) === boatSlot(boat) && atMooring(other,spot)))
+  if (!landing && !boat.owner && boatRoom({...boat,...spot},boats) && boat.islandId === home && near(boat,spot,MOORING_CLEAR) && !boats.some(other => other !== boat && !other.occupant && boatHome(other) === home && boatSlot(other) === boatSlot(boat) && atMooring(other,spot)))
     Object.assign(boat,{x:spot.x,y:spot.y,turn:spot.turn,departure:home,parked:false});
-  if (!canSail(boat.x,boat.y,boat.islandId)) {
+  const at=freeBoatPosition(boat,boats);
+  if (at) Object.assign(boat,at);
+  if (!at) {
     const index=boats.indexOf(boat);
     if (index!==-1) boats.splice(index,1);
   }
@@ -159,7 +192,7 @@ export function landingSpot(actor,nav=null,reach=420,target=null) {
     const map=mapOf(island.id),p=unplaceRigid(actor.islandId,island.id,target ?? actor),lx=p.x,ly=p.y;
     if (lx < map.origin.x-reach || ly < map.origin.y-reach || lx > map.origin.x+map.width+reach || ly > map.origin.y+map.height+reach) continue;
     const shore=findShore(p,island.id===actor.islandId && nav && map.home ? nav : map.nav(),map);
-    if (shore) consider(island.id,shore,placeRigid(actor.islandId,island.id,shore));
+    if (shore) consider(island.id,shore,placeRigid(actor.islandId,island.id,shore,actor));
   }
   for (const i of ISLETS) {
     const q=unplaceIslet(actor.islandId,i,target ?? actor),water=i.jetty.water,c=i.landCentre;
@@ -168,14 +201,14 @@ export function landingSpot(actor,nav=null,reach=420,target=null) {
     const walk=isletWalks(i.home).find(w => w.islet === i);
     const jettyDistance=Math.hypot(q.x-water[0],q.y-water[1]);
     if (!target && jettyDistance <= 240) {
-      consider(i.home,walk.land,placeIslet(actor.islandId,i,i.jetty.land),{islet:i.id,jetty:true},jettyDistance);
+      consider(i.home,walk.land,placeIslet(actor.islandId,i,i.jetty.land,actor),{islet:i.id,jetty:true},jettyDistance);
       continue;
     }
     const local=placeIslet(i.home,i,[q.x,q.y]);
     const shore=findShore(local,walk.nav);
     if (shore) {
       const point=unplaceIslet(i.home,i,shore);
-      consider(i.home,shore,placeIslet(actor.islandId,i,[point.x,point.y]),{islet:i.id});
+      consider(i.home,shore,placeIslet(actor.islandId,i,[point.x,point.y],actor),{islet:i.id});
     }
   }
   return best;
@@ -193,38 +226,29 @@ export function dockingSpot(actor,target=null) {
   return spot;
 }
 
-export function landingApproach(actor,spot) {
+export function landingApproach(actor,spot,boats=[]) {
   if (spot.jetty) {
-    const i=ISLETS.find(i=>i.id===spot.islet),p=placeIslet(actor.islandId,i,i.jetty.water);
+    const i=ISLETS.find(i=>i.id===spot.islet),p=placeIslet(actor.islandId,i,i.jetty.water,actor);
     const q={x:Math.round(p.x),y:Math.round(p.y)};
-    if (canSail(q.x,q.y,actor.islandId) && (near(actor,q,14) || sailRoute(actor.islandId,actor,q))) return q;
+    if (boatRoom({...actor,...q},boats) && canSail(q.x,q.y,actor.islandId) && (near(actor,q,14) || sailRoute(actor.islandId,actor,q,boats))) return q;
   }
   const at={x:spot.x+spot.offset.x,y:spot.y+spot.offset.y};
   const sx=at.x,sy=at.y,len=Math.hypot(actor.x-sx,actor.y-sy)||1;
   for (let t=40;t<len-14;t+=10) {
     const p={x:Math.round(sx+(actor.x-sx)*t/len), y:Math.round(sy+(actor.y-sy)*t/len)};
-    if (canSail(p.x,p.y,actor.islandId) && sailRoute(actor.islandId,actor,p)) return p;
+    if (boatRoom({...actor,...p},boats) && canSail(p.x,p.y,actor.islandId) && sailRoute(actor.islandId,actor,p,boats)) return p;
   }
   return {x:actor.x,y:actor.y};
 }
 
-const obstaclesFor=id => {
-  fresh();
-  if (!OBSTACLES.has(id)) {
-    const b=seaBoundsFor(id);
-    OBSTACLES.set(id,WORLD_ISLANDS.filter(island => island.id!==id).map(island => ({...originOffset(id,island.id),id:island.id,map:mapOf(island.id)}))
-      .filter(o => o.x+o.map.origin.x+o.map.width+600 > b.x0 && o.x+o.map.origin.x-600 < b.x1 && o.y+o.map.origin.y+o.map.height+600 > b.y0 && o.y+o.map.origin.y-600 < b.y1));
-  }
-  return OBSTACLES.get(id);
-};
-export const islandOffset=(from,to) => {const o=obstaclesFor(from).find(o => o.id===to); return o ? {x:o.x,y:o.y} : null;};
+export const islandOffset=(from,to)=>islandFor(to)?originOffset(from,to):null;
 function candidates(id,x,y,pad=0){
  fresh();
  const out=candidateScratch;out.length=0;
  let caps=CAP.get(pad);
  if(!caps){caps=WORLD_ISLANDS.map(island=>{const m=mapOf(island.id);return {island,map:m,reach:Math.hypot(m.width,m.height)/2+pad};});CAP.set(pad,caps);}
  for(const c of caps){
-  const F=flatRigid(id,c.island.id),ox=x-F.x,oy=y-F.y;
+  const F=flatRigid(id,c.island.id),ox=wrapSea(x-F.x),oy=y-F.y;
   if(ox*ox+oy*oy>c.reach*c.reach)continue;
   out.push({map:c.map,x:F.cx+F.a*ox+F.b*oy,y:F.cy+F.c*ox+F.d*oy});
  }
@@ -232,7 +256,7 @@ function candidates(id,x,y,pad=0){
 }
 export function canSail(x,y,id='home',radius=BOAT_RADIUS){
  if(!Number.isFinite(x+y))return false;
- const b=seaBoundsFor(id);if(x<b.x0||y<b.y0||x>b.x1||y>b.y1)return false;
+ const b=seaBoundsFor(id);if(y<b.y0||y>b.y1)return false;
  for(const p of candidates(id,x,y,Math.ceil(radius))){
   if(p.map.landAt(p.x,p.y))return false;
   for(let k=0;k<16;k++){const a=k*Math.PI/8;if(p.map.landAt(p.x+Math.cos(a)*radius,p.y+Math.sin(a)*radius))return false;}
@@ -242,7 +266,7 @@ export function canSail(x,y,id='home',radius=BOAT_RADIUS){
 }
 
 export function canDock(actor) {
-  const water=harborOf(actor.islandId ?? 'home').water;
+  const at=harborOf(actor.islandId ?? 'home').water,water={...at,x:nearestSeaX(at.x,actor.x)};
   if (!near(actor,water,650)) return false;
   const distance=Math.hypot(actor.x-water.x,actor.y-water.y);
   const steps=Math.max(1,Math.ceil(distance/6));
@@ -253,7 +277,7 @@ export function canDock(actor) {
 const RES=FIELD_RES, PAD=FIELD_PAD;
 function clearance(id,x,y) {
   const b=seaBoundsFor(id);
-  if (x < b.x0 || y < b.y0 || x > b.x1 || y > b.y1) return 0;
+  if (y < b.y0 || y > b.y1) return 0;
   let best=PAD;
   for(const p of candidates(id,x,y,PAD)){
     const c=Math.round((p.x-p.map.origin.x+PAD)/RES),r=Math.round((p.y-p.map.origin.y+PAD)/RES);
@@ -265,7 +289,7 @@ function clearance(id,x,y) {
 
 }
 const SAFE=BOAT_RADIUS+30;
-const clearLine=(id,a,b) => {
+const clearSeaLine=(id,a,b) => {
   const len=Math.hypot(b.x-a.x,b.y-a.y), steps=Math.max(1,Math.ceil(len/6));
   for (let i=1;i<=steps;i++) {
     const x=a.x+(b.x-a.x)*i/steps, y=a.y+(b.y-a.y)*i/steps, room=clearance(id,x,y);
@@ -280,10 +304,22 @@ const clearLine=(id,a,b) => {
   return true;
 };
 const CELL=125;
+// Keep the proven local grid phase through the chart migration. Sliding the grid
+// can turn an existing narrow canal route into a tangent to an authored bank.
+const LEGACY_CENTRES=Object.fromEntries([['home',{x:0,y:0}],...FLAT_RING.map((id,k)=>[id,{x:FLAT_RADIUS*Math.sin(k*Math.PI/3),y:-FLAT_RADIUS*Math.cos(k*Math.PI/3)}])]);
+function routeBounds(id){
+ const bounds=seaBoundsFor(id),m=mapOf(id),old=LEGACY_CENTRES[id];
+ const boxes=WORLD_ISLANDS.map(i=>{const p=LEGACY_CENTRES[i.id],map=mapOf(i.id);return {x:p.x-map.width/2,y:p.y-map.height/2,w:map.width,h:map.height};});
+ for(const i of ISLETS){const p=GLOBE_ISLET_OFFSETS[i.id],home=LEGACY_CENTRES[p.home];boxes.push({x:home.x+p.x-i.width/2,y:home.y+p.y-i.width/2,w:i.width,h:i.width});}
+ const margin=Math.max(1800,...boxes.map(b=>Math.max(b.w,b.h)/2));
+ const x=m.cx-old.x+Math.min(...boxes.map(b=>b.x))-margin,y=m.cy-old.y+Math.min(...boxes.map(b=>b.y))-margin-1200;
+ return {...bounds,x0:x+Math.floor((bounds.x0-x)/CELL)*CELL,y0:y+Math.floor((bounds.y0-y)/CELL)*CELL};
+}
+
 function gridFor(id) {
   fresh();
   if (!GRIDS.has(id)) {
-    const b=seaBoundsFor(id), cols=Math.ceil((b.x1-b.x0)/CELL), rows=Math.ceil((b.y1-b.y0)/CELL), open=new Uint8Array(cols*rows);
+    const b=routeBounds(id), cols=Math.ceil((b.x1-b.x0)/CELL), rows=Math.ceil((b.y1-b.y0)/CELL), open=new Uint8Array(cols*rows);
     for (let r=0;r<rows;r++) for (let c=0;c<cols;c++) open[r*cols+c]=clearance(id,b.x0+(c+.5)*CELL,b.y0+(r+.5)*CELL)*.9 >= CELL*.71+SAFE ? 1 : 0;
     const labels=new Int32Array(open.length);let label=0,largest=[];
     for(let start=0;start<open.length;start++)if(open[start]&&!labels[start]){
@@ -299,9 +335,34 @@ function gridFor(id) {
   }
   return GRIDS.get(id);
 }
-export function sailRoute(id,from,to) {
+export function sailRoute(id,from,to,boats=[]) {
+ const m=mapOf(id),targetX=nearestSeaX(to.x,from.x),middle=(from.x+targetX)/2,shift=middle-nearestSeaX(middle,m.cx);
+ const start={x:from.x-shift,y:from.y},end={x:targetX-shift,y:to.y};
+ const others=otherBoatPositions({...from,islandId:id},boats).flatMap(p=>{
+   const x=nearestSeaX(p.x,middle)-shift;
+   return [-SEA_WIDTH,0,SEA_WIDTH].map(offset=>({...p,x:x+offset}));
+ });
+ const route=chartRoute(id,start,end,others);
+ return route?.map(p=>({...p,x:p.x+shift}))??null;
+}
+function chartRoute(id,from,to,others) {
+  const lineRoom=(a,b)=>{
+    const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy;
+    return others.every(p=>{
+      const t=l2?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/l2)):0;
+      return seaBoatSeparated({x:a.x+dx*t,y:a.y+dy*t},p,BOAT_GAP+1);
+    });
+  };
+  const clearLine=(id,a,b)=>lineRoom(a,b)&&clearSeaLine(id,a,b);
   if (clearLine(id,from,to)) return [to];
-  const {b,cols,rows,open}=gridFor(id), centre=i => ({x:b.x0+(i%cols+.5)*CELL,y:b.y0+(Math.floor(i/cols)+.5)*CELL});
+  const {b,cols,rows,open:sea}=gridFor(id), open=others.length?sea.slice():sea, centre=i => ({x:b.x0+(i%cols+.5)*CELL,y:b.y0+(Math.floor(i/cols)+.5)*CELL});
+  // The cached sea grid stays immutable. Only cells near a live boat change.
+  for(const p of others){
+    const r=BOAT_GAP+CELL*Math.SQRT2/2+1;
+    const c0=Math.max(0,Math.floor((p.x-r-b.x0)/CELL)),c1=Math.min(cols-1,Math.floor((p.x+r-b.x0)/CELL));
+    const r0=Math.max(0,Math.floor((p.y-r-b.y0)/CELL)),r1=Math.min(rows-1,Math.floor((p.y+r-b.y0)/CELL));
+    for(let y=r0;y<=r1;y++)for(let x=c0;x<=c1;x++)if(!seaBoatSeparated(centre(y*cols+x),p,r))open[y*cols+x]=0;
+  }
   const nearestOpen=p => {
     const c0=Math.floor((p.x-b.x0)/CELL), r0=Math.floor((p.y-b.y0)/CELL);
     for (let d=0;d<14;d++) for (let r=r0-d;r<=r0+d;r++) for (let c=c0-d;c<=c0+d;c++) {
@@ -355,9 +416,12 @@ export function sailRoute(id,from,to) {
   return route;
 }
 
-export function setSailDestination(actor,x,y) {
+export function setSailDestination(actor,x,y,boats=[]) {
   if (!canSail(x,y,actor.islandId)) return null;
-  const route=sailRoute(actor.islandId,actor,{x,y});
+  const at=freeBoatPosition({...actor,x,y},boats,520);
+  if (!at) return null;
+  ({x,y}=at);
+  const route=sailRoute(actor.islandId,actor,{x,y},boats);
   if (!route) return null;
   actor.sailTarget=route[0];
   actor.sailRoute=route.slice(1);
@@ -365,7 +429,10 @@ export function setSailDestination(actor,x,y) {
   return [x,y];
 }
 
-export function sailStep(actor,dt,input,now=null) {
+export function sailStep(actor,dt,input,now=null,boats=[]) {
+  const others=otherBoatPositions(actor,boats);
+  const startY=FLAT_POSITIONS[actor.islandId].y+actor.y-mapOf(actor.islandId).cy;
+  if(Math.abs(startY)<=SEA_HEIGHT/2)delete actor.seaCurrent;
   const manual=Boolean(input.x || input.y);
   if (manual) {actor.sailTarget=null; actor.sailRoute=null; actor.docking=false;}
   const target=actor.sailTarget;
@@ -377,8 +444,14 @@ export function sailStep(actor,dt,input,now=null) {
     const steps=Math.ceil(travel/6);
     for (let i=0;i<steps;i++) {
       const x=actor.x+dx/distance*travel/steps, y=actor.y+dy/distance*travel/steps;
-      if (!canSail(x,y,actor.islandId)) {actor.sailTarget=null; actor.sailRoute=null; actor.docking=false; break;}
+      if (!others.every(p=>seaBoatSeparated({x,y},p,BOAT_GAP+.1)) || !canSail(x,y,actor.islandId)) {actor.sailTarget=null; actor.sailRoute=null; actor.docking=false; break;}
       actor.x=x; actor.y=y;
+      const gy=FLAT_POSITIONS[actor.islandId].y+actor.y-mapOf(actor.islandId).cy;
+      if(Math.abs(gy)<=SEA_HEIGHT/2)delete actor.seaCurrent;
+      const pole=gy < -SEA_HEIGHT/2?'isle-55':gy > SEA_HEIGHT/2?'isle-249':null;
+      if(pole && (Math.abs(gy)>=SEA_HEIGHT/2+6500 || Math.abs(startY)<=SEA_HEIGHT/2 || actor.islandId!==pole || Math.abs(wrapSea(actor.x-mapOf(pole).cx))>mapOf(pole).width/2+800)) {
+        actor.seaCurrent=pole; actor.sailTarget=null;actor.sailRoute=null;break;
+      }
     }
     actor.turn=Math.atan2(dx,dy);
     if (target && near(actor,target,1)) actor.sailTarget=actor.sailRoute?.shift() ?? null;
@@ -388,12 +461,49 @@ export function sailStep(actor,dt,input,now=null) {
   return actor.travel>0;
 }
 
-export function crossIsland(actor,allow=() => true) {
+export function crossIsland(actor,allow=() => true,boats=[]) {
   if (actor.mode !== 'sailing') return false;
   const destination=destinationsFor(actor.islandId).find(island =>
-    Math.abs(actor.x-island.dock.x)<=65 && Math.abs(actor.y-island.dock.y)<=50 &&
-    (!actor.sailTarget || (Math.abs(actor.sailTarget.x-island.dock.x)<=65 && Math.abs(actor.sailTarget.y-island.dock.y)<=50)));
+    Math.abs(wrapSea(actor.x-island.dock.x))<=65 && Math.abs(actor.y-island.dock.y)<=50 &&
+    (!actor.sailTarget || (Math.abs(wrapSea(actor.sailTarget.x-island.dock.x))<=65 && Math.abs(actor.sailTarget.y-island.dock.y)<=50)));
   if (!destination || !allow(destination.destination)) return false;
-  Object.assign(actor,{islandId:destination.destination,...harborOf(destination.destination).water,turn:Math.PI,travel:0,path:[],sailTarget:null,sailRoute:null,docking:true,exitLocked:false});
+  const at=freeBoatPosition({...actor,islandId:destination.destination,...harborOf(destination.destination).water},boats,520);
+  if (!at) return false;
+  Object.assign(actor,{islandId:destination.destination,...at,dockTarget:at,turn:Math.PI,travel:0,path:[],sailTarget:null,sailRoute:null,docking:true,exitLocked:false});
   return true;
+}
+
+// Current delivery is sailing only. Landing still goes through capacity and Bog ticket checks.
+export function applySeaCurrent(actor,allow=()=>true,boats=[]){
+ const id=actor.seaCurrent;if(!id||(id!==actor.islandId&&!allow(id)))return false;
+ const at=freeBoatPosition({...actor,islandId:id,...harborOf(id).water},boats,4160);
+ if(!at)return false;
+ delete actor.seaCurrent;
+ Object.assign(actor,{islandId:id,...at,path:[],travel:0,sailTarget:null,sailRoute:null,docking:false,exitLocked:false,seaVersion:SEA_VERSION});
+ return true;
+}
+// Preserve old islet visitors relative to their artwork when its chart centre moves.
+function migratedIsletPoint(actor){
+ const m=mapOf(actor.islandId);
+ for(const i of ISLETS){
+  if(i.home!==actor.islandId)continue;
+  const old=GLOBE_ISLET_OFFSETS[i.id],spot=FLAT_ISLETS[i.id],dx=actor.x-m.cx-old.x,dy=actor.y-m.cy-old.y;
+  if(Math.hypot(dx,dy)>i.radius+800)continue;
+  const p={x:m.cx+spot.x+dx,y:m.cy+spot.y+dy};
+  if(actor.mode==='walking'?canWalkTo(actor.islandId,p.x,p.y):canSail(p.x,p.y,actor.islandId))return p;
+ }
+ return null;
+}
+// Old open-sea hexagon coordinates have no geographic meaning on this chart.
+// Keep islet visitors with their islet; recover other sailors at their own harbour.
+export function migrateSeaPosition(actor){
+ if(!actor || actor.seaVersion===SEA_VERSION)return false;
+ actor.seaVersion=SEA_VERSION;
+ const islet=migratedIsletPoint(actor);
+ if(actor.mode!=='sailing'){
+  if(islet){Object.assign(actor,islet,{path:[]});return true;}
+  return false;
+ }
+ Object.assign(actor,islet??harborOf(actor.islandId).water,{path:[],travel:0,sailTarget:null,sailRoute:null,docking:false,exitLocked:false});
+ delete actor.seaCurrent;return true;
 }

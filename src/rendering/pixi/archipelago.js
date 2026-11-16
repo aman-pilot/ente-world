@@ -1,3 +1,4 @@
+import {nearestSeaX} from '../../world/flat-layout.js';
 import {overviewPatch} from './sphere-mesh.js';
 import {flatRigid} from '../../world/rigid.js';
 import {Container, Graphics, Rectangle, Sprite, Texture} from 'pixi.js';
@@ -99,9 +100,14 @@ export function createArchipelago(app, scene, layer, world) {
       if (id === current || !worldIsland(id)) return;
       current = id; place(); draw();
     },
-    showLive(ids,currentPreview=false) {for (const [id, s] of sprites) s.visible = id===current?currentPreview:!ids.has(id);},
+    showLive(ids,currentPreview=false) {for (const [id, s] of sprites) s.visible = id===current ? currentPreview||(!ids.has(id)&&Math.abs(s.x)>1) : !ids.has(id);},
     root,
-    update(zoom) {
+    update(zoom,camera) {
+      if(camera)for(const island of islands){
+        const sprite=sprites.get(island.id);if(!sprite)continue;
+        sprite.x=nearestSeaX(island.x,camera.x)-island.x;
+        if(island.home)sprite.visible=Math.abs(sprite.x)>1;
+      }
       const far = Math.max(0, Math.min(1, (.012 - zoom) / .006));
       people.alpha = far; people.visible = far > 0;
     },

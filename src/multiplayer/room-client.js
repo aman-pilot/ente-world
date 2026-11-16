@@ -1,3 +1,4 @@
+import {nearestSeaX} from '../world/flat-layout.js';
 import {takeArrivalSocket} from '../app/arrival-start.js';
 import {DURATIONS, playEmote, playSailEmote, SAIL_EMOTES, startJump, setWalkDestination, walkStep} from '../gameplay/player-motion.js';
 import {CHAT_INTERVAL, chatText} from './chat.js';
@@ -6,7 +7,7 @@ import {mapOf,islandMapReady} from '../world/island-maps.js';
 import {getPlayerKarma} from '../features/bog-combat/karma.js';
 import {bogLandingNotice} from '../features/bog-combat/entry.js';
 import {BOAT_UNVEIL} from '../gameplay/boat-build.js';
-import {islandFor, harborOf, destinationsFor, near, canSail, dockingSpot, landingApproach, setSailDestination, sailStep, createBoats, fillMoorings, retireBoat, navOf, canWalkTo} from '../gameplay/islands.js';
+import {islandFor, harborOf, destinationsFor, near, canSail, dockingSpot, refusedLandingPosition, landingApproach, setSailDestination, sailStep, createBoats, fillMoorings, retireBoat, navOf, canWalkTo} from '../gameplay/islands.js';
 
 const ZERO = {x:0,y:0};
 const moving = input => input.x !== 0 || input.y !== 0;
@@ -18,6 +19,12 @@ function sample(track, now) {
   const turn = to.turn - from.turn;
   return {...to, jumpLeft:Math.max(0,(to.jumpLeft ?? 0)-(now-start)), x:from.x+(to.x-from.x)*blend, y:from.y+(to.y-from.y)*blend,
     turn:from.turn+Math.atan2(Math.sin(turn), Math.cos(turn))*blend};
+}
+
+// A nearest-image change must stay offscreen, rather than interpolate across a world.
+function periodicFrom(last,to,now){
+ const from=last?sample(last,now):to;
+ return {...from,x:nearestSeaX(from.x,to.x)};
 }
 
 export class RoomClient {
@@ -203,7 +210,7 @@ export class RoomClient {
     const boatTracks=new Map();
     for (const boat of boats) {
       const last=this.boatTracks.get(boat.id);
-      boatTracks.set(boat.id,{from:last?sample(last,now):boat,to:boat,start:now});
+      boatTracks.set(boat.id,{from:periodicFrom(last,boat,now),to:boat,start:now});
     }
     this.boatTracks=boatTracks;
     this.boats=boats;
@@ -225,7 +232,7 @@ export class RoomClient {
         } else this.prev = null;
       } else {
         const last = this.tracks.get(pose.id);
-        tracks.set(pose.id, {from:last ? sample(last, now) : pose, to:pose, start:now});
+        tracks.set(pose.id, {from:periodicFrom(last,pose,now), to:pose, start:now});
       }
     }
     this.tracks = tracks;
@@ -269,15 +276,19 @@ export class RoomClient {
     if (command.type === 'jump') return startJump(this.player);
     if (command.stop === true) {this.player.path=[];this.player.sailTarget=null;this.player.docking=false;this.player.pace=0;this.player.heading=null;}
     if (command.type === 'destination' && this.nav) return this.player.mode === 'sailing'
-      ? setSailDestination(this.player,command.x,command.y) : setWalkDestination(this.player, this.navHere(), command.x, command.y);
+      ? setSailDestination(this.player,command.x,command.y,this.boats) : setWalkDestination(this.player, this.navHere(), command.x, command.y);
     if (command.type === 'disembark' && this.player.mode === 'sailing') {
       const spot=dockingSpot(this.player,Number.isFinite(command.x) ? command : null);
+      if (spot && !spot.islet && bogLandingNotice(spot.islandId,getPlayerKarma({room:this}))) {
+        Object.assign(this.player,refusedLandingPosition(this.player,spot.islandId,this.boats),{sailTarget:null,sailRoute:null,docking:false});
+      }
       if (spot && (spot.islet || !bogLandingNotice(spot.islandId,getPlayerKarma({room:this})))) {
-        const approach=spot.harbor ? harborOf(this.islandId).water : landingApproach(this.player,spot);
+        const approach=spot.harbor ? harborOf(this.islandId).water : landingApproach(this.player,spot,this.boats);
         this.player.sailTarget=null; this.player.sailRoute=null; this.player.docking=false;
         if (!near(this.player,approach,14) || spot.harbor) {
-          const routed=setSailDestination(this.player,approach.x,approach.y);
+          const routed=setSailDestination(this.player,approach.x,approach.y,this.boats);
           this.player.docking=Boolean(routed && spot.harbor);
+          this.player.dockTarget=routed&&spot.harbor?{x:routed[0],y:routed[1]}:null;
         }
       }
     }
@@ -383,7 +394,7 @@ export class RoomClient {
         this.lastInput = now;
       }
     }
-    if (this.player.mode === 'sailing') sailStep(this.player,dt,input,now);
+    if (this.player.mode === 'sailing') sailStep(this.player,dt,input,now,this.boats);
     else walkStep(this.player, this.navHere(), dt, now, input);
     const omega = 12, decay = Math.exp(-omega * dt);
     const settle = (offset, velocity) => {

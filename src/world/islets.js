@@ -7,7 +7,7 @@ import pinkBlossom from '../../public/pixi-art/islets/07-pink-blossom.meta.json'
 import coralAtoll from '../../public/pixi-art/islets/12-coral-atoll.meta.json' with {type:'json'};
 import {WORLD_GEO,WORLD_ISLANDS} from './world-map.js';
 import {sphereFrame,expMap,logMap} from './sphere.js';
-import {FLAT_ISLETS} from './flat-layout.js';
+import {GLOBE_ISLET_OFFSETS} from './flat-layout.js';
 import {placeIslet,unplaceIslet} from './islet-placement.js';
 import {inPoly} from '../../assets/world/island-geometry.mjs';
 export const ISLET_SEED=data.seed;
@@ -15,11 +15,11 @@ export const ISLET_ART=['odyssey','tree-and-rowboat','broken-shipwreck','06-palm
 export const ISLET_META=Object.fromEntries([odyssey,treeAndRowboat,brokenShipwreck,palmTreasure,pinkBlossom,coralAtoll].map(m=>[m.art,m]));
 export const ISLET_VIEWBOX=1024;
 const BOAT_ROOM=46+26;
-// Each islet belongs to a fixed island (flat-layout.js). On the globe it sits beside that island on the same
-// bearing as on the flat sea, pulled in so it stays clear of the neighbours.
+// Keep each islet's shipped globe frame and owner. The frozen globe offsets stay
+// independent of the sailing offsets, which now unwrap these globe centres.
 const GLOBE_ISLET_PULL={'sea-2-1':.78,'sea-6-1':.84},PULL=.72;   // these two need more room for a 600-unit boat channel
 export function layoutIslet(i){
- const spot=FLAT_ISLETS[i.id],near=WORLD_ISLANDS.find(island=>island.id===spot.home);
+ const spot=GLOBE_ISLET_OFFSETS[i.id],near=WORLD_ISLANDS.find(island=>island.id===spot.home);
  const c0=expMap(near,spot.x*(GLOBE_ISLET_PULL[i.id]??PULL),spot.y*(GLOBE_ISLET_PULL[i.id]??PULL),WORLD_GEO.Rw);
  i={...i,lon:Math.atan2(c0[0],c0[2]),lat:Math.asin(Math.max(-1,Math.min(1,c0[1])))};
  const frame=sphereFrame(i.lon,i.lat),m=ISLET_META[i.art],k=i.width/ISLET_VIEWBOX;
@@ -43,7 +43,7 @@ export function isletClearance(p,limit=Infinity,id=null){
  for(const i of ISLETS){
   let q;
   if(id!==null){
-   const c=placeIslet(id,i,i.landCentre);
+   const c=placeIslet(id,i,i.landCentre,p);
    if(Math.hypot(p.x-c.x,p.y-c.y)>=best+i.radius)continue;
    q=unplaceIslet(id,i,p);
   }else{

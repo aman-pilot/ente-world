@@ -21,8 +21,10 @@ const centralChannel=[[4000,-1900],[4000,0],...Array.from({length:42},(_,i)=>{
 
 test('Pagepond replaces every floating paperboat with the approved playable Home fleet',()=>{
  for(const group of ['props','flats','floating'])assert(!art[group].some(p=>retiredBoatIds.has(p.id)||p.kind==='boat'),'no decorative boat remains in '+group);
- const fleet=createBoats().filter(b=>b.islandId===id),nav=map.nav();
- for(const p of paperboatMoorings){
+ const fleet=createBoats().filter(b=>b.islandId===id),nav=map.nav(),berths=read('assets/world/themes/library/harbor.json').boats;
+ for(const authored of paperboatMoorings){
+  const slot=berths.findIndex(p=>p.x===authored.x&&p.y===authored.y);assert(slot>=0,authored.id+' has an authored berth');
+  const p={...authored,...map.boatSpots()[slot]};
   const boat=fleet.find(b=>b.x===p.x&&b.y===p.y);assert(boat,p.id+' is a real fleet boat');assert(canSail(boat.x,boat.y,id),p.id+' full hull clears the shore');
   const landing=boardingPoint(boat,nav),shore=[landing.x,landing.y];assert(nav.walkable(...shore),p.id+' has boarding land');assert(Math.hypot(shore[0]-boat.x,shore[1]-boat.y)<=280,p.id+' boarding within reach');assert(nav.route(map.spawn.x,map.spawn.y,...shore).length,p.id+' boarding land is reachable');
  }

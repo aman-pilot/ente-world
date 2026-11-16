@@ -1,4 +1,10 @@
-import sites from './karma-sites.json' with {type:'json'};
+import authoredSites from './karma-sites.json' with {type:'json'};
+import {FLAT_ISLETS,GLOBE_ISLET_OFFSETS} from '../world/flat-layout.js';
+// Islet sites were authored in the old island-local chart. Keep their local art positions.
+const sites=authoredSites.map(s=>{
+ const p=FLAT_ISLETS[s.region],old=GLOBE_ISLET_OFFSETS[s.region];
+ return p?{...s,x:s.x+p.x-old.x,y:s.y+p.y-old.y}:s;
+});
 
 export const KARMA_ACTIVE=100;
 export const KARMA_RADIUS=65;
