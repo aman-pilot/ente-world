@@ -116,12 +116,10 @@ function inkStar(ctx, x, y, radius, turn = 0, bright = false) {
   }
   ctx.closePath();
   ctx.fillStyle = bright ? '#ffdb80' : PALE;
-  ctx.strokeStyle = INK; ctx.lineWidth = bright ? Math.max(1.8,radius*.085) : Math.max(1,radius*.15);
+  ctx.strokeStyle = INK; ctx.lineWidth = bright ? Math.max(2.2,radius*.11) : Math.max(1,radius*.15);
   ctx.lineJoin = ctx.lineCap = 'round'; ctx.fill(); ctx.stroke();
   if (bright) {
-    ctx.save(); ctx.clip(); ctx.strokeStyle = '#e8b950'; ctx.lineWidth = radius*.15;
-    ctx.beginPath(); ctx.arc(0,-radius*.12,radius*.77,.1,Math.PI*.8); ctx.stroke(); ctx.restore();
-    ctx.fillStyle = '#fff0c7'; ctx.beginPath(); ctx.ellipse(-radius*.16,-radius*.5,radius*.08,radius*.04,-.7,0,TAU); ctx.fill();
+    ctx.fillStyle = '#fff4d6'; ctx.beginPath(); ctx.ellipse(-radius*.2,-radius*.42,radius*.11,radius*.055,-.7,0,TAU); ctx.fill();
   }
   ctx.restore();
 }
