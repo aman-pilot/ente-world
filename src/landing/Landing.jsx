@@ -1,4 +1,4 @@
-import {lazy, Suspense, useEffect, useRef, useState} from 'react';
+import {lazy, startTransition, Suspense, useCallback, useEffect, useRef, useState} from 'react';
 import GuestPanel from '../app/GuestPanel.jsx';
 import './landing.css';
 import {imgExt} from './img-format.js';
@@ -6,7 +6,7 @@ import {startHomeHeadStart,warmSignInCache,headStartJSON,settleHomeHeadStart} fr
 import {arrivalPending} from '../app/arrival.js';
 import {startupSession,startArrivalSocket} from '../app/arrival-start.js';
 
-// Signed-in returns start the game behind the existing cover while the session is checked.
+// GitHub returns start the game behind the existing cover while the session is checked.
 const returning = arrivalPending() || new URLSearchParams(location.search).has('auth');
 const initialSession = startupSession(); initialSession.catch(() => {});
 if (returning) {startArrivalSocket(id => {if (id === 'home') startHomeHeadStart({guest:true}); else settleHomeHeadStart(id);}); void headStartJSON('/art-prerender/islands.json').then(p => headStartJSON(p.url)).catch(() => {});}
@@ -15,23 +15,26 @@ const PixiPage = lazy(loadGame);
 if (returning) void loadGame();
 
 export default function LandingGate() {
-  const [mode, setMode] = useState(returning ? 'game' : 'checking');
-  const [signInAvailable, setSignInAvailable] = useState(false);
+  const [inGame, setInGame] = useState(returning);
+  const [session, setSession] = useState(null);
+  const enterAfterIntro = useCallback(() => startTransition(() => setInGame(true)), []);
   useEffect(() => {
-    initialSession
-      .then(s => {setSignInAvailable(!!s.signInAvailable); setMode(s.user || returning ? 'game' : 'landing');})
-      .catch(() => {if (!returning) setMode('landing');});
+    if (!returning) initialSession.then(setSession, () => setSession({user:null, signInAvailable:false}));
   }, []);
-  if (mode === 'game') return <Suspense fallback={<div className="landing-boot"/>}><PixiPage/></Suspense>;
   // Watch as a guest: the GitHub-return cover closes in over the end screen, the game loads behind it, and it parts onto
   // Home the same way (PixiPage takes the cover over; no name tag for a guest)
-  if (mode === 'landing') return <Landing signInAvailable={signInAvailable} onWatch={() => {
+  function watch() {
     startHomeHeadStart({guest:true});
-    if (!window.EWArrival?.mount) {setMode('game'); return;}
+    if (!window.EWArrival?.mount) {setInGame(true); return;}
     window.EWArrival.mount('close', 'Flying to Home'); window.EWArrival.guest = true;
-    setTimeout(() => setMode('game'), 760);
-  }}/>;
-  return <div className="landing-boot"/>;
+    setTimeout(() => setInGame(true), 760);
+  }
+  const boot = <div className="landing-boot"/>;
+  let page = boot;
+  if (inGame) page = <PixiPage/>;
+  else if (session?.user) page = <Landing onIntroDone={enterAfterIntro}/>;
+  else if (session) page = <Landing signInAvailable={!!session.signInAvailable} onWatch={watch}/>;
+  return <Suspense fallback={boot}>{page}</Suspense>;
 }
 
 // One camera move through one sky, alive from the first frame: clouds already stream past, the globe is
@@ -184,10 +187,11 @@ const globeModule = import('./globe-intro.js');
 // only once Home's pictures are in, so on a slow line it never takes bandwidth from the globe or the island
 const warmDucky = () => ['body', 'beak', 'wings'].forEach(part => {const img = new Image(); img.src = `/guest/ducky-peek-${part}.webp`; img.decode?.().catch(() => {});});
 
-export function Landing({signInAvailable, onWatch}) {
+export function Landing({signInAvailable, onWatch, onIntroDone}) {
   const root = useRef(null);
   const canvas = useRef(null);
   const [panel, setPanel] = useState(false);
+  const showGuestPanel = Boolean(onWatch);
   const [settled] = useState(() => {
     // the intro plays on every visit; only reduced motion skips straight to the end screen
     try {return matchMedia('(prefers-reduced-motion: reduce)').matches;}
@@ -195,13 +199,18 @@ export function Landing({signInAvailable, onWatch}) {
   });
 
   useEffect(() => {
+    if (settled && onIntroDone) {onIntroDone(); return;}
     const el = root.current, I = INTRO, timers = [];
     let cancelled = false, globe = null, frame = 0, start = null, done = false, panelAt = Infinity, good = 0, lastNow = 0;
     whooshAt = Infinity;
     const later = (fn, ms) => timers.push(setTimeout(() => !cancelled && fn(), ms));
-    const globeReady = globeModule
-      .then(m => imgExt.then(x => m.createGlobeIntro(canvas.current, {ext:x, home:{ground:`/guest/home-ground.${x}`, props:`/guest/home-props.${x}`}})))
-      .then(g => {if (cancelled) g.destroy(); else {globe = g; g.homeReady.then(warmDucky);} return g;}).catch(() => {warmDucky(); return null;});
+    const globeReady = Promise.all([globeModule, imgExt])
+      .then(([module, ext]) => cancelled ? null : module.createGlobeIntro(canvas.current, {ext, home:{ground:`/guest/home-ground.${ext}`, props:`/guest/home-props.${ext}`}}))
+      .then(g => {
+        if (cancelled) g?.destroy();
+        else {globe = g; if (showGuestPanel) g?.homeReady.then(warmDucky);}
+        return g;
+      }).catch(() => {if (showGuestPanel) warmDucky(); return null;});
     const whoosh = [...el.querySelectorAll('.ld-whoosh')], blastCv = document.querySelector('.ld-flurry'), blast = blastSprites();
     const releaseBlast = () => {if (blastCv) blastCv.width = blastCv.height = 1; blast.destroy();};
     const cloudsSet = Promise.resolve(whoosh.forEach((img, i) => {img.src = window.EWClouds.url(WHOOSH[i].art);}));   // code-drawn clouds (index.html)
@@ -218,13 +227,24 @@ export function Landing({signInAvailable, onWatch}) {
     // the page's own first frame (index.html) cross-fades into the intro, which is already moving underneath it
     const dropBoot = () => {const b = document.getElementById('boot-sky'); if (b) b.animate([{opacity:1}, {opacity:0}], {duration:260, easing:'ease-out'}).finished.then(() => b.remove(), () => b.remove());};
     const finish = () => {
-      dropBoot();
       if (done) return; done = true;
+      dropBoot();
       el.dataset.introDone = 'true';
       // the clock runs on only while the landing flurry is still in the air
-      if (start === null) start = performance.now() - (LAND + OPEN + 2400);   // a returning visitor or a skip starts after the flurry
+      if (start === null) start = performance.now() - (LAND + OPEN + 2400);
       cancelAnimationFrame(frame);
-      const idle = now => {if (cancelled) return; const t = sceneT(now - start); globe?.draw(G0 + t * PACE); placeArrival(t); drawBlast(blastCv, blast, t, landAt); if (t < LAND + 2400) frame = requestAnimationFrame(idle); else globe?.still();};   // the flurry has gone: one full-sharpness still frame   // runs until the flurry has flown off, then the end screen is still
+      const idle = now => {
+        if (cancelled) return;
+        const t = sceneT(now - start);
+        globe?.draw(G0 + t * PACE);
+        placeArrival(t);
+        drawBlast(blastCv, blast, t, landAt);
+        if (t < LAND + 2400) frame = requestAnimationFrame(idle);
+        else {
+          globe?.still();
+          onIntroDone?.();
+        }
+      };
       frame = requestAnimationFrame(idle);
       // a returning visitor or reduced motion lands on the still end frame at once, maybe before Home's full pictures are
       // in (check: it stayed blurry); redraw the still once they arrive
@@ -326,7 +346,7 @@ export function Landing({signInAvailable, onWatch}) {
     }
 
     function play(g) {
-      if (cancelled) return;
+      if (cancelled || done) return;
       if (!g) {finish(); return;}
       bootP = window.__bootP?.() ?? 0;
       if (document.getElementById('boot-sky')?.dataset.arrive) dropBoot();   // back from GitHub but not signed in: fade the cover
@@ -339,7 +359,11 @@ export function Landing({signInAvailable, onWatch}) {
     }
     function skip() {
       el.getAnimations({subtree:true}).forEach(a => {try {a.finish();} catch {/* ignore */}});
-      globeReady.then(() => !cancelled && finish());
+      globeReady.then(() => {
+        if (cancelled || done) return;
+        if (onIntroDone) start = null;
+        finish();
+      });
     }
     // the globe is on screen from the first frame, so the clock starts once it and the font are ready
     // start only when frame one is complete: globe textures, cloud art and the font, capped so a slow network
@@ -360,7 +384,7 @@ export function Landing({signInAvailable, onWatch}) {
       globe?.destroy();
       releaseBlast();
     };
-  }, [settled]);
+  }, [settled, onIntroDone, showGuestPanel]);
 
 
   // a letter: the face, and a shine copy on top that a white band sweeps across
@@ -378,7 +402,7 @@ export function Landing({signInAvailable, onWatch}) {
       </div>
     </div>
     <img className="ld-ente" src="/ente-wordmark-white.svg" alt="Ente" width="844" height="264"/>
-    {panel && <GuestPanel signInAvailable={signInAvailable} onWatch={onWatch} plain/>}
+    {panel && onWatch && <GuestPanel signInAvailable={signInAvailable} onWatch={onWatch} plain/>}
     <canvas className="ld-flurry" aria-hidden="true"/>
   </main>;
 }
