@@ -5,7 +5,8 @@ import IslandChat from './IslandChat.jsx';
 import IslandPresence from './IslandPresence.jsx';
 import StarDialog from './StarDialog.jsx';
 import ArrivalClouds from './ArrivalClouds.jsx';
-import {arrivalPending} from './arrival.js';
+import {arrivalPending,rememberSignedIn} from './arrival.js';
+import IslandConnecting from './IslandConnecting.jsx';
 import IslandTravel from './IslandTravel.jsx';
 import IslandStargaze from './IslandStargaze.jsx';
 import IslandProfile from './IslandProfile.jsx';
@@ -36,7 +37,7 @@ const authNotices = {
   'star-check':'Could not check your GitHub star. Please sign in again.',
 };
 
-export default function PixiPage() {
+export default function PixiPage({signedInEntry = false}) {
   const host = useRef(null);
   const page = useRef(null);
   const room = useRef(null);
@@ -73,6 +74,7 @@ export default function PixiPage() {
     return () => clearTimeout(timer);
   },[travelNotice]);
   useEffect(() => {document.getElementById('boot-sky')?.remove();}, []);   // the landing's first frame (index.html) is not part of the game
+  useEffect(() => {if (session) rememberSignedIn(!!session.user);}, [session]);
 
   useEffect(() => {
     const abort = new AbortController();
@@ -176,9 +178,12 @@ export default function PixiPage() {
   const watchOnly = !offline && status !== 'playing' && (guest || starRequired);
   // waiting and problems take the middle of the screen with the golden feather (the same loader as the cloud
   // cover); passing information (watching, sign in, landed, star) stays small at the top right
-  const centre = !error && !offline && arrived && CENTRE.has(status);
   const waiting = status === 'connecting' || status === 'reconnecting';
-  return <main ref={page} className={`pixi-page${watchOnly ? ' pixi-page--watch' : ''}`}>
+  const connecting = signedInEntry && !error && !worldDrawn && (waiting || !CENTRE.has(status));
+  const centre = !connecting && !error && !offline && arrived && CENTRE.has(status);
+  return <>
+  {connecting && <IslandConnecting/>}
+  <main ref={page} inert={connecting} className={`pixi-page${watchOnly ? ' pixi-page--watch' : ''}`}>
     <div className="pixi-host" ref={host}/>
     <img className="pixi-ente-logo" src="/ente-wordmark-white.svg" alt="Ente" width="844" height="264"/>
     <div className="pixi-chat-layer">
@@ -233,7 +238,7 @@ export default function PixiPage() {
       </div>
     </div>}
     {arriving && <ArrivalClouds drawn={worldDrawn || error} login={session?.user?.login} onDone={() => setArrived(true)}/>}
-    {starRequired && starDialogOpen && arrived && <StarDialog onClose={() => setStarDialogOpen(false)} onConfirm={() => {
+    {starRequired && starDialogOpen && arrived && !connecting && <StarDialog onClose={() => setStarDialogOpen(false)} onConfirm={() => {
       setSession(previous => ({...previous,user:{...previous.user,canPlay:true}}));
       setStarDialogOpen(false);
       room.current?.connect();
@@ -242,5 +247,6 @@ export default function PixiPage() {
       <p>The island could not be displayed.</p>
       <button onClick={() => location.reload()}>Try again</button>
     </div>}
-  </main>;
+  </main>
+  </>;
 }
