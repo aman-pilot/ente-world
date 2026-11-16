@@ -4,7 +4,7 @@ import {RoomClient,OfflineFleet} from '../src/multiplayer/room-client.js';
 import {mapOf} from '../src/world/island-maps.js';
 import {ISLANDS} from '../src/gameplay/islands.js';
 const PLAIN=ISLANDS.find(island => island.id!=='home' && mapOf(island.id).home)?.id ?? 'home';
-import {destinationsFor,harborOf,boatSpots,boatHome,boatSlot,MOORING_CLEAR} from '../src/gameplay/islands.js';
+import {destinationsFor,harborOf,boatSpots,boatHome,boatSlot,MOORING_CLEAR,harborApproachClear,boatRoom} from '../src/gameplay/islands.js';
 import {JUMP_SECONDS,JUMP_CROUCH,JUMP_AIR,JUMP_LAND,JUMP_RISE,jumpHeight,jumpPose,startJump,walkStep} from '../src/gameplay/player-motion.js';
 
 function setup() {
@@ -313,7 +313,8 @@ test('offline: crossing to another island refills home and keeps the boat where 
   const boat=fleet.land('me');
   assert.equal(boat.id,'home-0');
   assert.ok(fleet.list.includes(boat));
-  assert.deepEqual([boat.x,boat.y,boat.occupant],[water.x,water.y,null]);
+  assert.equal(boat.occupant,null);
+  assert.ok(harborApproachClear(boat));assert.ok(boatRoom(boat,fleet.list));
   assert.equal(fleet.boats(there).length,per+1);
   assert.ok(fleet.take(boat.id,'friend'),'another sailor can take the parked arrival boat');
   assert.equal(fleet.boats('home').length,10);

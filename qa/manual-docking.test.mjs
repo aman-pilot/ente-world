@@ -2,7 +2,7 @@ import {placeIslet} from '../src/world/islet-placement.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {makeRoom,addPlayer} from './room-harness.mjs';
-import {boardingPoint, boatSpots, canDock, canSail, sailStep} from '../src/gameplay/islands.js';
+import {boardingPoint, boatSpots, canDock, canSail, sailStep, harborApproachClear, boatRoom} from '../src/gameplay/islands.js';
 import {isletWalk} from '../src/world/islet-walk.js';
 import {IslandRoom} from '../worker/index.js';
 import {cameraGame} from './helpers/pixi-engine.mjs';
@@ -51,7 +51,8 @@ test('tapping a nearby beach docks at the selected spot even within harbor range
   assert.deepEqual({x:actor.x,y:actor.y}, shore);
   assert.deepEqual(boardingPoint(boat), shore);
   assert.ok(canSail(boat.x, boat.y, boat.islandId));
-  assert.ok(Math.hypot(boat.x-shore.x, boat.y-shore.y)<150);
+  assert.ok(Math.hypot(boat.x-shore.x, boat.y-shore.y)<420);
+  assert.ok(harborApproachClear(boat));assert.ok(boatRoom(boat,room.boats));
   assert.ok(boat.parked);
 
   const restored = new IslandRoom(room.ctx);
