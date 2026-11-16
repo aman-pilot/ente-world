@@ -6,7 +6,7 @@ const hash=value=>createHash('sha256').update(value).digest('hex');
 
 // Main's per-piece density and the worker's packing/trim coordinates are shared.
 // Piece rasters are reused across viewport plans, independently of sheet packing.
-export async function prerenderDetailSheets(sheets,{root,output,base='/',cache=new Map(),previous=new Map(),emit}){
+export async function prerenderDetailSheets(sheets,{root,output,base='/',cache=new Map(),previous=new Map(),artCache,emit}){
  const inputs=cache.inputs??=new Map(),rasters=cache.rasters??=new Map();
  const input=src=>{if(!inputs.has(src))inputs.set(src,readFile(path.join(root,src)));return inputs.get(src);};
  const raster=p=>{
@@ -27,9 +27,13 @@ export async function prerenderDetailSheets(sheets,{root,output,base='/',cache=n
     const digest=createHash('sha256').update('detail-webp92-fast-v2').update(key);
     for(const p of sheet.frames)if(!p.alias&&!p.f.empty)digest.update(await input(p.src));
     const fileName=`art-prerender/detail-${digest.digest('hex').slice(0,24)}.webp`;
-    let bytes;
-    try{bytes=previous.get(fileName)??await readFile(path.join(output,fileName));}catch(error){
-     if(error.code!=='ENOENT')throw error;
+    let bytes=await artCache?.read(fileName);
+    if(!bytes){
+     bytes=previous.get(fileName)??await readFile(path.join(output,fileName)).catch(error=>{if(error.code!=='ENOENT')throw error;});
+     if(bytes)await artCache?.write(fileName,bytes);
+    }
+    if(bytes)cache.reused=(cache.reused??0)+1;
+    else{
      const composites=[];
      for(const p of sheet.frames){
       if(p.alias||p.f.empty)continue;
@@ -40,6 +44,8 @@ export async function prerenderDetailSheets(sheets,{root,output,base='/',cache=n
      }
      bytes=await sharp({create:{width:sheet.width,height:sheet.height,channels:4,background:'#00000000'}}).composite(composites)
        .webp({quality:92,alphaQuality:100,effort:0,lossless:sheet.ground}).toBuffer();
+     cache.rendered=(cache.rendered??0)+1;
+     await artCache?.write(fileName,bytes);
     }
     return {fileName,url:base+fileName,bytes:bytes.length,body:bytes};
    })());

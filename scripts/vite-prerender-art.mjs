@@ -1,12 +1,13 @@
 import {packHomeScene} from '../src/world/home/scene-pack.js';
 import {prerenderDetailSheets} from './prerender-detail.mjs';
+import {prerenderCache} from './prerender-cache.mjs';
 import {detailSources} from './detail-sources.mjs';
 import {packDetailFrames,detailSheetBytes} from './detail-layout.mjs';
 import {selectIslandTier} from '../src/app/ducky-prefetch.js';
 import {foliageColour} from '../src/rendering/pixi/environment/plant-contact.js';
 import {planIslandArt,planIslandSheets,plannedSheetTiers,ISLAND_ART_BUDGET} from '../src/rendering/pixi/art/island-budget.js';
 import {textureFootprint} from '../src/rendering/pixi/art/texture-footprint.js';
-import {readFile, stat, readdir} from 'node:fs/promises';
+import {readFile, readdir} from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {availableParallelism} from 'node:os';
@@ -127,6 +128,7 @@ export async function collectPlacedArt(root) {
 
 export function prerenderArt() {
   let config, manifestURL, manifest, entries, sheetBytes, homeURL, pinkURL, libraryURL, bogURL, communityURL, snowURL, duckPartsURL, islandsURL;
+  let artCache;
   const previousDetail=new Map();
   return {
     name: 'prerender-island-art', apply: 'build',
@@ -139,6 +141,14 @@ export function prerenderArt() {
     async buildStart() {
       const start = performance.now(), root = config.root;
       const sharp = require('sharp');
+      if (process.env.CF_PAGES === '1' || process.env.DUCKY_ART_CACHE_DIR) {
+        // A renderer or encoder change can affect all outputs. Individual
+        // raster keys below also include the inputs that affect each image.
+        const renderer = await Promise.all(['vite-prerender-art.mjs', 'prerender-detail.mjs']
+          .map(file => readFile(path.join(root, 'scripts', file))));
+        const fingerprint = hash(Buffer.concat([...renderer, Buffer.from(JSON.stringify([config.base, sharp.versions]))]));
+        artCache = prerenderCache(root, fingerprint, config.logger);
+      }
       const priorDir=path.resolve(root,config.build.outDir,DIRECTORY);
       for(const name of await readdir(priorDir).catch(()=>[]))if(/^detail-.*\.webp$/.test(name))previousDetail.set(`${DIRECTORY}/${name}`,await readFile(path.join(priorDir,name)));
       const sizes = JSON.parse(await readFile(path.join(root, 'src/rendering/shared/art-source-sizes.json'), 'utf8'));
@@ -179,8 +189,8 @@ export function prerenderArt() {
         manifest[src] = {w: source.w, h: source.h, padding: source.padding, fixed:source.fixed, tiers: []};
         for (const [tier,scale] of (owners.get(src)?.has('boat-spin')?[.25,1.25]:entries.some(e=>e.src===src&&e.lossless&&/^(startup|wardrobe-|boat-)/.test(e.theme))?[Math.max(...entries.filter(e=>e.src===src).map(e=>e.resolution??1))]:source.fixed?source.scales.slice(0,6):source.scales).entries()) jobs.push({src, ...source, scale,tier,quality:opaqueGround.has(src)?90:92,lossless:entries.some(e=>e.src===src&&e.lossless)||source.padding>0&&!opaqueGround.has(src)});
       }
-      // Keep all caching in dist. Vite clears it after buildStart, so read any
-      // unchanged content-addressed files here and re-emit them with the build.
+      // Read unchanged content-addressed files from the persistent cache or
+      // the previous local output, before Vite clears it for this build.
       const output = path.resolve(root, config.build.outDir), emitted = new Map();
       let cursor = 0, rendered = 0, reused = 0;
       const inputs = new Map();
@@ -200,15 +210,21 @@ export function prerenderArt() {
           const fileName = `${DIRECTORY}/${digest}.webp`;
           // Identical tiers/sources share one output and one render.
           if (!emitted.has(fileName)) emitted.set(fileName, (async () => {
-            let bytes;
-            try {await stat(path.join(output, fileName)); bytes = await readFile(path.join(output, fileName)); reused++;}
-            catch (error) {
-              if (error.code !== 'ENOENT') throw error;
+            let bytes = await artCache?.read(fileName);
+            if (!bytes) {
+              bytes = await readFile(path.join(output, fileName)).catch(error => {
+                if (error.code !== 'ENOENT') throw error;
+              });
+              if (bytes) await artCache?.write(fileName, bytes);
+            }
+            if (bytes) reused++;
+            else {
               let image = sharp(input, {density}).resize(width, height, {fit: 'fill'});
               if (job.padding) image = image.extend({top: 2, bottom: 2, left: 2, right: 2, extendWith: 'copy'});
               // Lossless ground avoids independent WebP blocks giving the two
               // sides of a continuous join slightly different colours.
               bytes = await image.webp({quality: job.quality, lossless: job.lossless, alphaQuality: 100, effort: 0}).toBuffer(); rendered++;
+              await artCache?.write(fileName, bytes);
             }
             sheetBytes.set(config.base+fileName,bytes.length);
             return bytes;
@@ -223,17 +239,17 @@ export function prerenderArt() {
         for(const [index,tier] of entry.tiers.entries()){
           const group=`${theme}/${entry.padding?'ground'+(opaqueGround.has(src)?'/opaque':''):entry.fixed?'fixed':'props'}/${index}`;tier.group=group;
           const list=groups.get(group)??[];groups.set(group,list);
-          let bytes=await emitted.get(tier.url.slice(config.base.length));
-          // Opaque ground sheets get one lossy encode, directly from main's PNG pixels.
-          if(opaqueGround.has(src))bytes=await sharp(await inputFor(src)).resize(tier.width,tier.height,{fit:'fill'})
-            .extend({top:2,bottom:2,left:2,right:2,extendWith:'copy'}).png().toBuffer();
-          list.push({src,entry,tier,bytes});
+          list.push({src,entry,tier});
         }
       }
       let previous={};
       try{
-        const name=(await readdir(path.join(output,DIRECTORY))).find(n=>/^manifest-.*\.json$/.test(n));
-        if(name)previous=JSON.parse(await readFile(path.join(output,DIRECTORY,name),'utf8'));
+        const cached = await artCache?.read('manifest.json');
+        if(cached)previous=JSON.parse(cached);
+        else {
+          const name=(await readdir(path.join(output,DIRECTORY))).find(n=>/^manifest-.*\.json$/.test(n));
+          if(name)previous=JSON.parse(await readFile(path.join(output,DIRECTORY,name),'utf8'));
+        }
       }catch(error){if(error.code!=='ENOENT')throw error;}
       const previousGroups=new Map();
       for(const [src,e]of Object.entries(previous))for(const tier of e.tiers){
@@ -259,15 +275,32 @@ export function prerenderArt() {
         const old=pieces.map(p=>sameMembers&&previous[p.src]?.tiers.find(t=>(t.group===group||!t.group&&t.atlasFallback==='oversized')&&t.url===p.tier.url&&(t.atlasFallback==='oversized'&&t.sheetLimit===4096||t.sheet&&t.sheetLimit===4096&&t.sheetWidth<=4096&&t.sheetHeight<=4096&&t.lossless===lossless&&(quality===92||t.sheetQuality===quality)&&t.sheetEffort===4)));
         if(old.every(Boolean)){
           const urls=[...new Set(old.flatMap(t=>[t.sheet]).filter(Boolean))];
-          const files=await Promise.all(urls.map(async url=>[url,await readFile(path.join(output,url.slice(config.base.length)))]));
-          for(const [url,bytes]of files){this.emitFile({type:'asset',fileName:url.slice(config.base.length),source:bytes});sheetBytes.set(url,bytes.length);}
-          pieces.forEach((p,i)=>{Object.assign(p.tier,old[i]);});
-          config.logger.info(`Art sheets ${group}: ${new Set(old.map(t=>t.sheet)).size} reused`);
-          return;
+          const files=await Promise.all(urls.map(async url=>{
+            const name=url.slice(config.base.length);
+            let bytes=await artCache?.read(name);
+            if(!bytes){
+              bytes=await readFile(path.join(output,name)).catch(error=>{if(error.code!=='ENOENT')throw error;});
+              if(bytes)await artCache?.write(name,bytes);
+            }
+            return [url,bytes];
+          }));
+          if(files.every(([,bytes])=>bytes)){
+            for(const [url,bytes]of files){this.emitFile({type:'asset',fileName:url.slice(config.base.length),source:bytes});sheetBytes.set(url,bytes.length);}
+            pieces.forEach((p,i)=>{Object.assign(p.tier,old[i]);});
+            config.logger.info(`Art sheets ${group}: ${files.length} reused`);
+            return;
+          }
+        }
+        for(const p of pieces){
+          p.bytes=await emitted.get(p.tier.url.slice(config.base.length));
+          // Opaque ground sheets get one lossy encode, directly from the PNG pixels.
+          if(opaqueGround.has(p.src))p.bytes=await sharp(await inputFor(p.src)).resize(p.tier.width,p.tier.height,{fit:'fill'})
+            .extend({top:2,bottom:2,left:2,right:2,extendWith:'copy'}).png().toBuffer();
         }
         const sheets=await packArtSheets(pieces,4096,{lossless,quality});
         for(const sheet of sheets){
           const name=`${DIRECTORY}/sheet-${hash(sheet.bytes)}.webp`;
+          await artCache?.write(name, sheet.bytes);
           this.emitFile({type:'asset',fileName:name,source:sheet.bytes});
           sheetBytes.set(config.base+name,sheet.bytes.length);
           for(const frame of sheet.frames) Object.assign(frame.piece.tier,{sheet:config.base+name,
@@ -297,6 +330,7 @@ export function prerenderArt() {
       config.logger.info(`Prerender art: ${pieceFiles.size} single-piece WebP kept (no sheet frame)`);
       for(const [src,e] of Object.entries(manifest))if(/^\/pixi-duck\/view-.*-body-/.test(src))e.svgText=await readFile(path.join(config.publicDir,src),'utf8');
       const json = JSON.stringify(manifest), fileName = `${DIRECTORY}/manifest-${hash(json)}.json`;
+      await artCache?.write('manifest.json', json);
       this.emitFile({type: 'asset', fileName, source: json});
       // Directory shards keep startup from parsing every island and outfit.
       const parts = {};
@@ -385,7 +419,7 @@ export function prerenderArt() {
           let planBytes=Buffer.byteLength(source);
           if(view.rasterDetail.overBudget)throw Error(`Detail sheets exceed budget: ${id} DPR ${dpr} zoom ${view.zoom}`);
           {
-            const raster=await prerenderDetailSheets(sheets,{root:config.publicDir,output:path.resolve(config.root,config.build.outDir),base:config.base,cache:detailCache,previous:previousDetail,
+            const raster=await prerenderDetailSheets(sheets,{root:config.publicDir,output:path.resolve(config.root,config.build.outDir),base:config.base,cache:detailCache,previous:previousDetail,artCache,
               emit:(fileName,source)=>this.emitFile({type:'asset',fileName,source})});
             view.rasterDetail={...view.rasterDetail,...raster,kind:'webp'};
             if(raster.rasterPack){
@@ -399,6 +433,7 @@ export function prerenderArt() {
           view.detail=[];view.detailBytes=view.rasterDetail.rasterBytes+planBytes;view.detailSharpZoom=1.8;
         }
       }
+      if(artCache)config.logger.info(`Detail artwork cache: ${detailCache.reused??0} sheets reused, ${detailCache.rendered??0} rendered`);
       const {json,fileName}=serializeIslandIndex(index);
       this.emitFile({type:'asset',fileName,source:json});
       this.emitFile({type:'asset',fileName:`${DIRECTORY}/islands.json`,source:JSON.stringify({url:config.base+fileName})});
@@ -412,6 +447,7 @@ export function prerenderArt() {
         config.logger.info(`Island ${id} DPR ${dpr}: ${landing.webp.length} landing files, zoom ${landing.zoom}, sharp limit ${landing.sharpZoom.toFixed(3)}, landing ${landing.bytes} bytes, detail ${landing.detailBytes} bytes, detail sharp limit ${landing.detailSharpZoom.toFixed(3)}`);
       }
     },
+    async writeBundle() {await artCache?.prune();},
     transform(code, id) {
       if(id.endsWith('/world/prop-outlines/bog-scene.js'))return {code:lazyPinkScene(code,bogURL),map:null};
       if(id.endsWith('/world/prop-outlines/snow-scene.js'))return {code:lazyPinkScene(code,snowURL),map:null};
