@@ -37,9 +37,9 @@ export function createArchipelago(app, scene, layer, world) {
     if (!textures.has('home')) return;
     copies.removeChildren().forEach(child => {child.geometry?.destroy();child.destroy();});
     sprites.clear();
-    for (const island of islands) if (!island.home) {
+    for (const island of islands) {
       const s=overviewPatch(current,island.id,textureOf(island.id));sprites.set(island.id,s);
-      s.tint=island.map==='home'?island.tint:0xffffff;
+      s.tint=island.map==='home'?island.tint:0xffffff;s.visible=!island.home;
       copies.addChild(s);
     }
     people.removeChildren().forEach(child => child.destroy());
@@ -99,7 +99,7 @@ export function createArchipelago(app, scene, layer, world) {
       if (id === current || !worldIsland(id)) return;
       current = id; place(); draw();
     },
-    showLive(ids) {for (const [id, s] of sprites) s.visible = !ids.has(id);},
+    showLive(ids,currentPreview=false) {for (const [id, s] of sprites) s.visible = id===current?currentPreview:!ids.has(id);},
     root,
     update(zoom) {
       const far = Math.max(0, Math.min(1, (.012 - zoom) / .006));

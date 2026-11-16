@@ -1982,15 +1982,12 @@ export class PixiIsland {
     }
     this.groundPool?.update(views,Math.min(devicePixelRatio||1,2));
     for(const art of this.arts.values())art.rasterPool?.update(views,Math.min(devicePixelRatio||1,2));
-    this.archipelago?.showLive(solo ? SOLO_HIDDEN : new Set(copies.map(i => i.id)));
+    this.archipelago?.showLive(solo ? SOLO_HIDDEN : new Set(copies.map(i => i.id)), !solo&&!this.artReady(this.artShown));
     const visitors=this.copyVisitors(copies);
     for (const {o} of visitors) o.visible=false;
     if (this.worldView) this.worldView.liveCopies=target => this.renderLiveCopies(target, copies, visitors);
     this.isletView?.update(this.islandId,this.camera,this.viewSpan.width,this.viewSpan.height,(this.globeT||0)>.001);
-    if (this.worldView) {
-      this.worldView.globeWanted=!this.archipelago || !this.walkSolo();
-      this.worldView.currentReady=this.artReady(this.artShown);
-    }
+    if (this.worldView) this.worldView.globeWanted=!this.archipelago || !this.walkSolo();
     this.renderScreen(() => {
       this.worldView?.update(this.globeT||0, this.width, this.height, performance.now() / 1000, this.camera, this.archipelago, this.mapHere(), this.birdZoom(), !this.gestures.pointers.size, this.player, reduced);
       if (this.nameLayer) {
