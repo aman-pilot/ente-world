@@ -893,7 +893,9 @@ export class IslandRoom {
         if (info.boarding && (aboard || !actor.path.length)) {
           info.boarding=null;
           actor.path=[];
-          if (!aboard || boat.occupant) this.send(socket,{type:'travel-notice',text:'Boat taken.'});
+          // A boat someone else holds is taken; a free boat you could not walk to is out of reach.
+          if (!boat || boat.occupant) this.send(socket,{type:'travel-notice',text:'Boat taken.'});
+          else if (!aboard) this.send(socket,{type:'travel-notice',text:"Can't walk to that boat from here."});
           else {
             if(actor.islandId===BOG_ISLAND)this.karma.endBogEntry(info.account);
             boat.occupant=actor.id; boat.departure=actor.islandId;
