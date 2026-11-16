@@ -660,6 +660,13 @@ button.pixi-stargaze-tag { overflow: hidden; text-overflow: ellipsis; }
 .pixi-friends-inline h3 { margin: 12px 0 4px; font-size: 14px; }
 .pixi-friends-inline button { min-height: 36px; padding: 6px 12px; border: 1px solid #564537; border-radius: 10px; background: #ffda69; color: #332b23; font: 600 13px/1.3 system-ui, sans-serif; cursor: pointer; }
 .pixi-friends-inline .pixi-friends-list button { background: transparent; }
+.pixi-friends-map-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0 0; font: 600 13px/1.3 system-ui, sans-serif; color: #332b23; cursor: pointer; }
+.pixi-friends-map-toggle span { order: -1; }
+.pixi-friends-map-toggle input { appearance: none; flex-shrink: 0; width: 40px; height: 24px; margin: 0; border: 1px solid #564537; border-radius: 12px; background: #e9dfc7; position: relative; cursor: pointer; transition: background .2s; }
+.pixi-friends-map-toggle input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 1px solid #564537; box-sizing: border-box; transition: transform .2s; }
+.pixi-friends-map-toggle input:checked { background: #ffda69; }
+.pixi-friends-map-toggle input:checked::after { transform: translateX(16px); }
+.pixi-friends-map-toggle input:focus-visible { outline: 2px solid #564537; outline-offset: 2px; }
 .pixi-friends-inline .pixi-friends-empty { margin: 8px 0 0; padding: 12px; border: 1.5px dashed #c9b77f; border-radius: 12px; font-weight: 500; color: #75604b; }
 .pixi-friends-inline > p:first-child { margin: 0 0 4px; color: #75604b; font-weight: 500; font-size: 13px; }
 .pixi-friends-inline .pixi-friends-list li { padding: 8px 0; border-top-color: #56453720; }

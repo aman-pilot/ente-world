@@ -251,6 +251,21 @@ export class RoomClient {
     this.updateNearby();
   }
 
+  // Friends who are playing, for the mini-map and globe. Positions come from /api/friends every few seconds;
+  // a friend on your island uses their live position instead so the dot moves smoothly.
+  setFriendSpots(friends) {
+    this.friendSpots = (friends ?? []).filter(friend => friend.where)
+      .map(friend => ({accountId:friend.accountId, login:friend.login, ...friend.where}));
+  }
+
+  friendMarks() {
+    if (this.showFriendsOnMap === false || !this.friendSpots?.length) return [];
+    return this.friendSpots.map(spot => {
+      const live = this.friendPlayers.find(player => String(player.accountId) === String(spot.accountId) && player.id !== this.id);
+      return live ? {...spot, islandId:live.islandId ?? spot.islandId, x:live.x, y:live.y, mode:live.mode ?? spot.mode} : spot;
+    });
+  }
+
   dismissFriend(accountId) {
     if (accountId) this.dismissedFriends.add(accountId);
     this.updateNearby();
@@ -258,6 +273,7 @@ export class RoomClient {
 
   clearFriends() {
     this.friends = null;
+    this.friendSpots = [];
     this.dismissedFriends.clear();
     this.updateNearby();
   }

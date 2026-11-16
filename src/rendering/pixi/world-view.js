@@ -268,6 +268,7 @@ function makePin(text = 'You', color = PALETTE.sun, icon = null) {
   const body = new Container(); body.addChild(drop, label);
   pin.addChild(shadow, body);
   pin.body = body;
+  pin.label = label; pin.tagWidth = tagWidth;
   return pin;
 }
 
@@ -330,6 +331,9 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
   app.stage.addChildAt(life, app.stage.getChildIndex(mesh) + 1);
   app.stage.addChildAt(pin, app.stage.getChildIndex(life) + 1);
   app.stage.addChildAt(bogPin, app.stage.getChildIndex(pin));
+  // Friends who are playing get their own pins (pink, with their name), pooled by account.
+  const friendPins=new Map();
+  const friendPin=friend=>{let p=friendPins.get(friend.accountId);if(!p){p=makePin(`@${friend.login}`,0xff8fa6);p.visible=false;app.stage.addChildAt(p,app.stage.getChildIndex(pin));friendPins.set(friend.accountId,p);}return p;};
   const sphereMask=new Graphics();app.stage.addChild(sphereMask);pin.mask=sphereMask;
   life.visible = pin.visible = bogPin.visible = false;
   const u = shader.resources.viewUniforms.uniforms;
@@ -364,7 +368,7 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
         shader.resources.uWorld = worldTex.source;
         if (old) setTimeout(() => old.destroy(true), 0);
       }
-      if (!on) {if(worldTex&&time-lastGlobeTime>3){shader.resources.uWorld=blank.source;worldTex.destroy(true);worldTex=null;worldVersion=-1;}scene.visible=true;life.visible=pin.visible=bogPin.visible=false;this.pinIn=this.tagsOut=0;this.worldAt=null;return;}
+      if (!on) {if(worldTex&&time-lastGlobeTime>3){shader.resources.uWorld=blank.source;worldTex.destroy(true);worldTex=null;worldVersion=-1;}scene.visible=true;life.visible=pin.visible=bogPin.visible=false;for(const p of friendPins.values())p.visible=false;this.pinIn=this.tagsOut=0;this.worldAt=null;return;}
       if (width !== w || height !== h) {w = width; h = height; rt.resize(w, h); mesh.scale.set(w, h); shader.resources.uScene = rt.source;}
       const live=t < .97 && cam.zoom > .065;
       if (live) {scene.visible = true; app.renderer.render({container: scene, target: rt, clear: true}); this.liveCopies?.(rt);}
@@ -510,6 +514,26 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
         hoverK += ((hover && pin.visible ? 1.05 : 1) - hoverK) * (1 - Math.exp(-dt * 18));
         pin.scale.set((.8 + .2 * p.face) * hoverK);
       } else pin.visible = false;
+      const shown=new Set(),placed=[];
+      // Name tags never overlap: with many friends close together, the pins stay and only the tags that fit
+      // show (your own tag always does). Hover-free and cheap: a few boxes per frame.
+      const fits=(x,y,w)=>{const box={l:x-w/2-4,r:x+w/2+4,t:y-80,b:y-52};if(placed.some(o=>box.l<o.r&&box.r>o.l&&box.t<o.b&&box.b>o.t))return false;placed.push(box);return true;};
+      if (pin.visible) fits(pin.x,pin.y,pin.tagWidth*pin.scale.x);
+      for (const friend of this.friends ?? []) {
+        let point;
+        try {point=friend.mode==='sailing'?seaPoint(friend.islandId,friend):spherePoint(friend.islandId,friend);} catch {continue;}
+        if (!point) continue;
+        const fp=friendPin(friend),p=project(0,0,point);
+        shown.add(friend.accountId);
+        fp.mask=pin.mask;
+        fp.position.set(p.x,p.y);
+        fp.alpha=this.tagsOut*ease(p.face/.25);
+        fp.visible=fp.alpha>.01;
+        fp.body.y=-Math.abs(Math.sin(time*3+(Number(friend.accountId)%7||0)))*6;
+        fp.scale.set(.7+.2*Math.max(0,p.face));
+        fp.label.visible=fp.visible&&fits(p.x,p.y,fp.tagWidth*fp.scale.x);
+      }
+      for (const [account,p] of friendPins) if (!shown.has(account)) {if (p.visible) p.visible=false; if (friendPins.size>40) {p.destroy({children:true});friendPins.delete(account);}}
       if (bogIsland) {
         const c = localPoint(id, expMap(bogIsland, 0, 0, Rw)), p = project(c.x, c.y);
         bogPin.position.set(p.x, p.y);
@@ -534,6 +558,6 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
       let dlon=next.lon-before.lon;dlon-=2*Math.PI*Math.round(dlon/(2*Math.PI));
       return {aim:centreOf(next.lon,next.lat),dlon,dlat:next.lat-before.lat};
     },
-    destroy() {for (const texture of shoreTextures.values()) texture.destroy(true); shoreTextures.clear();sphereMask.destroy();mesh.destroy(); life.destroy({children: true}); glowTex.destroy(true); heartTex.destroy(true); disposed = true; for (const t of Object.values(ghostTex)) t.destroy(true); pin.destroy({children: true}); bogPin.destroy({children: true}); shader.destroy(); rt.destroy(true); blank.destroy(true); worldTex?.destroy(true); geometry.destroy();},
+    destroy() {for (const texture of shoreTextures.values()) texture.destroy(true); shoreTextures.clear();sphereMask.destroy();mesh.destroy(); life.destroy({children: true}); glowTex.destroy(true); heartTex.destroy(true); disposed = true; for (const t of Object.values(ghostTex)) t.destroy(true); pin.destroy({children: true}); bogPin.destroy({children: true}); for (const p of friendPins.values()) p.destroy({children: true}); friendPins.clear(); shader.destroy(); rt.destroy(true); blank.destroy(true); worldTex?.destroy(true); geometry.destroy();},
   };
 }
