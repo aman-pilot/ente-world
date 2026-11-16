@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import {worldIsland} from '../world/world-map.js';
-import {nearbyMapFrame, nearbyHeading, NEARBY_MAP_WIDTH, NEARBY_MAP_HEIGHT} from './nearby-map.js';
+import {nearbyMapFrame, nearbyHeading, nearbyFriends, NEARBY_MAP_WIDTH, NEARBY_MAP_HEIGHT} from './nearby-map.js';
 import {BOG_RADAR_ICON, BOG_RADAR_SIZE_PX} from '../features/bog-combat/bog-radar.js';
 import {mapOf} from '../world/island-maps.js';
 
@@ -11,7 +11,7 @@ const height = NEARBY_MAP_HEIGHT * scale;
 // sand rim, its rivers and ponds cut out in sea blue, and a dock dot. No island pictures are loaded for it.
 const GROUND = {home:'#93b72f', sunflower:'#98b933', pink:'#8fc63c', library:'#93b730', community:'#93b72f',
   bog:'#815984', snow:'#f7f5fe'};
-const SEA = '#6ec9de', SAND = '#f1e08f', BOAT = '/pixi-art/boat/spin/boat-00.svg';
+const SEA = '#6ec9de', SAND = '#f1e08f', BOAT = '/pixi-art/boat/spin/boat-00.svg', FRIEND = '#ff8fa6';
 const shapes = new Map();
 function islandShape(id) {
   if (shapes.has(id)) return shapes.get(id);
@@ -42,7 +42,7 @@ export default function WorldMap({island, globeOpen = false, indoors = false}) {
   const radar = useRef(null);
   if (!radar.current) radar.current = {x: 0, y: 0, visible: false};
   const [iconSize, setIconSize] = useState(125);
-  const [frame, setFrame] = useState({islands: [], playing: false, heading: 0, bogX: 0, bogY: 0, bogVisible: false, here: '', boats: ''});
+  const [frame, setFrame] = useState({islands: [], playing: false, heading: 0, bogX: 0, bogY: 0, bogVisible: false, here: '', boats: '', friends: []});
   useEffect(() => {
     if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(([entry]) => {
@@ -74,10 +74,14 @@ export default function WorldMap({island, globeOpen = false, indoors = false}) {
       const here = engine.islandId, map = mapOf(here);
       const boats = (engine.room?.boats ?? []).filter(boat => !boat.occupant && (!boat.built || engine.room?.ownBoats?.has(boat.id)) && boat.islandId === here)
         .map(boat => `${Math.round((boat.x - map.cx) * scale)},${Math.round((boat.y - map.cy) * scale)}`).join(' ');
-      setFrame(previous => previous.here === here && previous.boats === boats && previous.playing === playing && previous.heading === heading && previous.bogX === bogX && previous.bogY === bogY && previous.bogVisible === bogVisible && islands.every((item, index) => {
+      // friends who are playing: a dot where they are, or on the rim pointing their way when off the map
+      const friends = nearbyFriends(here, engine.player ?? engine.camera, engine.room?.friendMarks?.() ?? [], width / 2 / scale)
+        .map(f => ({...f, x: Math.round(f.x * scale), y: Math.round(f.y * scale)}));
+      const friendsKey = friends.map(f => `${f.accountId}:${f.x},${f.y},${f.rim}`).join(' ');
+      setFrame(previous => previous.friendsKey === friendsKey && previous.here === here && previous.boats === boats && previous.playing === playing && previous.heading === heading && previous.bogX === bogX && previous.bogY === bogY && previous.bogVisible === bogVisible && islands.every((item, index) => {
         const old = previous.islands[index];
         return old?.id === item.id && old.x === item.x && old.y === item.y && Math.abs(old.bearing-item.bearing)<.1;
-      }) ? previous : {islands, playing, heading, bogX, bogY, bogVisible, here, boats});
+      }) ? previous : {islands, playing, heading, bogX, bogY, bogVisible, here, boats, friends, friendsKey});
     }
     update();
     const timer = setInterval(update, 80);
@@ -136,6 +140,13 @@ export default function WorldMap({island, globeOpen = false, indoors = false}) {
       {frame.bogVisible && <image href={BOG_RADAR_ICON}
         x={width / 2 + frame.bogX - iconSize / 2} y={height / 2 + frame.bogY - iconSize / 2}
         width={iconSize} height={iconSize}><title>Booquack Bog</title></image>}
+      {frame.friends.map(f => <g key={f.accountId} transform={`translate(${width / 2 + f.x} ${height / 2 + f.y})`}
+        opacity={f.rim ? .85 : 1}>
+        <title>@{f.login}</title>
+        {f.rim && <path d="M0,-34 L14,-12 L-14,-12Z" fill={FRIEND} stroke="#20272a" strokeWidth="6" strokeLinejoin="round"
+          transform={`rotate(${f.bearing})`}/>}
+        <circle r={f.rim ? 18 : 24} fill={FRIEND} stroke="#20272a" strokeWidth="7"/>
+      </g>)}
       {frame.playing
         ? <path d="M0,-31 L22,25 L0,14 L-22,25Z" fill="#fff" stroke="#20272a" strokeWidth="9"
           strokeLinejoin="round" transform={`translate(${width / 2} ${height / 2}) rotate(${frame.heading})`}><title>Your duck</title></path>

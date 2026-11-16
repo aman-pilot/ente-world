@@ -310,15 +310,22 @@ test('friend requests require recipient approval and mutual friendships persist 
     await eventually(() => !peer.duck(player.welcome.id));
     const accepted = await friendRequest(target.session,'PATCH',{accountId:'9300',action:'accept'}).then(r=>r.json());
     assert.equal(accepted.friends[0].accountId,'9300');
-    const friend = (await state(owner.session)).friends[0];
+    const {where, ...friend} = (await state(owner.session)).friends[0];
     assert.equal(friend.accountId,'9301'); assert.equal(friend.login,'account-9301');
+    // an online friend carries where they are, for the mini-map and globe; requests never do
+    assert.deepEqual(where,{islandId:'home',x:2180,y:2000,mode:'walking'});
+    assert.equal(sent.outgoing[0].where,undefined);
     assert.deepEqual((await state(owner.session)).outgoing,[]);
     await request('/test/restore');
-    assert.deepEqual(await state(owner.session),{friends:[friend],incoming:[],outgoing:[]});
+    const placeless = result => ({...result,friends:result.friends.map(({where,...f}) => f)});
+    assert.deepEqual(placeless(await state(owner.session)),{friends:[friend],incoming:[],outgoing:[]});
     await request('/test/rename'); await signIn(9301);
     const renamed = {...friend,login:'renamed-ducky'};
-    assert.deepEqual((await state(owner.session)).friends,[renamed]);
-    peer.close(); await request('/auth/logout',{method:'POST',headers:{Cookie:owner.session,Origin:origin}});
+    assert.deepEqual(placeless(await state(owner.session)).friends,[renamed]);
+    peer.close();
+    let offline = false;   // a friend who left the game shows no location
+    for (let i=0;i<100 && !offline;i++) {offline = !(await state(owner.session)).friends[0]?.where; if (!offline) await delay(20);}
+    assert.ok(offline); await request('/auth/logout',{method:'POST',headers:{Cookie:owner.session,Origin:origin}});
     assert.equal((await friendRequest(owner.session)).status,401);
     owner = await signIn(9300);
     assert.deepEqual((await state(owner.session)).friends,[renamed]);

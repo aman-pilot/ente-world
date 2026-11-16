@@ -14,4 +14,18 @@ export function nearbyMapFrame(islandId, point, bogRadar, radarRadius = NEARBY_M
     .sort((a,b)=>Math.hypot(a.x,a.y)-Math.hypot(b.x,b.y)).slice(0,3);
 }
 
+// Friends relative to you (map units, the short way round the sea). Ones further than radius sit on the rim,
+// with a bearing so the map can point an arrow their way.
+export function nearbyFriends(islandId, point, friends, radius = NEARBY_MAP_WIDTH / 2) {
+  if (!point) return [];
+  return friends.flatMap(friend => {
+    let p;
+    try {p = mapPoint(friend.islandId, islandId, {x: friend.x, y: friend.y});} catch {return [];}
+    if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return [];
+    const x = nearestSeaX(p.x, point.x) - point.x, y = p.y - point.y, d = Math.hypot(x, y);
+    const rim = d > radius * .92, k = rim ? radius * .9 / d : 1;
+    return [{accountId: friend.accountId, login: friend.login, x: x * k, y: y * k, rim, bearing: Math.atan2(x, -y) * 180 / Math.PI}];
+  });
+}
+
 export function nearbyHeading(id,p,dx,dy){return Math.atan2(dx,-dy)*180/Math.PI;}

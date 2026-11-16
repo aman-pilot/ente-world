@@ -1,6 +1,10 @@
 import {useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 
+const SHOW_ON_MAP = 'ew-friends-on-map';
+const showOnMapSaved = () => {try {return localStorage.getItem(SHOW_ON_MAP) !== 'off';} catch {return true;}};
+const FRIEND_SPOTS_EVERY_MS = 4000;
+
 // The friends list inside the profile panel, plus the nearby/request prompt. visible says whether the panel is
 // open (the list refreshes when it opens); onRequests reports the incoming request count for the badge.
 export default function IslandFriends({room, status, indoors, notificationHost, visible = false, onRequests}) {
@@ -13,6 +17,7 @@ export default function IslandFriends({room, status, indoors, notificationHost, 
   const [pending, setPending] = useState(null);
   const [candidate, setCandidate] = useState(null);
   const [feedback, setFeedback] = useState(null);
+  const [showOnMap, setShowOnMap] = useState(showOnMapSaved);
   const requests = useRef(null);
   const refresh = useRef(() => {});
 
@@ -20,7 +25,28 @@ export default function IslandFriends({room, status, indoors, notificationHost, 
     const friends = result.friends ?? [], incoming = result.incoming ?? [], outgoing = result.outgoing ?? [];
     setFriends(friends); setIncoming(incoming); setOutgoing(outgoing);
     room.current?.setFriends([...friends, ...incoming, ...outgoing]);
+    room.current?.setFriendSpots(friends);
   }
+
+  // Friends on the mini-map and globe: on by default, remembered on this device.
+  useEffect(() => {
+    if (room.current) room.current.showFriendsOnMap = showOnMap;
+    try {localStorage.setItem(SHOW_ON_MAP, showOnMap ? 'on' : 'off');} catch {/* private browsing */}
+  }, [room, showOnMap]);
+
+  // Refresh where friends are every few seconds, quietly (no loading state, errors ignored).
+  useEffect(() => {
+    if (!showOnMap || status !== 'playing') return;
+    const quiet = new AbortController();
+    const timer = setInterval(async () => {
+      try {
+        const response = await fetch('/api/friends',{signal:quiet.signal});
+        if (!response.ok || quiet.signal.aborted) return;
+        room.current?.setFriendSpots((await response.json()).friends);
+      } catch {/* next tick tries again */}
+    }, FRIEND_SPOTS_EVERY_MS);
+    return () => {clearInterval(timer); quiet.abort();};
+  }, [room, showOnMap, status]);
 
   useEffect(() => {
     const client = room.current;
@@ -98,6 +124,10 @@ export default function IslandFriends({room, status, indoors, notificationHost, 
   const showPrompt = !loading && !loadError && (request || status === 'playing' && !indoors);
   const body = <>
     <p>Walk near someone to send a friend request.</p>
+    <label className="pixi-friends-map-toggle">
+      <input type="checkbox" role="switch" checked={showOnMap} onChange={event => setShowOnMap(event.target.checked)}/>
+      <span>Show friends on map</span>
+    </label>
     {loading && <p role="status">Loading friends…</p>}
     {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={() => refresh.current()}>Try again</button></div>}
     {actionError && <p role="alert">{actionError}</p>}

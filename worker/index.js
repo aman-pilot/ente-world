@@ -320,6 +320,13 @@ export class IslandRoom {
     const outgoing = this.sql.exec(`SELECT a.account AS accountId,a.login,r.created_at AS createdAt
       FROM friend_requests r JOIN accounts a ON a.account=r.receiver_account_id
       WHERE r.sender_account_id=? ORDER BY r.created_at,r.receiver_account_id`, account).toArray();
+    // Where each friend is right now, if they are playing, so the mini-map and globe can show them.
+    // Friends only: requests and strangers never get a location.
+    const now = Date.now();
+    for (const friend of friends) {
+      const live = [...this.connections.values()].find(info => String(info.account) === String(friend.accountId) && info.actor && info.expires > now);
+      if (live) friend.where = {islandId:live.actor.islandId, x:Math.round(live.actor.x), y:Math.round(live.actor.y), mode:live.actor.mode};
+    }
     return {friends,incoming,outgoing};
   }
 
