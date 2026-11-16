@@ -4971,7 +4971,7 @@
     "sources": {
       "version": 1,
       "theme": "library",
-      "modelSha256": "a6a24f735bbc769a6ffffb6a755360548ea6df35ea4ba3bdb953ab5d5ea49efd",
+      "modelSha256": "e69b23c71b19fc13670ed4fcdc4634791a3219454cf195313f39c003257c38cf",
       "files": [
         {
           "path": "assets/world/island-geometry.mjs",
@@ -5007,7 +5007,7 @@
         },
         {
           "path": "public/pixi-art/themes/library/art.json",
-          "sha256": "ecf9b14cf582d496b758436b45964b6d540238224eb9c77eea76ef40f13af16a"
+          "sha256": "3723b04b279aff1b19e21fd677a47aa85f98fcbe6b48d58f2b8e23d8614a4554"
         },
         {
           "path": "public/pixi-art/themes/library/benches/arc-bookstore-105.svg",
@@ -5842,10 +5842,6 @@
           "sha256": "47186e1ae08a8e298c407065e38892a7117b891fe9aed86bf4cd384896d77f3a"
         },
         {
-          "path": "public/pixi-art/themes/library/hamlets/inkleaf/deckle-table.svg",
-          "sha256": "0f545e087d980957d9075e84b96fe7745f06803d8030f73fea4adbac61bbe403"
-        },
-        {
           "path": "public/pixi-art/themes/library/hamlets/inkleaf/drying-rack-east.svg",
           "sha256": "96384425a8fd35baef4c3158d71b52889a582f46b3e616ea1d8f0f4eea2424f4"
         },
@@ -6142,10 +6138,6 @@
           "sha256": "8fb9acb7d254a96c103c3d8d913217f7018e014c10bdcbfbd813c605a789d07b"
         },
         {
-          "path": "public/pixi-art/themes/library/hamlets/inkleaf/paper-shelter.svg",
-          "sha256": "d6240dd22fc3d7a2414b7d980edbea6dbee7dabcf575ee95b03133bb0b2011b0"
-        },
-        {
           "path": "public/pixi-art/themes/library/hamlets/inkleaf/pebble-01.svg",
           "sha256": "362ce22b4410d87748c299416f9a6ac19f23923aa2f73a2d5b697c7683075e55"
         },
@@ -6240,10 +6232,6 @@
         {
           "path": "public/pixi-art/themes/library/hamlets/inkleaf/print-hall.svg",
           "sha256": "49100e300b638e911c5cdf2eb63990162bce8e54d364165ea0ba5ad12d19d51b"
-        },
-        {
-          "path": "public/pixi-art/themes/library/hamlets/inkleaf/pulp-vat.svg",
-          "sha256": "765c20365601d85179e9fdb9647489c3bdf3e7636cf53df929c62a0a434dcd88"
         },
         {
           "path": "public/pixi-art/themes/library/hamlets/inkleaf/reading-bench-courtyard-east.svg",
@@ -7442,14 +7430,14 @@
           "sha256": "939595f5fbd64d88d0b7b11d0695db67edb515664887aef8efc894b9140fcbaf"
         }
       ],
-      "sha256": "2e11e39e7acde84145ddf6b6c167d46dfe02664cba7e62e6cd28033109844b18"
+      "sha256": "112590903a3a1d480ae4dc5529f993fdca6a5ecde93b3eda666d8e9fcf9db9aa"
     },
     "groundSha256": "b1e2068757db08e88bed6f6678004f5f6c1a7c2f8e046b81134bf1f715a90105",
     "src": "/pixi-art/globe/library.svg",
-    "sha256": "a95f97f29d594ea6e3baffa939d3784b1839c0d00d8ee699c55eb251a931b941",
+    "sha256": "cab1701b6ab6429a2b8f59b863b3e098ac693aa80449e438c9d1a68122d3bebe",
     "width": 1024,
     "height": 761,
-    "bytes": 1260088,
+    "bytes": 1257666,
     "groundBytes": 652865,
     "quality": {
       "tolerance": 0.2,
