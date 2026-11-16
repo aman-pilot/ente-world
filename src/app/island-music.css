@@ -2,7 +2,8 @@
   box-sizing: border-box;
   position: fixed;
   z-index: 1;
-  top: max(16px, env(safe-area-inset-top));
+  top: calc(max(16px, env(safe-area-inset-top)) + 28px);
+  translate: 0 -50%;
   right: max(16px, env(safe-area-inset-right));
   display: flex;
   align-items: center;

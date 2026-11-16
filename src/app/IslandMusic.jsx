@@ -32,6 +32,21 @@ export default function IslandMusic({island}) {
   }, []);
 
   useEffect(() => {
+    function clear() {
+      document.removeEventListener('click', interact);
+      document.removeEventListener('keydown', interact);
+    }
+    function interact(event) {
+      clear();
+      if (!event.target.closest?.('.pixi-music')) start(true);
+    }
+    document.addEventListener('click', interact);
+    document.addEventListener('keydown', interact);
+    start(true).then(started => {if (started) clear();});
+    return clear;
+  }, []);
+
+  useEffect(() => {
     const page = host.current.parentElement;
     const controls = [...page.querySelectorAll('.pixi-live,.pixi-profile-button,.pixi-karma-counter')];
     if (!controls.length || typeof ResizeObserver === 'undefined') return;
@@ -83,9 +98,9 @@ export default function IslandMusic({island}) {
     return () => cancelAnimationFrame(frame);
   }, [state]);
 
-  async function start() {
+  async function start(automatic = false) {
     const id = ++request.current;
-    setState('loading');
+    if (!automatic) setState('loading');
     try {
       if (!graph.current) {
         const context = new AudioContext(), analyser = context.createAnalyser();
@@ -97,10 +112,14 @@ export default function IslandMusic({island}) {
       }
       await graph.current.context.resume();
       if (id !== request.current) return;
+      setState('loading');
       await audio.current.play();
-      if (id === request.current) setState('playing');
-    } catch {
-      if (id === request.current) setState('error');
+      if (id === request.current) {
+        setState('playing');
+        return true;
+      }
+    } catch (error) {
+      if (id === request.current) setState(automatic && error.name === 'NotAllowedError' ? 'idle' : 'error');
     }
   }
 
@@ -123,7 +142,7 @@ export default function IslandMusic({island}) {
       event.stopPropagation();
       if (event.key === 'Escape') host.current.querySelector('details').open = false;
     }}>
-    <button className="pixi-music-play" onClick={active ? pause : start} aria-label={active ? 'Pause music' : 'Play music'}>
+    <button className="pixi-music-play" onClick={active ? pause : () => start()} aria-label={active ? 'Pause music' : 'Play music'}>
       <span aria-hidden="true">{active ? 'Ⅱ' : '▶'}</span>
     </button>
     <div className="pixi-music-spectrum" ref={spectrum} role="img" aria-label="Live music frequency spectrum">
