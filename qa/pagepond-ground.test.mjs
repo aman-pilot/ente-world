@@ -11,7 +11,7 @@ import {checkTheme} from '../scripts/theme-index.mjs';
 import {makeMap} from '../src/world/island-maps.js';
 const A='public/pixi-art/themes/library/',D='assets/world/themes/library/';
 const read=p=>JSON.parse(fs.readFileSync(p));
-const visualRemovals=new Set(['meadow-bench-nw','meadow-bench-ne','close-arc-0--45','meadow-quill-1','meadow-quill-2','lib-25']);
+const visualRemovals=new Set(['meadow-bench-nw','meadow-bench-ne','close-arc-0--45','meadow-quill-1','meadow-quill-2','lib-25','hamlet-inkleaf-paper-shelter','hamlet-inkleaf-pulp-vat','hamlet-inkleaf-deckle-table']);
 const squareSeats=new Set(['page-b-hill-bench','hamlet-quillwick-bench-west','hamlet-quillwick-bench-east']);
 const art=read(A+'art.json'),world=read(D+'world.json'),walk=read(D+'walk-world.json'),plan=read('scripts/pagepond/layout.json');
 const oldArt=read('scripts/bigger-library/original/art.json'),old=read('scripts/bigger-library/original/world.json');
