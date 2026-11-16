@@ -227,8 +227,9 @@ export function landingSpot(actor,nav=null,reach=420,target=null) {
   return best;
 }
 
-// Islands where a boat may only land at the harbour (the Bog paint fight starts at its dock).
-export const HARBOR_ONLY=new Set(['isle-249']);
+// Islands where a boat may only land at the harbour. Empty: every island, Booquack Bog
+// included, can be landed on from any shore (the Bog ticket is still checked on landing).
+export const HARBOR_ONLY=new Set();
 export function dockingSpot(actor,target=null) {
   const spot=landingSpot(actor,null,420,target);
   if (spot && !spot.islet && HARBOR_ONLY.has(spot.islandId)) return spot.islandId===actor.islandId && canDock(actor) ? {...harborOf(actor.islandId).land,islandId:actor.islandId,harbor:true} : null;

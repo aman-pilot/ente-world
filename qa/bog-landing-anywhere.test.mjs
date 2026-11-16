@@ -16,17 +16,17 @@ function farShore(){
  return null;
 }
 
-test('Booquack Bog only lets a boat land at its dock',()=>{
- assert.ok(HARBOR_ONLY.has(BOG));
+test('Booquack Bog can be landed on from any shore, and the dock still works',()=>{
+ assert.equal(HARBOR_ONLY.has(BOG),false);
  const actor=farShore();assert.ok(actor,'found a Bog shore far from the dock');
- assert.equal(dockingSpot(actor),null,'no landing on the far shore');
+ const far=dockingSpot(actor);
+ assert.equal(far?.islandId,BOG,'the far shore offers a landing');
+ assert.ok(!far.harbor,'it lands on that shore, not at the dock');
  const spot=landingSpot(actor,null,420,null);
- assert.equal(dockingSpot(actor,{x:spot.x,y:spot.y}),null,'no tapped landing on the far shore');
+ assert.equal(dockingSpot(actor,{x:spot.x,y:spot.y})?.islandId,BOG,'a tapped landing on the far shore works');
  const atDock={islandId:BOG,mode:'sailing',x:water.x,y:water.y};
  assert.ok(canDock(atDock));
  const docked=dockingSpot(atDock);
  assert.ok(docked?.harbor,'the dock still works');
  assert.deepEqual([docked.x,docked.y],[land.x,land.y]);
- const tapped=dockingSpot(atDock,{x:land.x,y:land.y});
- assert.ok(tapped?.harbor,'tapping the dock lands at the dock');
 });
