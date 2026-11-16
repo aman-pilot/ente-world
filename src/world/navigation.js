@@ -82,7 +82,8 @@ function search(sx,sy,target){
  const raw=[];
  for(const p of cells){
   while(raw.length>1){const a=raw.at(-2),b=raw.at(-1),dx=b[0]-a[0],dy=b[1]-a[1],ex=p[0]-b[0],ey=p[1]-b[1];
-   if(dx*ey!==dy*ex||dx*ex+dy*ey<=0)break;raw.pop();}
+   // A longer segment samples different positions, so recheck it before merging.
+   if(dx*ey!==dy*ex||dx*ex+dy*ey<=0||!clearLine(a,p))break;raw.pop();}
   raw.push(p);
  }
  let out=[],anchor=[sx,sy];for(let i=0;i<raw.length;){let j=i;while(j+1<raw.length&&clearLine(anchor,raw[j+1]))j++;out.push(raw[j]);anchor=raw[j];i=j+1;}return rounded(out,sx,sy);

@@ -1,3 +1,4 @@
+import {blocks} from '../src/world/walk-rule.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
@@ -9,7 +10,7 @@ import {createNavigation} from '../src/world/navigation.js';
 import E from '../src/world/home/home-expansion.json' with {type:'json'};
 const result=await build({entryPoints:['src/world/home/placements.js'],bundle:true,platform:'node',format:'esm',write:false});
 const P=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'));
-const props=P.createPlacements(),local=P.walkWorld(P.trimWorld(HOME_MAP.world),props),client=geometry(local).walkable;
+const props=P.createPlacements(),local=P.walkWorld(P.trimWorld(HOME_MAP.world),props),client=geometry({...local,obstacles:local.obstacles.filter(o=>blocks(o,props.find(p=>p.id===(o.prop??o.name??o.id))))}).walkable;
 
 test('west bridge has a continuous client and worker deck between dry bank approaches',()=>{
  const b=E.homeArches.find(b=>b.id==='home-west-bridge'),worker=HOME_MAP.nav();
@@ -56,11 +57,14 @@ test('west bridge has a continuous client and worker deck between dry bank appro
  }
 });
 
-test('flowering bushes and both closed public buildings remain solid on client and worker',()=>{
+test('flowering bushes are walkable and both closed public buildings remain solid on client and worker',()=>{
  for(const id of ['hamlet-butterbill-north-flower-bush','hamlet-lanternleaf-garden-shed','hamlet-lanternleaf-bandstand']){
   const p=props.find(p=>p.id===id);assert.equal(p.outlineKind,'solid');
   const poly=p.footprint.poly,x=poly.reduce((s,p)=>s+p[0],0)/poly.length,y=poly.reduce((s,p)=>s+p[1],0)/poly.length;
-  assert.equal(client(x,y),false);assert.equal(HOME_MAP.nav().walkable(x,y),false);
+  if(id.includes('flower-bush')){
+   assert.equal(blocks(p.footprint,p),false,'flowering bush has no blocker');
+   assert.ok(poly.some(([x,y])=>client(x,y)&&HOME_MAP.nav().walkable(x,y)),'exposed bush is walkable; its overlap with the house still blocks');
+  }else{assert.equal(client(x,y),false);assert.equal(HOME_MAP.nav().walkable(x,y),false);}
   if(p.enterable===false)assert.equal(p.door,undefined);
  }
 });
@@ -75,11 +79,11 @@ test('repaired roofs have opaque caps and connected chimney bases in the source 
  assert.ok(!readFileSync('public/pixi-art/lake-race.svg','utf8').includes('translate(330 -252)'),'lake waterfall drawing is removed');
 });
 
-test('every Home resident has the same small body circle on client and worker',()=>{
- const beds=P.sleepSpots(local,props,client),world={...local,obstacles:[...local.obstacles,...beds.map(P.sleeperFootprint)]},walk=geometry(world).walkable;
+test('every Home resident adds no blocker on client or worker',()=>{
+ const beds=P.sleepSpots(local,props,client),world={...local,obstacles:local.obstacles.filter(o=>blocks(o,props.find(p=>p.id===(o.prop??o.name??o.id))))},walk=geometry(world).walkable;
  assert.equal(beds.length,100);assert.deepEqual(beds.bad,[]);
  const studio=beds.find(b=>b.pose==='nod'&&b.x===50&&b.y===3300);assert.ok(studio,'studio resident stays on the authored grass coordinate');assert.equal(studio.tree,undefined,'ground coordinate never resolves to a numeric prop id');
- for(const bed of beds){const f=P.sleeperFootprint(bed);assert.equal(f.rx,f.ry);assert.ok(f.rx>=34&&f.rx<=48);assert.equal(walk(f.x,f.y),false);assert.equal(HOME_MAP.nav().walkable(f.x,f.y),false);}
+ for(const bed of beds){const f=P.sleeperFootprint(bed);assert.equal(f.rx,f.ry);assert.ok(f.rx>=34&&f.rx<=48);assert.equal(walk(f.x,f.y),client(f.x,f.y),'resident leaves underlying terrain unchanged');assert.equal(HOME_MAP.nav().walkable(f.x,f.y),client(f.x,f.y),'same underlying terrain on worker');assert.ok(!HOME_MAP.walk.obstacles.some(o=>o.sleeper),'no sleeper body circles');}
 });
 
 

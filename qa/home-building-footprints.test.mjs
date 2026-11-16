@@ -12,7 +12,7 @@ const {createPlacements} = await import('data:text/javascript;base64,' + Buffer.
 const props = createPlacements();
 // Identify buildings independently of the collision catalogue so a new home or
 // a replacement asset cannot silently lose its blocker.
-const buildings = props.filter(p => [0,1,2,3,34,46,47,48].includes(p.id) || p.communityRole || /bandstand|garden-shed|grain-silo|windmill|harvest-barn|smokehouse|bread-oven|kiln|pottery-drying-rack|raised-bed|vegetable-bed/.test(p.src));
+const buildings = props.filter(p => [0,1,2,3,34,46,47,48].includes(p.id) || p.communityRole || /bandstand|garden-shed|grain-silo|windmill|harvest-barn|smokehouse|bread-oven|kiln|pottery-drying-rack/.test(p.src));
 
 test('every opaque Home building sample is solid in the shared worker map', async () => {
   const nav = HOME_MAP.nav();

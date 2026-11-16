@@ -29,7 +29,7 @@ async function fixture(t,props) {
 
 test('Iceland variant recognises actual pines, shrubs and snowy bushes while Home classification stays unchanged',()=>{
   const candidates=manifest.props.filter(p=>p.finalKind==='tree'||p.finalKind==='shrub');
-  const contact=createPlantContacts(candidates,map.walk.obstacles,()=>{},{snow:true});
+  const contact=createPlantContacts(candidates.map(p=>({...p,footprint:map.world.props.find(q=>q.id===p.id)?.footprint})),map.walk.obstacles,()=>{},{snow:true});
   assert.equal(contact.plants.length,candidates.length,'all real snowy grove/camp plants have matching contacts');
   assert.ok(contact.plants.filter(p=>p.kind==='tree').length>=510);
   assert.ok(contact.plants.filter(p=>p.kind==='bush').length>=20);

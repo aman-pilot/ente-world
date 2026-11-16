@@ -59,12 +59,12 @@ test('a) sleepers: the bed rules (ground, decks, paths, avoid zones, water, prop
   assert.equal(map.sleepers.length, 3);
   for (const bed of map.sleepers) {
     const f = sleeperFootprint(bed);
-    assert.equal(map.nav().walkable(f.x, f.y), false, `${bed.pose} blocks walking`);
+    assert.equal(map.nav().walkable(f.x, f.y), true, `${bed.pose} is walkable`);
     assert.equal(map.nav().walkable(f.x, f.y + f.ry + 60), true, 'just below it is open ground');
   }
 });
 
-test('a) sleepers on the themed islands: each bed is on its land, off decks and water, and solid for the room server', () => {
+test('a) sleepers on the themed islands: each bed is on its land, off decks and water, and adds no room-server blocker', () => {
   for (const id of themedIslands()) {
     const map = mapOf(id), beds = map.sleepers;
     assert.equal(beds.length, map.world.sleepTotal??SLEEP_TOTAL, `${id} renders all approved residents`);
@@ -75,7 +75,7 @@ test('a) sleepers on the themed islands: each bed is on its land, off decks and 
       assert.ok(map.landAt(bed.x, bed.y), `${map.id} ${bed.pose} ${bed.x},${bed.y} lies on land`);
       if (!bed.tree) assert.ok(map.id==='community'? !map.baseWalk.obstacles.some(o=>!o.bodyBlock&&inShape(bed.x,bed.y-32,o,0)):base.walkable(bed.x, bed.y), `${map.id} ${bed.pose} ${bed.x},${bed.y} lies on open ground`);
       const f = sleeperFootprint(bed);
-      assert.equal(map.nav().walkable(f.x, f.y), false, `${map.id} ${bed.pose} at ${bed.x},${bed.y} is solid for walkers`);
+      assert.equal(map.nav().walkable(f.x, f.y), base.walkable(f.x,f.y), `${map.id} ${bed.pose} leaves underlying terrain unchanged`);
     }
     const bed = beds.find(b => !b.tree);
     if (!bed) continue;
@@ -85,7 +85,7 @@ test('a) sleepers on the themed islands: each bed is on its land, off decks and 
     if (!setWalkDestination(actor, map.nav(), to[0], to[1])) continue;
     for (let k = 0; k < 400 && actor.path.length; k++) {
       walkStep(actor, map.nav(), .05, k * .05, {x: 0, y: 0});
-      assert.ok(((actor.x - f.x) / f.rx) ** 2 + ((actor.y - f.y) / f.ry) ** 2 >= 1, `${map.id}: never walks over the ${bed.pose} sleeper`);
+      assert.ok(map.nav().walkable(actor.x,actor.y), `${map.id}: walk stays on valid terrain, including sleepers`);
     }
   }
 });

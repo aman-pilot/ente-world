@@ -1,3 +1,4 @@
+import {blockerFilter} from '../src/world/walk-rule.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
@@ -55,7 +56,7 @@ test('every Sunflower hamlet home has a reachable door and a solid base',()=>{
   let prev=[map.spawn.x,map.spawn.y];for(const q of r){assert.ok(nav.clearLine(prev,q),h.id+' clear route');prev=q;}
   assert.ok(!nav.walkable(h.footprint.x,h.footprint.y),h.id+' foundation');
  }
- const originalWalk=read(B+'walk-world.json'),before=geometry(originalWalk).walkable,after=geometry(map.baseWalk).walkable;
+ const originalWalk=read(B+'walk-world.json'),before=geometry({...originalWalk,obstacles:originalWalk.obstacles.filter(blockerFilter(originalArt.props))}).walkable,after=geometry(map.baseWalk).walkable;
  const owner=(o,p)=>o.name===p.id||(o.x===p.x&&p.y-o.y>=0&&p.y-o.y<60);
  const changed=[...originalWalk.obstacles.filter(o=>originalArt.props.some(p=>(REMOVE_PROPS.includes(p.id)||MOVE_PROPS[p.id]||!art.props.some(q=>q.id===p.id))&&owner(o,p))),...map.baseWalk.obstacles.filter(o=>/^centre-fill-|^bloom-|^sunbob-outer-/.test(o.name??'')||art.props.some(p=>MOVE_PROPS[p.id]&&owner(o,p)))].map(o=>o.poly&&o.x===undefined?{...o,x:o.poly.reduce((s,q)=>s+q[0],0)/o.poly.length,y:o.poly.reduce((s,q)=>s+q[1],0)/o.poly.length,rx:200,ry:120}:o);
  for(const m of moves)for(const [x,y] of [m.fromPoint,m.to])changed.push({x,y,rx:250,ry:160});

@@ -1,3 +1,4 @@
+import {blocks} from '../src/world/walk-rule.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -68,11 +69,11 @@ test('Bog density pass preserves its reviewed rivers, crossings, coast, harbour 
   const homes=c.homes.map(id=>art.props.find(p=>p.id===id));assert.ok(Math.max(...homes.map(p=>p.width))/Math.min(...homes.map(p=>p.width))>1.4);
  }
 });
-test('Bog density gardens stay on new land and their solid plants match the map',()=>{
+test('Bog density gardens stay on new land and their wells block while plants are walkable',()=>{
  for(const p of art.props.filter(p=>p.dense)){
   assert.ok(inPoly(p.x,p.y,world.coast),`${p.id} is on land`);
   assert.equal(inPoly(p.x,p.y,original.coast),false,`${p.id} leaves the heart alone`);
-  for(const o of walk.obstacles.filter(o=>o.prop===p.id))assert.equal(nav.walkable(o.x,o.y),false,`${p.id} has a solid contact`);
+  for(const o of walk.obstacles.filter(o=>o.prop===p.id)){if(p.src.endsWith('shared-well.svg'))assert.equal(nav.walkable(o.x,o.y),false,`${p.id} well stays solid`);else{assert.equal(blocks(o,p),false,`${p.id} is scenery`);assert.ok(!map.walk.obstacles.includes(o),`${p.id} has no movement blocker`);}}
  }
  for(const c of world.communities)for(const id of c.homes){const i=art.props.findIndex(p=>p.id===id),garden=art.props[i+1];routeTo([garden.x,garden.y+35]);}
 });
