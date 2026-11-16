@@ -1370,6 +1370,14 @@ export class PixiIsland {
     if(ready&&mapId===this.artShown)this.startIslandDetail(mapId);
     return ready;
   }
+  snowNearCamera() {
+    if (this.artShown !== 'snow') return 0;
+    if (this.player?.mode !== 'sailing') return 1;   // on Iceland (or watching it): the full snowfall, as before
+    if (artOf(this.islandId) !== 'snow') return 0;
+    const m=mapOf(this.islandId),x=this.camera.x,y=this.camera.y;
+    const dx=Math.max(m.origin.x-x,0,x-(m.origin.x+m.width)),dy=Math.max(m.origin.y-y,0,y-(m.origin.y+m.height));
+    return Math.max(0,Math.min(1,1-(Math.hypot(dx,dy)-300)/1200));
+  }
   ensureMapArt(mapId,{timeoutMs=30000}={}) {
     this.mapArtRequests??=new Map();
     if(this.mapArtRequests.has(mapId))return this.mapArtRequests.get(mapId);
@@ -1862,7 +1870,11 @@ export class PixiIsland {
       this.canvas.dataset.pirateCount=this.pirateFleet.ships.length;
     }
     this.weather.update(t,reduced,visible);
-    this.snowfall?.update(t,reduced,this.artShown,this.width,this.height,flatVisible && !this.interior?.active);
+    // Snow belongs to Iceland's sky: it thins out as the camera sails away from the island and stops
+    // well before the next island, instead of following the boat until it docks somewhere else.
+    const snow=this.snowNearCamera();
+    if(this.snowfall?.root)this.snowfall.root.alpha=snow;
+    this.snowfall?.update(t,reduced,this.artShown,this.width,this.height,flatVisible && !this.interior?.active && snow>0);
     const breeze=windStrength(t,reduced);
     this.gust *= Math.exp(-dt * 2.5);
     if (!homeShown) this.artProps(this.artShown).forEach((prop, i) => {
