@@ -10374,31 +10374,6 @@
    "z": 5036.6
   },
   {
-   "id": "hamlet-petalpost-shrub-4",
-   "name": "shrub-round",
-   "src": "/pixi-art/plants/bush-2.svg",
-   "x": 5638.88,
-   "y": 5151.429999999999,
-   "width": 166.4,
-   "height": 101.6,
-   "scale": 1,
-   "anchor": {
-    "x": 0.5,
-    "y": 1
-   },
-   "resolution": 1.5,
-   "zone": "petalpost",
-   "order": 289,
-   "wind": true,
-   "footprint": {
-    "x": 5786.7,
-    "y": 5078.2,
-    "rx": 49.9,
-    "ry": 20
-   },
-   "z": 5090.2
-  },
-  {
    "id": "hamlet-petalpost-lamp-1",
    "name": "lamp",
    "src": "hamlets/petalpost/lamp.svg",

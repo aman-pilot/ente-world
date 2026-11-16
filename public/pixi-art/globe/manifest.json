@@ -1087,7 +1087,7 @@
     "sources": {
       "version": 1,
       "theme": "sunflower",
-      "modelSha256": "25e2362b1dc6d6e700019367d951dda639958c5c452af5486026170bb60c26a2",
+      "modelSha256": "a0b444ee0e4895050a9daa360ddb8bcfa5c111573fd36ddcbe4354701a3c3ec5",
       "files": [
         {
           "path": "assets/world/island-geometry.mjs",
@@ -1147,7 +1147,7 @@
         },
         {
           "path": "public/pixi-art/themes/sunflower/art.json",
-          "sha256": "f6f1b864d60282971f191516bbd15c709e23c75e1ff0f4f348d2f6556d1b10df"
+          "sha256": "6d93aa9073b394b7f0b01b041e304fafb5273f55abe084622b84dc4577840b7d"
         },
         {
           "path": "public/pixi-art/themes/sunflower/bigger/arch-original-1.svg",
@@ -2146,14 +2146,14 @@
           "sha256": "939595f5fbd64d88d0b7b11d0695db67edb515664887aef8efc894b9140fcbaf"
         }
       ],
-      "sha256": "83d51a2bda74cba69c8e760dfc1a3de138cc0267ee31b9e6a4f6cfab17cbeccd"
+      "sha256": "4522b656246fabf0134eec8183a33177e2b43d0685a6ddc58e69290496257d9e"
     },
     "groundSha256": "9ccbb8ccdcc856fbee572465311b5041240705b4b64336793493b855ae057189",
     "src": "/pixi-art/globe/sunflower.svg",
-    "sha256": "c87cc681b783a3443f12c3b8be23ac10fa505303bc56abcb6d5b27af9e74126f",
+    "sha256": "8e5f52d307e69ff368be1255d5357a410ee8c0a6405706d106420ea06b49bb5a",
     "width": 1024,
     "height": 717,
-    "bytes": 1191588,
+    "bytes": 1191517,
     "groundBytes": 357246,
     "quality": {
       "tolerance": 0.4,
