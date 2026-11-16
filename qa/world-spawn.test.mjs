@@ -27,10 +27,31 @@ test('a detached islet can receive a drop when a boat is available at its dock',
   const walk = isletWalks(islandId)[0];
   const random = seeded(12);
   const boats = [{islandId,...walk.water,occupant:null}];
-  const options = {boats,hasRoom:id => id === islandId,random};
+  const options = {boats,hasRoom:id => id === islandId,random,occupied:Array.from({length:9}, () => ({islandId:'blossom',x:0,y:0}))};
   const drops = Array.from({length:12}, () => pickWorldSpawn(options));
   assert.ok(drops.some(p => walk.nav.walkable(p.x,p.y)));
   boats[0].occupant = 'another-duck';
   assert.ok(Array.from({length:12}, () => pickWorldSpawn(options))
     .every(p => mapOf(islandId).nav().walkable(p.x,p.y)));
+});
+
+test('fewer than ten arrivals share a main island even with detached boats available', () => {
+  const occupied = [], random = seeded(12), walk = isletWalks('home')[0];
+  const boats = [{islandId:'home',...walk.water,occupant:null}];
+  for (let count = 1; count < 10; count++) {
+    const spawn = pickWorldSpawn({occupied,boats,random});
+    assert.equal(spawn.islandId,'home');
+    assert.ok(mapOf('home').nav().walkable(spawn.x,spawn.y));
+    occupied.push(spawn);
+  }
+  const destinations = new Set(Array.from({length:30}, () => pickWorldSpawn({occupied,random}).islandId));
+  assert.ok(destinations.size > 1,'the tenth arrival can spawn across the world');
+});
+
+test('small crowds join the busiest eligible island and respect access and room limits', () => {
+  const occupied = ['home','blossom','blossom','isle-249','isle-249','isle-249']
+    .map(islandId => ({islandId,x:0,y:0}));
+  assert.equal(pickWorldSpawn({occupied,random:seeded()}).islandId,'blossom');
+  assert.equal(pickWorldSpawn({occupied,karma:5,random:seeded()}).islandId,'isle-249');
+  assert.equal(pickWorldSpawn({occupied,hasRoom:id => id !== 'blossom',random:seeded()}).islandId,'home');
 });

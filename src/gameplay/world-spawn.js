@@ -37,10 +37,12 @@ function findPoint({nav, bounds, coast, exit, fallback, home}, occupied, random)
 export function pickWorldSpawn({
   karma = 0, hasRoom = () => true, occupied = [], boats = [], random = Math.random, homeNav, prepareIsland,
 } = {}) {
+  const smallCrowd = occupied.length + 1 < 10;
   const regions = [];
   for (const island of WORLD_ISLANDS) {
     if (!hasRoom(island.id) || bogLandingNotice(island.id, karma)) continue;
     regions.push({island});
+    if (smallCrowd) continue;
     // A detached islet is only an arrival option when its dock has a boat to leave in.
     for (const islet of ISLETS) {
       if (islet.home !== island.id || !boats.length) continue;
@@ -49,9 +51,13 @@ export function pickWorldSpawn({
         Math.hypot(boat.x - water.x, boat.y - water.y) < 149)) regions.push({island, islet});
     }
   }
+  if (smallCrowd) {
+    const population = id => occupied.filter(p => p.islandId === id).length;
+    regions.sort((a, b) => population(b.island.id) - population(a.island.id));
+  }
   const choose=()=>{
     if(!regions.length)return null;
-    const [{island, islet}] = regions.splice(Math.floor(random() * regions.length), 1);
+    const [{island, islet}] = regions.splice(smallCrowd ? 0 : Math.floor(random() * regions.length), 1);
     const find=()=>{
       const walk = islet ? isletWalk(islet.id) : null;
       const map = mapOf(island.id);
