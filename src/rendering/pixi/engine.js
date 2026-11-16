@@ -1241,6 +1241,8 @@ export class PixiIsland {
     return [...nodes];
   }
   releaseHomeArt() {
+    const home=this.arts.get('home');
+    if(home)home.degradedReady=false;
     if(!this.homePrepared)return;
     this.releasePreparedSheets('home');
     this.homePrepared=false;
@@ -1349,7 +1351,7 @@ export class PixiIsland {
     this.arts.delete(id);
     this.prewarmed?.delete(id);
   }
-  artReady(mapId) {return mapId === 'home' ? this.homePrepared : Boolean(this.arts?.get(mapId)?.ready||this.arts?.get(mapId)?.degradedReady);}
+  artReady(mapId) {return mapId === 'home' ? this.homePrepared||this.arts?.get('home')?.degradedReady : Boolean(this.arts?.get(mapId)?.ready||this.arts?.get(mapId)?.degradedReady);}
   // The deadline belongs to the shown map, and resets on every map change.
   // It runs from render frames so disposal cannot leave a reveal timer alive.
   revealArtReady(mapId) {
@@ -1371,17 +1373,21 @@ export class PixiIsland {
   ensureMapArt(mapId,{timeoutMs=30000}={}) {
     this.mapArtRequests??=new Map();
     if(this.mapArtRequests.has(mapId))return this.mapArtRequests.get(mapId);
+    // Sailing can replace a speculative destination while its art is loading.
+    // A released scene must not be promoted to ready by that request's watchdog.
+    const cancelled=()=>this.disposed||(mapId!==this.artShown&&mapId!==this.destinationArt);
     const request=recoverArt(()=>this.ensureArt(mapId),{
-      label:`Island ${mapId} preparation`,timeoutMs,cancelled:()=>this.disposed,
+      label:`Island ${mapId} preparation`,timeoutMs,cancelled,
       valid:()=>!!this.artReady(mapId),
       retry:()=>{const art=this.arts?.get(mapId);if(art?.failed)this.arts.delete(mapId);},
       fallback:()=>{
-        if(this.disposed)return;
+        if(cancelled())return;
         // Retry failure must not keep already mounted pieces hidden. Startup
         // still gates the normal reveal, and the 15s watchdog covers hangs.
         const art=this.arts?.get(mapId);
         if(art)art.degradedReady=true;
-        if(mapId==='home')this.homePrepared=true;
+        // Degraded reveal does not own Home's textures. Only uploadHomeArt
+        // may mark a restored Home prepared and suppress another rebuild.
         this.showArt(this.artShown);
       },
     }).finally(()=>this.mapArtRequests.delete(mapId));

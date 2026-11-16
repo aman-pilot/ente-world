@@ -67,7 +67,7 @@ function fixture(t,kind,blocked,{prerenderManifest,themeManifest}={}){
   });
   return {pool,uploads,renderer,requests,waiting,finish:src=>{const resolve=waiting.get(src);assert(resolve,src);waiting.delete(src);resolve();}};
 }
-function homeGame(f){
+function homeGame(f,{checkReady=true}={}){
   const scene=new Container(),ground=new Container(),decks=new Container();scene.addChild(ground,decks);
   const game=Object.assign(Object.create(PixiIsland.prototype),{scene,homeGround:ground,decks,artShown:'home',loaded:[],props:[],
     arts:new Map([['home',{ready:false,groups:[ground,decks]}]]),homeKites:{entries:[]},groundPool:f.pool,
@@ -75,7 +75,7 @@ function homeGame(f){
     homeArtPlan:{resolutions:new Map()},plantReactions:{async register(){},async prepared(){}}});
   let ready;
   Object.defineProperty(game,'homePrepared',{get:()=>ready,set:value=>{
-    if(value)assertUploaded(f.uploads,[...game.arts.get('home').groups,...game.props.map(p=>p.sprite)]);
+    if(value&&checkReady)assertUploaded(f.uploads,[...game.arts.get('home').groups,...game.props.map(p=>p.sprite)]);
     ready=value;
   }});
   return game;
@@ -149,6 +149,61 @@ for(const kind of ['webp','svg']){
     game.scene.destroy({children:true});game.contactShadows.destroy({children:true});game.overDecks.destroy({children:true});
   });
 }
+
+test('returning to Home rebuilds tile fallback textures and restores the jetty deck',async t=>{
+  const f=fixture(t,'svg',()=>false),game=homeGame(f,{checkReady:false});
+  const jetty=JSON.parse(readFileSync('src/world/home/home-expansion.json')).decks[0];
+  const deck=new Sprite(Texture.EMPTY),flats=new Container(),homeDecks=new Container({label:'Home decks'});
+  const decal=new Sprite(Texture.EMPTY);flats.addChild(decal);
+  game.homeGround.addChild(flats);game.decks.addChild(homeDecks);homeDecks.addChild(deck);
+  game.arts.get('home').groups.push(homeDecks);
+  game.homeRestore=Promise.resolve([
+    {src:jetty.src,resolution:1,count:1,nodes:[{node:deck,width:jetty.width,height:jetty.height}]},
+    {src:'/home-return-decal.svg',resolution:1,count:1,nodes:[{node:decal,width:40,height:20}]},
+  ]);
+  await game.ensureHomeArt();
+  const first=game.homeGroundStream;
+  assert(first.prepared);assert(first.entries.every(e=>finalTextureSource(e.sprite.texture)));
+  game.artShown='pink';game.releaseHomeArt();
+  await game.homeRestore;await flush();
+  assert.equal(deck.texture,Texture.EMPTY);
+  // A speculative return is abandoned while Home is still offscreen.
+  game.destinationArt='home';
+  game.prepareHomeWater=async()=>{game.destinationArt='pink';};
+  await game.ensureMapArt('home',{timeoutMs:1000});
+  assert.equal(game.homePrepared,false,'an abandoned request cannot mark released Home ready');
+  assert(!game.artReady('home'),'abandoned Home stays unready');
+  assert.equal(game.homeGround.children.length,1,'only retained ground detail remains after release');
+  assert.equal(decal.texture,Texture.EMPTY,'retained decals are blank while Home is released');
+  assert.equal(game.homeGroundStream.entries.length,60);
+  const before=f.requests.length;
+  game.artShown='home';await game.ensureMapArt('home');
+  assert.notEqual(game.homeGroundStream,first);
+  assert(f.requests.length>before,'return reacquires released ground and deck textures');
+  assert(game.homeGroundStream.entries.every(e=>finalTextureSource(e.sprite.texture)),'every rebuilt tile has a real texture');
+  assert.equal(flats.parent,game.homeGround);assert(finalTextureSource(decal.texture),'retained decals restored');
+  assert.equal(homeDecks.parent,game.decks);assert.equal(deck.parent,homeDecks);
+  assert(finalTextureSource(deck.texture),'jetty deck texture restored');
+  assert.deepEqual([deck.width,deck.height],[jetty.width,jetty.height]);
+  game.releaseHomeArt();await game.homeRestore;await flush();game.scene.destroy({children:true});
+});
+
+test('Home degraded reveal does not suppress a later ground rebuild',async t=>{
+  const f=fixture(t,'svg',()=>false),game=homeGame(f,{checkReady:false});
+  game.homeRestore=Promise.resolve([]);
+  game.ensureArt=async()=>{};
+  await game.ensureMapArt('home',{timeoutMs:20});
+  assert(game.artReady('home'),'current Home may reveal degraded art at the deadline');
+  assert(!game.homePrepared,'degraded reveal does not claim texture ownership');
+  delete game.ensureArt;
+  await game.ensureHomeArt();
+  assert(game.homePrepared);
+  assert.equal(game.homeGroundStream.entries.length,60);
+  assert(game.homeGroundStream.entries.every(e=>finalTextureSource(e.sprite.texture)));
+  game.releaseHomeArt();await game.homeRestore;await flush();
+  assert(!game.artReady('home'),'departure clears degraded readiness too');
+  game.scene.destroy({children:true});
+});
 
 test('readiness accepts EMPTY, cloned placeholders and destroyed textures after the deadline',async t=>{
   const warnings=[],warn=console.warn;console.warn=(...args)=>warnings.push(args);t.after(()=>console.warn=warn);
