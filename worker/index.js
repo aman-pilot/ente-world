@@ -10,15 +10,12 @@ import {LiveBogRoom} from './bog-room.js';
 import {DURATIONS, playEmote, playSailEmote, SAIL_EMOTES, startJump, separateActors, setWalkDestination, walkStep, atMuseumDoor} from '../src/gameplay/player-motion.js';
 import {chatText} from '../src/multiplayer/chat.js';
 import {FRIEND_RADIUS} from '../src/multiplayer/friends.js';
-import {applySeaCurrent, migrateSeaPosition, islandFor, destinationsFor, harborOf, boatSpots, boatRoom, freeBoatPosition, refusedLandingPosition, createBoats, near, canSail, setSailDestination, sailStep, crossIsland, arrivalDestination, boardingPoint, dockingSpot, HARBOR_ONLY, landingApproach, fillMoorings, retireBoat, navOf, canWalkTo} from '../src/gameplay/islands.js';
+import {applySeaCurrent, migrateSeaPosition, islandFor, harborOf, boatSpots, boatRoom, freeBoatPosition, refusedLandingPosition, createBoats, near, canSail, setSailDestination, sailStep, crossIsland, boardingPoint, dockingSpot, HARBOR_ONLY, landingApproach, fillMoorings, retireBoat, navOf, canWalkTo} from '../src/gameplay/islands.js';
 import {randomOutfit, validOutfit} from '../src/gameplay/outfits.js';
 import {pickWorldSpawn} from '../src/gameplay/world-spawn.js';
 import {BUILD_COOLDOWN, buildSpot, strandedIslet} from '../src/gameplay/boat-build.js';
 import {RoomKarma} from './karma.js';
 
-export const ISLAND_LIMIT = 100;
-export const PLAYER_LIMIT = 200;
-const SPECTATOR_LIMIT = 64;
 const STARGAZER_LIMIT = 5000;
 const RESUME_MS = 15_000;
 const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -56,12 +53,6 @@ function recoverIsland(actor) {
   if(actor)migrateSeaPosition(actor);
   return actor;
 }
-const islandCounts = connections => {
-  const counts = new Map();
-  for (const info of connections.values()) if (info.actor) counts.set(info.actor.islandId, (counts.get(info.actor.islandId) ?? 0) + 1);
-  return counts;
-};
-
 export class IslandRoom {
   getPlayerKarma(actor,account) {
     if(!actor||!account)return 0;
@@ -433,11 +424,10 @@ export class IslandRoom {
     return Number.isFinite(x) && Number.isFinite(y) && canWalkTo(islandId, x, y) && this.navFor(islandId).walkable(x, y);
   }
 
-  savedLocation(account, counts) {
+  savedLocation(account) {
     const row = this.sql.exec('SELECT pose FROM last_locations WHERE account=?',account).toArray()[0];
     if (!row) return null;
     const {islandId, x, y, turn, mode} = recoverIsland(JSON.parse(row.pose));
-    if ((counts.get(islandId) ?? 0) >= ISLAND_LIMIT) return null;
     if (islandId === BOG_ISLAND && !this.karma.bogEntry(account) &&
         bogLandingNotice(islandId,this.karma.balance(account))) return null;
 
@@ -452,10 +442,9 @@ export class IslandRoom {
     return {islandId, x, y, turn};
   }
 
-  pickSpawn(account, counts, occupied) {
+  pickSpawn(account, occupied) {
     return pickWorldSpawn({
       karma:this.karma.balance(account), boats:this.boats, occupied,
-      hasRoom:id => (counts.get(id) ?? 0) < ISLAND_LIMIT,
     });
   }
 
@@ -464,36 +453,21 @@ export class IslandRoom {
     const digest = request.headers.get('X-Session-Digest');
     const user = this.session(digest, now);
     const wantsPlayer = new URL(request.url).searchParams.get('play') === '1';
-    const previous = user && [...this.connections].find(([,info]) => info.actor && info.account === user.account);
-    const resume = user && this.sql.exec('SELECT pose FROM resumes WHERE account=? AND expires>?', user.account, now).toArray()[0];
-    const actors = [...this.connections.values()].flatMap(info => info.actor ? [info.actor] : []);
-    const held = this.sql.exec('SELECT pose FROM resumes WHERE expires>?', now).toArray()
-      .map(row => JSON.parse(row.pose));
-    const active = actors.length;
+    const canPlay = user?.canPlay && wantsPlayer;
+    const previous = canPlay ? [...this.connections].find(([,info]) => info.actor && info.account === user.account) : undefined;
+    const resume = canPlay && this.sql.exec('SELECT pose FROM resumes WHERE account=? AND expires>?', user.account, now).toArray()[0];
     // A walking pose kept across a deploy can stand on ground that has since changed (islets returned to 1x): drop it.
     const resumed = resume ? JSON.parse(resume.pose) : null;
     const from = previous?.[1].actor ?? (resumed && (resumed.mode !== 'walking' || !islandFor(resumed.islandId) || this.standable(resumed)) ? resumed : null);
-    const canPlay = user?.canPlay && wantsPlayer;
-    let spawn = null, saved = null;
-    if (canPlay && !from && active + held.length < PLAYER_LIMIT) {
-      const occupied = [...actors, ...held];
-      const counts = new Map();
-      for (const pose of occupied) {
-        const id = pose.islandId ?? 'home';
-        counts.set(id, (counts.get(id) ?? 0) + 1);
-      }
-      saved = this.savedLocation(user.account, counts);
-      if (!saved) spawn = this.pickSpawn(user.account, counts, occupied);
+    const saved = canPlay && !from ? this.savedLocation(user.account) : null;
+    let spawn = null;
+    if (canPlay && !from && !saved) {
+      const actors = [...this.connections.values()].flatMap(info => info.actor ? [info.actor] : []);
+      const held = this.sql.exec('SELECT pose FROM resumes WHERE expires>?', now).toArray().map(row => JSON.parse(row.pose));
+      spawn = this.pickSpawn(user.account, [...actors, ...held]);
     }
     const playing = Boolean(canPlay && (from || saved || spawn));
-    const spectators = this.connections.size-active;
     const [client, socket] = Object.values(new WebSocketPair());
-    if (!playing && spectators >= SPECTATOR_LIMIT) {
-      socket.accept();
-      this.send(socket, {type:'welcome', id:null, reason:'spectators-full'});
-      socket.close(1013, 'Live view full');
-      return new Response(null,{status:101,webSocket:client});
-    }
     const info = {actor:null, digest:user ? digest : null, account:user?.account, expires:user?.expires, login:user?.login,
       input:ZERO, inputExpires:0, tokens:30, tokenTime:now, ack:0, lastDestination:-Infinity, lastEmote:-Infinity};
     if (playing) {
@@ -517,7 +491,7 @@ export class IslandRoom {
     this.attach(socket, info);
     this.send(socket, {type:'welcome', id:info.actor?.id ?? null,
       ...(spawn ? {arrival:spawn.name} : {}),
-      reason:user && wantsPlayer && !user.canPlay ? 'star-required' : user && wantsPlayer && !playing ? 'players-full' : null});
+      reason:user && wantsPlayer && !user.canPlay ? 'star-required' : null});
     if (playing && !previous && !resume) {
       for (const [viewer,viewerInfo] of this.connections) {
         if (viewer === socket || viewerInfo.account === user.account) continue;
@@ -629,7 +603,6 @@ export class IslandRoom {
   }
 
   demote(socket, info, reason) {
-    const wasPlayer = !!info.actor;
     if (info.actor && reason !== 'taken-over') {
       this.saveLocation(info.account,info.actor);
       this.releaseBoat(info.actor.id);
@@ -642,13 +615,6 @@ export class IslandRoom {
       info.account = null;
       info.expires = null;
       info.login = null;
-    }
-    const spectators = [...this.connections.values()].filter(entry => !entry.actor).length;
-    if (wasPlayer && spectators > SPECTATOR_LIMIT) {
-      this.send(socket, {type:'role', reason, id:null});
-      this.connections.delete(socket);
-      socket.close(4001, reason);
-      return;
     }
     this.attach(socket, info);
     this.send(socket, {type:'role', reason, id:null});
@@ -666,7 +632,10 @@ export class IslandRoom {
   }
 
   async scheduleExpiry() {
-    const expires = Math.min(...[...this.connections.values()].map(info => info.expires || Infinity));
+    let expires = Infinity;
+    for (const info of this.connections.values()) {
+      if (info.expires) expires = Math.min(expires, info.expires);
+    }
     const resume = this.sql.exec('SELECT min(expires) AS next FROM resumes').one().next;
     const next = Math.min(expires, resume ?? Infinity);
     if (Number.isFinite(next)) await this.ctx.storage.setAlarm(next);
@@ -793,7 +762,6 @@ export class IslandRoom {
           const spot=dockingSpot(actor,targeted ? {x:command.x,y:command.y} : null);
           if (!spot) {this.send(socket,{type:'travel-notice',text:HARBOR_ONLY.has(actor.islandId)?'Boats land at the dock on Booquack Bog.':'Sail closer to the shore to dock.'}); break;}
           if (!spot.islet&&!this.allowLanding(socket,info,spot.islandId)) break;
-          if (spot.islandId !== actor.islandId && (islandCounts(this.connections).get(spot.islandId) ?? 0) >= ISLAND_LIMIT) {this.send(socket,{type:'travel-notice',text:`That island is full (${ISLAND_LIMIT} Duckies). Try another one.`}); break;}
           info.input=ZERO; info.landing=null;
           actor.sailTarget=null; actor.sailRoute=null; actor.docking=false;
           if (spot.harbor) {
@@ -834,48 +802,33 @@ export class IslandRoom {
     const now = Date.now();
     let active = false;
     this.expire(now);
-    const counts = islandCounts(this.connections), roomOn = id => (counts.get(id) ?? 0) < ISLAND_LIMIT;
-    const full = (socket, info) => {
-      if (now-(info.fullNotice ?? -Infinity) < 60_000) return;
-      info.fullNotice = now; this.send(socket,{type:'travel-notice',text:`That island is full (${ISLAND_LIMIT} Duckies). Try another one.`});
-    };
     for (const [socket, info] of this.connections) {
       const actor = info.actor;
       if (!actor) continue;
       if (now >= info.inputExpires) info.input = ZERO;
       if (actor.mode === 'sailing') {
         this.recoverSailingPosition(actor);
-        const beforeCurrent=actor.islandId;
         sailStep(actor,.05,info.input,now/1000,this.boats);
-        if(applySeaCurrent(actor,roomOn,this.boats)) {
-          counts.set(beforeCurrent,(counts.get(beforeCurrent)??1)-1);counts.set(actor.islandId,(counts.get(actor.islandId)??0)+1);
+        if(applySeaCurrent(actor,undefined,this.boats)) {
           info.islandId=actor.islandId;info.landing=null;info.boarding=null;info.input=ZERO;info.inputExpires=0;
-        } else if(actor.seaCurrent)full(socket,info);
+        }
         const boat=this.boats.find(boat => boat.id === actor.boatId && boat.occupant === actor.id);
         if (!boat) info.landing=null;
         if (boat) {
-          const from=actor.islandId;
-          if (!info.landing) {
-            if (crossIsland(actor,id=>roomOn(id)&&this.allowLanding(socket,info,id),this.boats)) {info.input=ZERO; info.inputExpires=0; counts.set(from,(counts.get(from) ?? 1)-1); counts.set(actor.islandId,(counts.get(actor.islandId) ?? 0)+1);}
-            else {
-              const destination=arrivalDestination(actor,this.boats);
-              if (destination && !roomOn(destination.destination)) full(socket,info);
-            }
+          if (!info.landing && crossIsland(actor,id=>this.allowLanding(socket,info,id),this.boats)) {
+            info.input=ZERO;
+            info.inputExpires=0;
           }
           Object.assign(boat,{x:actor.x,y:actor.y,turn:actor.turn,islandId:actor.islandId});
           if (info.landing && (near(actor,info.landing.approach,14) || !actor.sailTarget)) {
             const spot=info.landing; info.landing=null;
             if (!spot.islet&&!this.allowLanding(socket,info,spot.islandId)) continue;
-            if (spot.islandId !== actor.islandId && !roomOn(spot.islandId)) {full(socket,info); actor.sailTarget=null; actor.sailRoute=null;}
-            else {
             if(!spot.islet&&!this.chargeBogLanding(socket,info,spot.islandId))continue;
-            if (spot.islandId !== actor.islandId) {counts.set(actor.islandId,(counts.get(actor.islandId) ?? 1)-1); counts.set(spot.islandId,(counts.get(spot.islandId) ?? 0)+1);}
             Object.assign(actor,spot.islet?reframeIslet(actor.islandId,spot.islandId,ISLETS.find(i=>i.id===spot.islet),actor):unplaceRigid(actor.islandId,spot.islandId,actor)); actor.islandId=spot.islandId; info.islandId=spot.islandId;
             Object.assign(boat,{x:actor.x,y:actor.y,islandId:actor.islandId});
             this.parkBoat(boat,spot);
             Object.assign(actor,{x:spot.x,y:spot.y,mode:'walking',boatId:null,path:[],travel:0,pace:0,heading:null,docking:false,sailTarget:null,sailRoute:null});
             info.input=ZERO;
-            }
           } else if (actor.docking && near(actor,actor.dockTarget??harborOf(actor.islandId).water,12)) {
             if (!this.allowLanding(socket,info,actor.islandId)||!this.chargeBogLanding(socket,info,actor.islandId)) continue;
             Object.assign(boat,unplaceRigid(actor.islandId,actor.islandId,boat));

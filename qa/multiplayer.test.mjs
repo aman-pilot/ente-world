@@ -21,16 +21,15 @@ let mf;
 before(async () => {
   const root = fileURLToPath(new URL('../',import.meta.url));
   const {outputFiles:[bundle]} = await build({stdin:{resolveDir:root, contents:`
-    import {IslandRoom, ISLAND_LIMIT} from './worker/index.js';
+    import {IslandRoom} from './worker/index.js';
     import {mapOf} from './src/world/island-maps.js';
     import {createBoats} from './src/gameplay/islands.js';
     import {start, callback, session, logout, connect, playAccess, friends, outfit} from './server/pages-auth.js';
     export class TestIsland extends IslandRoom {
-      pickSpawn(account, counts, occupied) {
-        if (Number(account) >= 9800) return super.pickSpawn(account, counts, occupied);
+      pickSpawn(account, occupied) {
+        if (Number(account) >= 9800) return super.pickSpawn(account, occupied);
         // Keep Home movement, chat, and docking fixtures on their original map.
-        return (counts.get('home') ?? 0) < ISLAND_LIMIT
-          ? {islandId:'home', ...mapOf('home').spawn, name:'Home Island'} : null;
+        return {islandId:'home', ...mapOf('home').spawn, name:'Home Island'};
       }
       async fetch(request) {
         const path = new URL(request.url).pathname;
@@ -161,14 +160,19 @@ test('OAuth state is bound to its cookie and consumed on success, cancellation a
   assert.equal((await request('/api/session',{headers:{Cookie:good.session}}).then(r=>r.json())).user,null);
 });
 
-async function socket(cookie, play = true) {
+async function socket(cookie, play = true, {keepSnapshots = true} = {}) {
   const headers = {Upgrade:'websocket', Origin:origin};
   if (cookie) headers.Cookie = cookie;
   const response = await request('/api/room?play='+(play ? '1' : '0'),{headers});
   assert.equal(response.status,101);
   const ws = response.webSocket;
   const messages = [];
-  ws.addEventListener('message',event => messages.push(JSON.parse(event.data)));
+  let snapshot;
+  ws.addEventListener('message',event => {
+    const message = JSON.parse(event.data);
+    if (!keepSnapshots && message.type === 'snapshot') snapshot = message;
+    else messages.push(message);
+  });
   ws.accept();
   let seq = 0, closed = false;
   ws.addEventListener('close', () => { closed = true; });
@@ -176,7 +180,7 @@ async function socket(cookie, play = true) {
     close() { if (!closed) { closed = true; ws.close(); } },
     send(data) { ws.send(JSON.stringify({...data,seq:++seq})); },
     get welcome() { return messages.find(message => message.type === 'welcome'); },
-    get snapshot() { return messages.findLast(message => message.type === 'snapshot'); },
+    get snapshot() { return keepSnapshots ? messages.findLast(message => message.type === 'snapshot') : snapshot; },
     duck(id = this.welcome.id) { return this.snapshot?.players.find(duck => duck.id === id); },
   };
   await eventually(() => client.welcome);
@@ -972,32 +976,32 @@ test('docking beside an island that is not a jetty neighbour lands you on that i
   }
 });
 
-test('player and spectator caps still allow watching and an explicit retry', async () => {
+test('the live room admits more than 200 players on one island and more than 64 spectators', async () => {
   await request('/test/expire-session');
   await request('/test/expire-resume');
   const players = [];
   const spectators = [];
   try {
-    const {ISLAND_LIMIT} = await import('../worker/index.js');
-    for (let i=0;i<ISLAND_LIMIT;i++) players.push(await socket((await signIn(i+1000)).session));
-    const {session} = await signIn(1000+ISLAND_LIMIT+50);
-    const extra = await socket(session);
-    spectators.push(extra);
-    assert.equal(extra.welcome.reason,'players-full');
-    await eventually(() => extra.snapshot?.players.length === ISLAND_LIMIT);
-    for (let i=1;i<64;i++) spectators.push(await socket());
-    const overflow = await socket();
-    assert.equal(overflow.welcome.reason,'spectators-full');
-    spectators.pop().close();
-    await delay(150);
-    const retried = await socket();
-    spectators.push(retried);
-    assert.equal(retried.welcome.reason,null);
+    const options = {keepSnapshots:false};
+    for (let i=0;i<201;i++) {
+      const player = await socket((await signIn(i+1000)).session,true,options);
+      players.push(player);
+      assert.ok(player.welcome.id);
+      assert.equal(player.welcome.reason,null);
+    }
+    for (let i=0;i<65;i++) {
+      const viewer = await socket(undefined,false,options);
+      spectators.push(viewer);
+      assert.equal(viewer.welcome.id,null);
+      assert.equal(viewer.welcome.reason,null);
+    }
+    const lastViewer = spectators.at(-1);
+    await eventually(() => lastViewer.snapshot?.players.length === 201);
+    assert.equal(lastViewer.snapshot.islandId,'home');
     const {session:worldwideSession} = await signIn(9800);
     const worldwide = await socket(worldwideSession);
     players.push(worldwide);
     const dropped = await eventually(() => worldwide.duck());
-    assert.notEqual(dropped.islandId,'home');
     assert.notEqual(dropped.islandId,'isle-249','fresh accounts cannot spawn on Booquack Bog');
     assert.equal(worldwide.snapshot.islandId,dropped.islandId);
     assert.ok(navOf(dropped.islandId).walkable(dropped.x,dropped.y));
