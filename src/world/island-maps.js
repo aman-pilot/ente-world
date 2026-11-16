@@ -17,8 +17,8 @@ import READY from './delivered-themes.js';
 import {geometry, inPoly, inShape, coastIndex, polygonIndex, shapeIndex} from '../../assets/world/island-geometry.mjs';
 import {resolveSleepSpots, sleepHalfWidths} from './home/sleep-spots.js';
 import {createNavigation} from './navigation.js';
-// Boats: the port holds its moorings; COAST_BOATS more wait around the island, at least COAST_SPREAD apart.
-export const PORT_BOATS=3, PORT_CLEAR=1000, COAST_BOATS=6, COAST_SPREAD=1100;
+// Boats: the port holds its moorings; more wait all round the island, one on every stretch of coast COAST_SPREAD long.
+export const PORT_BOATS=3, PORT_CLEAR=1000, COAST_SPREAD=2000;
 import {FINISHED_THEMES, TEST_THEMES, WORLD_ISLANDS} from './world-map.js';
 
 export {FINISHED_THEMES};
@@ -156,12 +156,11 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
   // The port keeps its moorings only (2-3 boats). Every other boat waits on the open coast around the island,
   // spread out so each part of the shore has one to board.
   const aroundIsland = spots => {
-    const port=spots.slice(0,PORT_BOATS),c=centre ?? coastCentre(walking.coast),wanted=COAST_BOATS;
+    const port=spots.slice(0,PORT_BOATS),c=centre ?? coastCentre(walking.coast);
     // Hand-placed boats (Home's fleet, Pagepond's river paperboats) stay unless they crowd the port itself.
     const coast=spots.slice(PORT_BOATS).filter(p=>Math.hypot(p.x-HARBOR.water.x,p.y-HARBOR.water.y)>PORT_CLEAR);
     const order=[0,180,90,270,45,225,135,315,22.5,202.5,112.5,292.5,67.5,247.5,157.5,337.5];
     for(const deg of order){
-      if(coast.length>=wanted)break;
       const a=deg*Math.PI/180;
       // Come in from the open sea, so inner lakes and rivers are never mistaken for the coast.
       const o=world.origin??{x:0,y:0},edge=Math.min(...[[Math.cos(a),c.x,o.x,o.x+W],[Math.sin(a),c.y,o.y,o.y+H]]

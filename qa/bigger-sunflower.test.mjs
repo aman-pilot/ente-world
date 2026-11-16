@@ -64,7 +64,7 @@ test('every Sunflower hamlet home has a reachable door and a solid base',()=>{
 });
 test('bigger Sunflower boats float, board and land through the production registry',()=>{
  const island=[...THEME_OF].find(([,theme])=>theme==='sunflower')[0];
- assert.equal(map.boatSpots().length,9); // 3 at the port, 6 around the island (its 4th port boat moved off the port)
+ assert.equal(map.boatSpots().length,11); // 3 at the port, 8 all round the island (its 4th port boat moved off the port)
  for(const p of map.boatSpots()){assert.ok(canSail(p.x,p.y,island));const b=boardingPoint({...p,islandId:island});assert.ok(map.nav().walkable(b.x,b.y));assert.ok(map.shoreFor(p.x,p.y,300))}
  for(const d of destinationsFor(island)){const m=mapFor(d.map),b=seaBoundsFor(island),o=originOffset(island,d.destination);assert.ok(o.x+m.origin.x>=b.x0&&o.x+m.origin.x+m.width<=b.x1)}
 });

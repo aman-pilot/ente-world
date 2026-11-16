@@ -27,8 +27,8 @@ test('bigger Home retains original landmark and save coordinates, every communit
   assert.deepEqual(n.route(...approaches[0],...approaches[1]).at(-1),approaches[1]);
 });
 
-test('bigger Home has ten afloat moorings, walkable boarding points and usable west-coast docking',()=>{
-  const n=HOME_MAP.nav();assert.equal(HOME_MAP.boatSpots().length,10);
+test('bigger Home has fourteen afloat moorings (3 at the port, the rest all round it), walkable boarding points and usable west-coast docking',()=>{
+  const n=HOME_MAP.nav();assert.equal(HOME_MAP.boatSpots().length,14);
   for(const b of HOME_MAP.boatSpots()){
     assert.ok(canSail(b.x,b.y),'mooring is clear of shore');
     const p=boardingPoint({...b,islandId:'home'});assert.ok(n.walkable(p.x,p.y));

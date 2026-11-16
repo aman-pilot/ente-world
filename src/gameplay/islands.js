@@ -490,7 +490,17 @@ export function sailStep(actor,dt,input,now=null,boats=[]) {
     for (let i=0;i<steps;i++) {
       const x=actor.x+dx/distance*travel/steps, y=actor.y+dy/distance*travel/steps;
       // A boat already inside another's gap may still sail away from it, never closer, so no boat is ever boxed in.
-      if (!others.every(p=>seaBoatSeparated({x,y},p,BOAT_GAP+.1) || Math.hypot(wrapSea(x-p.x),y-p.y)>Math.hypot(wrapSea(actor.x-p.x),actor.y-p.y)) || !canSail(x,y,actor.islandId)) {actor.sailTarget=null; actor.sailRoute=null; actor.docking=false; break;}
+      const boatInWay=!others.every(p=>seaBoatSeparated({x,y},p,BOAT_GAP+.1) || Math.hypot(wrapSea(x-p.x),y-p.y)>Math.hypot(wrapSea(actor.x-p.x),actor.y-p.y));
+      if (boatInWay || !canSail(x,y,actor.islandId)) {
+        // A boat moored or sailing across a planned course: plan round it instead of stopping (a few tries).
+        const goal=!manual&&target?(actor.sailRoute?.at(-1)??target):null, docking=actor.docking;
+        if (boatInWay && goal && (actor.reroutes??0)<8) {
+          actor.reroutes=(actor.reroutes??0)+1;
+          if (setSailDestination(actor,goal.x,goal.y,boats)) {actor.docking=docking; break;}
+        }
+        actor.sailTarget=null; actor.sailRoute=null; actor.docking=false; break;
+      }
+      actor.reroutes=0;
       actor.x=x; actor.y=y;
       const gy=FLAT_POSITIONS[actor.islandId].y+actor.y-mapOf(actor.islandId).cy;
       if(Math.abs(gy)<=SEA_HEIGHT/2)delete actor.seaCurrent;

@@ -293,13 +293,13 @@ test('offline: a taken boat refills its mooring once the sailor is clear, and on
   assert.ok(fleet.take('home-4','me'));
   assert.equal(fleet.take('home-5','me'),null,'one boat at a time');
   assert.equal(fleet.sail('me',{x:spot.x+MOORING_CLEAR-20,y:spot.y,turn:0,islandId:'home'}),false,'still beside the mooring: no refill yet');
-  assert.equal(moored(fleet,'home').length,9);
+  assert.equal(moored(fleet,'home').length,boatSpots('home').length-1);
   assert.equal(fleet.sail('me',{x:spot.x+MOORING_CLEAR+40,y:spot.y,turn:0,islandId:'home'}),true);
   const fresh=fleet.boats('home').find(boat=>boat.id!=='home-4' && boatSlot(boat)===4 && boatHome(boat)==='home');
   assert.ok(fresh && !fresh.occupant,'a fresh boat waits at the mooring');
   assert.deepEqual([fresh.x,fresh.y],[spot.x,spot.y]);
-  assert.equal(moored(fleet,'home').length,10);
-  assert.equal(fleet.boats('home').length,11,'10 moored + 1 sailing');
+  assert.equal(moored(fleet,'home').length,boatSpots('home').length);
+  assert.equal(fleet.boats('home').length,boatSpots('home').length+1,'every mooring full + 1 sailing');
   assert.ok(fleet.take(fresh.id,'friend'),'the next sailor takes the refill');
 });
 
@@ -308,7 +308,7 @@ test('offline: crossing to another island refills home and keeps the boat where 
   fleet.take('home-0','me');
   const water=harborOf(there).water;
   assert.equal(fleet.sail('me',{x:water.x,y:water.y,turn:0,islandId:there}),true);
-  assert.equal(moored(fleet,'home').length,10,'the jetty you left is full again');
+  assert.equal(moored(fleet,'home').length,boatSpots('home').length,'the jetty you left is full again');
   assert.equal(moored(fleet,there).length,per,'the island you reach already has all its boats');
   const boat=fleet.land('me');
   assert.equal(boat.id,'home-0');
@@ -317,7 +317,7 @@ test('offline: crossing to another island refills home and keeps the boat where 
   assert.ok(harborApproachClear(boat));assert.ok(boatRoom(boat,fleet.list));
   assert.equal(fleet.boats(there).length,per+1);
   assert.ok(fleet.take(boat.id,'friend'),'another sailor can take the parked arrival boat');
-  assert.equal(fleet.boats('home').length,10);
+  assert.equal(fleet.boats('home').length,boatSpots('home').length);
 });
 
 test('offline: stepping off beside your own empty mooring ties the boat back up',()=>{
@@ -328,7 +328,7 @@ test('offline: stepping off beside your own empty mooring ties the boat back up'
   const boat=fleet.list.find(boat=>boat.id==='home-1');
   assert.ok(boat && !boat.occupant);
   assert.deepEqual([boat.x,boat.y],[spot.x,spot.y]);
-  assert.equal(fleet.boats('home').length,10);
+  assert.equal(fleet.boats('home').length,boatSpots('home').length);
 });
 
 test('a refilled boat appears at its mooring, never slides in from the sailing one',()=>{
