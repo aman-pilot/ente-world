@@ -4,7 +4,7 @@
 import {inPoly} from '../../assets/world/island-geometry.mjs';
 import {placeIslet} from '../world/islet-placement.js';
 import {isletWalks} from '../world/islet-walk.js';
-import {canSail, navOf} from './islands.js';
+import {canSail, navOf, boatRoom} from './islands.js';
 
 export const MATERIALS = ['wood', 'rope', 'sail'];
 export const MATERIAL_NAMES = {wood: 'wood', rope: 'rope', sail: 'sail cloth'};
@@ -80,7 +80,7 @@ export function scatterMaterials(walk, random = Math.random) {
 
 // Open sea next to the islet shore the player stands on (not an inland pool or lagoon), with room for a boat
 // and a shore point to board from.
-export function buildSpot(islandId, actor) {
+export function buildSpot(islandId, actor, boats=[]) {
   const walk = isletUnder(islandId, actor);
   if (!walk) return null;
   const nav = navOf(islandId), coast = walk.world.coast;
@@ -88,7 +88,7 @@ export function buildSpot(islandId, actor) {
     for (let k = 0; k < 24; k++) {
       const a = k * Math.PI / 12, x = Math.round(actor.x + Math.cos(a) * r), y = Math.round(actor.y + Math.sin(a) * r);
       // facing out to sea, the way sailing sets turn
-      if (!inPoly(x, y, coast) && canSail(x, y, islandId, BOAT_ROOM) && nav.nearest(x, y, BOARD_REACH)) return {x, y, turn: Math.atan2(x - actor.x, y - actor.y)};
+      if (boatRoom({x,y,islandId},boats) && !inPoly(x, y, coast) && canSail(x, y, islandId, BOAT_ROOM) && nav.nearest(x, y, BOARD_REACH)) return {x, y, turn: Math.atan2(x - actor.x, y - actor.y)};
     }
   }
   return null;

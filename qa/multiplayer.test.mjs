@@ -820,19 +820,26 @@ test('docking off a beach sails the boat in beside the sand before the Ducky hop
   await request('/test/reset-boats');
   const login=await signIn(9310), a=await socket(login.session);
   const setup=(pose,steps=0) => request('/test/travel',{method:'POST',body:JSON.stringify({id:a.welcome.id,pose,steps})});
-  const far={x:boatSpots()[5].x-170,y:boatSpots()[5].y}, spot=landingSpot({islandId:'home',...far}); spot.approach=landingApproach({islandId:'home',...far},spot); const gap=p => Math.hypot(p.x-spot.approach.x,p.y-spot.approach.y);
+  // An unmoored stretch of Home's north beach leaves the approach clear.
+  const far={x:4160,y:1560}, spot=landingSpot({islandId:'home',...far});
+  assert.ok(boatSpots().every(b => Math.hypot(far.x-b.x,far.y-b.y)>=360));
+  spot.approach=landingApproach({islandId:'home',...far},spot);
+  const gap=p => Math.hypot(p.x-spot.approach.x,p.y-spot.approach.y);
   try {
     await eventually(() => a.snapshot?.boats?.length);
     let boatId=null;
     const boat=() => a.snapshot.boats.find(b => b.id===boatId);
-    const boardHarbor=async () => {
-      await setup({...HARBOR.land,mode:'walking',path:[]});
-      await eventually(() => a.snapshot.boats.some(b => !b.occupant && b.id.split('~')[0]==='home-0' && b.x===boatSpots()[0].x));
-      boatId=a.snapshot.boats.find(b => !b.occupant && b.id.split('~')[0]==='home-0' && b.x===boatSpots()[0].x).id;
+    const boardBoat=async () => {
+      // Reuse the beached boat so later landings do not start on another boat.
+      await setup({...(boatId ? {x:spot.x,y:spot.y} : HARBOR.land),mode:'walking',path:[]});
+      if (!boatId) {
+        await eventually(() => a.snapshot.boats.some(b => !b.occupant && b.id.split('~')[0]==='home-0' && b.x===boatSpots()[0].x));
+        boatId=a.snapshot.boats.find(b => !b.occupant && b.id.split('~')[0]==='home-0' && b.x===boatSpots()[0].x).id;
+      }
       a.send({type:'board',boatId});
       await eventually(() => a.duck()?.mode==='sailing');
     };
-    await boardHarbor();
+    await boardBoat();
     await setup({...far,sailTarget:null,sailRoute:null,docking:false},1);
     assert.ok(gap(far)>200,'the boat starts well out from the shore');
     a.send({type:'disembark'});
@@ -848,18 +855,18 @@ test('docking off a beach sails the boat in beside the sand before the Ducky hop
     await eventually(()=>boat()?.parked);
     assert.deepEqual([boat().x,boat().y],[parked.x,parked.y],'worker restoration preserves the beach landing');
     assert.ok(closest<=60,`the Ducky was still aboard within two ticks of the shore (${closest.toFixed(0)} px out)`);
-    await boardHarbor();
+    await boardBoat();
     await setup({...spot.approach,sailTarget:null,sailRoute:null,docking:false},1);
     a.send({type:'disembark'});
     await eventually(() => a.duck()?.mode==='walking');
-    await boardHarbor();
+    await boardBoat();
     await setup({...far,sailTarget:null,sailRoute:null,docking:false},1);
     a.send({type:'disembark'});
     await delay(100);
     a.send({type:'input',x:0,y:0,stop:true});
     await eventually(() => a.duck()?.mode==='walking');
     assert.deepEqual([a.duck().x,a.duck().y],[spot.x,spot.y],'still hops out onto the sand');
-    await boardHarbor();
+    await boardBoat();
     await setup({...far,sailTarget:null,sailRoute:null,docking:false},1);
     a.send({type:'disembark'});
     a.send({type:'input',x:1,y:0});

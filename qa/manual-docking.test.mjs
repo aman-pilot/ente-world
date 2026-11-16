@@ -31,6 +31,7 @@ test('tapping a nearby beach docks at the selected spot even within harbor range
   const room = await makeRoom();
   t.after(() => clearInterval(room.timer));
   const boat = room.boats.find(boat => boat.id === 'home-0');
+  Object.assign(boat, {x:3830, y:5905}); // sail it close to the beach first
   const {actor, socket} = addPlayer(room, 9878, {...boat, mode:'sailing'});
   actor.boatId = boat.id;
   boat.occupant = actor.id;

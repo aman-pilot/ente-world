@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import READY from '../src/world/delivered-themes.js';
 import {HOME_MAP, THEME_OF, TEST_THEMES, mapFor, mapOf, mapsVersion, readyThemes, registerMap, themeOfIsland} from '../src/world/island-maps.js';
-import {ISLANDS, boatSpots, canSail, createBoats, crossIsland, destinationsFor, fillMoorings, harborOf, islandOffset, landingApproach,
+import {ISLANDS, boatSpots, BOAT_GAP, canSail, createBoats, crossIsland, destinationsFor, fillMoorings, harborOf, islandOffset, landingApproach,
   landingSpot, originOffset, retireBoat, sailRoute, sailStep, seaBoundsFor, setSailDestination, boardingPoint} from '../src/gameplay/islands.js';
 import {offsetOf, worldIsland} from '../src/world/world-map.js';
 
@@ -132,7 +132,11 @@ test('maps of another size: a small themed island lines up round its centre, sai
     const plaza=mapPoint('home',id,{x:2820,y:2400});
     assert.equal(canSail(plaza.x,plaza.y,id), false, 'home\'s plaza is land, seen from it');
     assert.ok(boatSpots(id).length >= 3);
-    for (const s of boatSpots(id).slice(0, 3)) assert.ok(Math.abs(s.x - cx) <= 160 && s.y > cy + 560, `berth ${s.x},${s.y} beside the south jetty`);
+    for (const [i,s] of boatSpots(id).slice(0, 3).entries()) {
+      const shore=boardingPoint({...s,islandId:id});
+      assert.ok(s.y > cy + 560 && m.nav().walkable(shore.x,shore.y) && Math.hypot(s.x-shore.x,s.y-shore.y)<=320, `berth ${s.x},${s.y} beside the south jetty and boardable`);
+      for(const other of boatSpots(id).slice(0,i)) assert.ok(Math.hypot(s.x-other.x,s.y-other.y)>=BOAT_GAP,'berths leave a full boat gap');
+    }
     for (const s of boatSpots(id)) assert.ok(canSail(s.x, s.y, id), `berth ${s.x},${s.y} floats`);
     const boats = createBoats();
     assert.equal(boats.filter(b => b.islandId === id).length, boatSpots(id).length);
