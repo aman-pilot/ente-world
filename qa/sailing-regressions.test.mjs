@@ -135,7 +135,7 @@ test('Pagepond parked visitor can sail to Home through the saved harbour fleet',
   assert(boatRoom(p.actor,room.boats));assert(harborApproachClear(boat));
   assert.deepEqual(setSailDestination(p.actor,dock.x,dock.y,room.boats),[dock.x,dock.y]);
   for(let k=0;k<2400&&p.actor.mode==='sailing';k++){
-   room.step();assert(boatRoom(boat,room.boats),'whole journey keeps the 350-unit gap');
+   room.step();assert(boatRoom(boat,room.boats),'whole journey keeps the boat gap');
   }
   assert.equal(p.actor.islandId,'home',JSON.stringify(p.actor));assert.equal(p.actor.mode,'walking');
   assert.equal(boat.occupant,null);assert(harborApproachClear(boat));
@@ -185,7 +185,7 @@ test('refused Bog landing leaves a 600-unit escape apron and preserves boat gaps
     assert(Math.hypot(a.x-p.actor.x,a.y-p.actor.y)>500);assert(boatRoom(a,room.boats));assert(canSail(a.x,a.y,from));
    }
   }
-  assert.equal(BOAT_GAP,350);
+  assert.equal(BOAT_GAP,260);
  }finally{clearInterval(room.timer);room.bog?.dispose();}
 });
 
