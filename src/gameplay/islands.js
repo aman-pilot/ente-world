@@ -459,6 +459,8 @@ export function setSailDestination(actor,x,y,boats=[]) {
   return [x,y];
 }
 
+// Around a pole island you sail freely; the current only takes you once you head well out into the polar ice.
+const POLE_SEA_MARGIN=4000;
 export function sailStep(actor,dt,input,now=null,boats=[]) {
   const others=otherBoatPositions(actor,boats);
   const startY=FLAT_POSITIONS[actor.islandId].y+actor.y-mapOf(actor.islandId).cy;
@@ -479,7 +481,7 @@ export function sailStep(actor,dt,input,now=null,boats=[]) {
       const gy=FLAT_POSITIONS[actor.islandId].y+actor.y-mapOf(actor.islandId).cy;
       if(Math.abs(gy)<=SEA_HEIGHT/2)delete actor.seaCurrent;
       const pole=gy < -SEA_HEIGHT/2?'isle-55':gy > SEA_HEIGHT/2?'isle-249':null;
-      if(pole && (Math.abs(gy)>=SEA_HEIGHT/2+6500 || Math.abs(startY)<=SEA_HEIGHT/2 || actor.islandId!==pole || Math.abs(wrapSea(actor.x-mapOf(pole).cx))>mapOf(pole).width/2+800)) {
+      if(pole && (Math.abs(gy)>=SEA_HEIGHT/2+6500 || actor.islandId!==pole || Math.abs(wrapSea(actor.x-mapOf(pole).cx))>mapOf(pole).width/2+POLE_SEA_MARGIN)) {
         actor.seaCurrent=pole; actor.sailTarget=null;actor.sailRoute=null;break;
       }
     }

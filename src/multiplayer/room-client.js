@@ -1,4 +1,5 @@
 import {nearestSeaX} from '../world/flat-layout.js';
+import {isletAt} from '../world/islet-walk.js';
 import {takeArrivalSocket} from '../app/arrival-start.js';
 import {DURATIONS, playEmote, playSailEmote, SAIL_EMOTES, startJump, setWalkDestination, walkStep} from '../gameplay/player-motion.js';
 import {CHAT_INTERVAL, chatText} from './chat.js';
@@ -239,8 +240,10 @@ export class RoomClient {
     this.friendPlayers = players;
     this.updateNearby();
     const available=this.usableBoats(boats).length;
-    const travelKey=`${islandId}:${mode}:${available}`;
-    if (changed || this.travelKey !== travelKey) this.onTravel({islandId,mode,available});
+    // Islets belong to a nearby island's frame; say when you stand on one so island-only UI (Bog entry) can skip it.
+    const islet=Boolean(own&&isletAt(islandId,own.x,own.y));
+    const travelKey=`${islandId}:${mode}:${available}:${islet}`;
+    if (changed || this.travelKey !== travelKey) this.onTravel({islandId,mode,available,islet});
     this.travelKey=travelKey;
     this.resolveInitialIsland?.(islandId);
     this.resolveInitialIsland=null;

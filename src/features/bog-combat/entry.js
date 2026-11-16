@@ -1,7 +1,7 @@
 import {getPlayerKarma} from './karma.js';
 export const KARMA_REQUIRED=5;
 export const BOG_ISLAND='isle-249';
-export function dockArrival(travel,status){return status==='playing'&&travel?.islandId===BOG_ISLAND&&travel.mode==='walking';}
+export function dockArrival(travel,status){return status==='playing'&&travel?.islandId===BOG_ISLAND&&travel.mode==='walking'&&!travel.islet;}
 export function canEnterBog(karma=getPlayerKarma()){return Number.isFinite(karma)&&karma>=KARMA_REQUIRED;}
 export function bogLandingNotice(islandId,karma=getPlayerKarma()){
  return islandId===BOG_ISLAND&&!canEnterBog(karma)

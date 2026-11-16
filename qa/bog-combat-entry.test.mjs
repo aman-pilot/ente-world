@@ -18,6 +18,7 @@ test('Bog dock entry is walking only, needs five karma, and team sizes remain fr
   assert.equal(KARMA_REQUIRED,5);assert.equal(canEnterBog(),false);
   assert.equal(canEnterBog(4),false);assert.equal(canEnterBog(5),true);assert.equal(canEnterBog(6),true);
   assert.ok(dockArrival({islandId:'isle-249',mode:'walking'},'playing'));
+  assert.equal(dockArrival({islandId:'isle-249',mode:'walking',islet:true},'playing'),false,'the trojan horse islet is in Bog\'s frame but is not Bog');
   for(const [id,mode,status]of [['home','walking','playing'],['isle-249','sailing','playing'],['isle-249','walking','watching']])assert.equal(dockArrival({islandId:id,mode},status),false);
   const counts=teamCounts([{team:'karma'},{team:'evil',bot:true},{team:'karma'}]);assert.deepEqual(counts,{karma:2,evil:0});assert.equal(suggestedTeam(counts),'evil');assert.equal(suggestedTeam({karma:0,evil:0}),null);
 });
