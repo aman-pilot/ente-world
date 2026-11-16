@@ -4,7 +4,7 @@ import {selectIslandTier} from '../../app/ducky-prefetch.js';
 import {swapIslandDetail,detailZoomLimit} from './art/island-detail.js';
 import {loadHomeScene} from '../../world/home/startup-scene.js';
 import {getIslandIndex,warmIslandIndex,loadPrerenderManifest,prepareIsland as prepareIslandSheets} from './art/whole-svg-loader.js';
-import {uploadIsland, nextArtFrame, markArtActivity, mapArtInFrames} from './art/island-preparation.js';
+import {uploadIsland, nextArtFrame, preparationFrame, markArtActivity, mapArtInFrames} from './art/island-preparation.js';
 import {renderPolaroid} from '../shared/polaroid.js';
 import {ART_TEXTURE} from './art/art-texture.js';
 import {createPirateFleet,pirateBoatPoint} from '../../gameplay/pirate-fleet.js';
@@ -15,7 +15,7 @@ import {easeLandingBasis,canonicalCamera,turnLongitude,cameraMatrix,cameraSpan} 
 import {createSailingCamera} from '../shared/sailing-camera.js';
 import {sailingUpright} from './sailing-upright.js';
 import {WORLD_GEO,WORLD_ISLANDS,neighboursOf,offsetOf} from '../../world/world-map.js';
-import {createLivePatches} from './sphere-mesh.js';
+import {drawLiveIsland} from './sphere-mesh.js';
 import {createIsletView} from './islet-view.js';
 import {globeBall,uprightFade,globeRoll,rollBasis,lonLat,lookOf,centreOf,LAT_MAX} from '../shared/globe-look.js';
 import {unplaceRigid,flatRigid} from '../../world/rigid.js';
@@ -583,11 +583,11 @@ export class PixiIsland {
       if(this.disposed||this.artShown!==mapId||!this.artReady(mapId))return;
       this.showArt(mapId);
       if(previousArt!==mapId){
-        if(previousArt==='home')this.releaseHomeArt();else this.freeArt(previousArt);
+        if(!this.sailingArtWanted?.has(previousIsland))this.freeArt(previousArt);
       }
-      for(const other of this.arts.keys())if(other!=='home'&&other!==mapId)this.freeArt(other);
+      for(const other of this.arts.keys())if(other!=='home'&&other!==mapId&&!this.sailingArtWanted?.has(WORLD_ISLANDS.find(i=>artOf(i.id)===other)?.id))this.freeArt(other);
       this.destinationArt=null;
-      if(mapId!=='home')this.releaseHomeArt();
+      if(mapId!=='home'&&!this.sailingArtWanted?.has('home'))this.releaseHomeArt();
     });
     this.showArt(mapId);
     this.arches=mapId === 'home' ? undefined : mapFor(mapId).world.arches ?? [];
@@ -1129,7 +1129,7 @@ export class PixiIsland {
     if(!this.sheetPreparations.has(islandId)){
       this.pauseIslandBackground();
       const current=this.room?.islandId??this.islandId;
-      for(const id of this.sheetPreparations.keys())if(id!==current&&id!==islandId)this.releasePreparedSheets(id);
+      for(const id of this.sheetPreparations.keys())if(id!==current&&id!==islandId&&!this.sailingArtWanted?.has(id))this.releasePreparedSheets(id);
       const retired=this.sheetRetirements?.get(islandId);
       const dpr=this.app?.renderer?.resolution??Math.min(this.renderResolution??globalThis.devicePixelRatio??1,2);
       const sheets=retired?retired.then(()=>prepareSheets(islandId,dpr)):prepareSheets(islandId,dpr);
@@ -1155,17 +1155,20 @@ export class PixiIsland {
   }
   pauseIslandBackground() {
     this.islandPrefetch?.pause();
-    for(const state of this.detailStates?.values()??[])if(!state.live)state.controller?.abort();
+    for(const [id,state] of this.detailStates??[])if(!state.live&&!this.sailingArtWanted?.has(id))state.controller?.abort();
   }
   startIslandDetail(mapId) {
     const id=WORLD_ISLANDS.find(i=>(i.theme??i.id)===mapId)?.id??mapId;
     const state=this.detailStates?.get(id);
     if(!state)return;
+    this.islandPrefetch??=createIslandPrefetch({getIndex:getIslandIndex,islands:WORLD_ISLANDS,limit:2,prepareData:prepareIslandMap,
+      distance:(a,b)=>{const p=offsetOf(a.id,b.id);return p.x*p.x+p.y*p.y;},
+      selectTier:(data,id)=>selectIslandTier(data,id,this.app.renderer.resolution,this.width,this.height)});
     if(state.live){
       if(!this.destinationArt&&!this.trip&&this.player?.mode!=='sailing'&&this.artShown===mapId)this.islandPrefetch?.resume(id);
       return;
     }
-    if(this.trip||this.player?.mode==='sailing'||this.destinationArt&&this.destinationArt!==mapId)return;
+    if(!this.sailingArtWanted?.has(id)&&(this.trip||this.player?.mode==='sailing'||this.destinationArt&&this.destinationArt!==mapId))return;
     if(state.job||(state.attempts??0)>=4||performance.now()<(state.retryAt??0))return;
     const controller=new AbortController();state.controller=controller;
     const cancelled=()=>controller.signal.aborted||this.disposed||this.detailStates?.get(id)!==state;
@@ -1176,9 +1179,6 @@ export class PixiIsland {
       // Landing pins can go once all live frames hold their detail sheets.
       state.lease.releaseLanding?.();
       if(this.destinationArt&&this.destinationArt!==mapId)return;
-      this.islandPrefetch??=createIslandPrefetch({getIndex:getIslandIndex,islands:WORLD_ISLANDS,prepareData:prepareIslandMap,
-        distance:(a,b)=>{const p=offsetOf(a.id,b.id);return p.x*p.x+p.y*p.y;},
-        selectTier:(data,id)=>selectIslandTier(data,id,this.app.renderer.resolution,this.width,this.height)});
       if(this.artShown===mapId&&!this.trip&&this.player?.mode!=='sailing')this.islandPrefetch.resume(id);
     }).catch(error=>{if(!cancelled())console.warn(`Island ${id}: keeping sharp landing art`,error);})
       .finally(()=>{if(!state.live&&this.detailStates?.get(id)===state){
@@ -1330,7 +1330,7 @@ export class PixiIsland {
       home.pondDuckies=await loadPondDuckies('home',{tilt:TILT,acquire,release});home.groups.push(home.pondDuckies.root);
       this.scene.addChildAt(home.pondDuckies.root,this.scene.getChildIndex(this.decks));
       await this.uploadHomeArt();
-      if(this.artShown!=='home'&&this.destinationArt!=='home')this.releaseHomeArt();
+      if((this.artShown!=='home'||this.player?.mode==='sailing')&&this.destinationArt!=='home'&&!this.sailingArtWanted?.has('home'))this.releaseHomeArt();
       this.showArt(this.artShown);
     })().catch(async error=>{
       console.warn('Home preparation: revealing available art',error);
@@ -1426,9 +1426,32 @@ export class PixiIsland {
   }
 
   liveCopies() {
-    // Destination preparation starts at departure, independently of camera zoom.
-    // Walking uses only the already prepared current island.
-    return [];
+    const sailing=this.player?.mode==='sailing'&&!this.globeOpen&&!this.globeT&&!this.fly;
+    if(!sailing&&!this.sailingArtWanted?.size)return [];
+    const span=cameraSpan(this.camera,this.width,this.height),z=this.camera.zoom;
+    const hw=span.width/(2*z)+600,hh=span.height/(2*z*TILT)+600;
+    const visible=sailing?(this.archipelago?.islands??[]).filter(i=>{
+      const p=unplaceRigid(this.islandId,i.id,this.camera),m=mapOf(i.id);
+      return p.x+hw>=m.origin.x&&p.x-hw<=m.origin.x+m.width
+        &&p.y+hh>=m.origin.y&&p.y-hh<=m.origin.y+m.height;
+    }):[];
+    this.sailingArtWanted=new Set(visible.map(i=>i.id));
+    for(const island of visible){
+      // Reuse docking's preparation and frame swap. Only the small globe preview
+      // is drawn until the live scene is ready; no separate lower-quality atlas.
+      void this.islandReady(island.id).catch(()=>{});
+      if(this.artReady(island.map))this.startIslandDetail(island.map);
+    }
+    const retained=new Set([...(this.sheetPreparations?.keys()??[]),
+      ...[...this.arts.keys()].map(map=>WORLD_ISLANDS.find(i=>artOf(i.id)===map)?.id).filter(Boolean)]);
+    for(const id of retained){
+      if(this.sailingArtWanted.has(id)||!sailing&&id===this.islandId)continue;
+      const state=this.detailStates?.get(id);
+      // Keep a destination's landing preparation, but never its offscreen sharp set.
+      if(artOf(id)===this.destinationArt&&!state?.live){state?.controller?.abort();continue;}
+      this.freeArt(artOf(id));
+    }
+    return visible.filter(i=>!i.home&&this.artReady(i.map));
   }
 
   copyVisitors(copies) {
@@ -1437,9 +1460,7 @@ export class PixiIsland {
   }
 
   renderLiveCopies(target, copies, visitors=[]) {
-    this.livePatches?.retain(new Set(copies.map(i=>i.id)));
     if (!copies.length) return;
-    this.livePatches??=createLivePatches(this.app.renderer);
     const transient=this.transientForCopies();
     const hide=[this.archipelago.root, this.ocean, ...(this.isletView?.transient()??[]), ...transient].filter(o => o?.visible);
     hide.forEach(o => {o.visible=false;});
@@ -1462,7 +1483,7 @@ export class PixiIsland {
       const mine=visitors.filter(v => v.copy === island).map(v => v.o);
       withRigidVisitors(this.islandId,island.id,mine,()=>{
         this.showArt(island.map);cull(island.map,island.id);
-        this.livePatches.draw(this.islandId,island.id,this.scene,this.camera,this.width,this.height,TILT,target);
+        drawLiveIsland(this.app.renderer,this.islandId,island.id,this.scene,this.camera,this.width,this.height,TILT,target);
       });
     }
     this.scene.visible=sceneVisible;
@@ -1508,7 +1529,9 @@ export class PixiIsland {
   ensureWorldArt() {
     if(this.worldArtPending)return this.worldArtPending;
     this.worldArtPending=(async()=>{
-      await nextArtFrame();
+      // This is requested by sailing, an islet or the globe. Steering must not
+      // indefinitely postpone the previews and scenery needed by that view.
+      await preparationFrame();
       if(this.disposed)return;
       await this.archipelago.loadPreviews((src)=>{this.loaded.push(src);return acquire(src);});
       if(this.disposed)return;
@@ -1680,8 +1703,12 @@ export class PixiIsland {
       const next=target?routes.reduce((best,r)=>!best||Math.hypot(r.dock.x-target.x,r.dock.y-target.y)<Math.hypot(best.dock.x-target.x,best.dock.y-target.y)?r:best,null):null;
       if(next){
         const mapId=artOf(next.destination);
-        if(this.destinationArt&&this.destinationArt!==mapId&&this.destinationArt!==this.artShown)this.freeArt(this.destinationArt);
-        this.pauseIslandBackground();this.destinationArt=mapId;void this.islandReady(next.destination).catch(()=>{});
+        if(this.destinationArt&&this.destinationArt!==mapId&&this.destinationArt!==this.artShown
+          &&!this.sailingArtWanted?.has(WORLD_ISLANDS.find(i=>artOf(i.id)===this.destinationArt)?.id))this.freeArt(this.destinationArt);
+        if(this.destinationArt!==mapId){
+          this.pauseIslandBackground();this.destinationArt=mapId;
+        }
+        void this.islandReady(next.destination).catch(()=>{});
       }
     }
     const arrivalName = this.room ? this.room.arrival : this.offlineArrival;
@@ -1955,7 +1982,7 @@ export class PixiIsland {
     }
     this.groundPool?.update(views,Math.min(devicePixelRatio||1,2));
     for(const art of this.arts.values())art.rasterPool?.update(views,Math.min(devicePixelRatio||1,2));
-    this.archipelago?.showLive(solo ? SOLO_HIDDEN : new Set(copies.map(i => i.id)));
+    this.archipelago?.showLive(solo ? SOLO_HIDDEN : new Set(copies.map(i => i.id)), !solo&&this.sailingArtWanted?.has(this.islandId)&&!this.artReady(this.artShown));
     const visitors=this.copyVisitors(copies);
     for (const {o} of visitors) o.visible=false;
     if (this.worldView) this.worldView.liveCopies=target => this.renderLiveCopies(target, copies, visitors);
@@ -2222,7 +2249,7 @@ export class PixiIsland {
     this.karmaView?.destroy();
     this.boatBuild?.destroy();
     this.groundPool?.destroy();
-    this.livePatches?.destroy();this.archipelago?.destroy(); this.worldView?.destroy();this.isletView?.destroy();
+    this.archipelago?.destroy(); this.worldView?.destroy();this.isletView?.destroy();
     this.clearChat();
     this.keys.clear();
     this.gestures.clear();

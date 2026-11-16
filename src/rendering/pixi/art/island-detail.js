@@ -14,7 +14,7 @@ export async function swapIslandDetail(lease,renderer,{cancelled=()=>false,
   textures=loadedSVGTextures,loader=wholeSVGLoader,frame=preparationFrame,signal,
   beforeSwap=()=>{},afterSwap=()=>{},upload=uploadIsland}={}) {
   if(lease.tier?.rasterDetail?.overBudget)return false;
-  const release=await lease.prepareDetail({signal}),changes=[];
+  const release=await lease.prepareDetail({signal,renderer}),changes=[];
   try{
     if(cancelled())return false;
     const originals=[...textures].filter(t=>!t.destroyed&&t.artKey&&lease.landing.has(t.artKey)&&(!lease.tier?.rasterDetail||lease.detail.has(t.artKey)));
