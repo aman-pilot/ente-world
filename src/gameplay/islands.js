@@ -356,7 +356,15 @@ export function sailRoute(id,from,to,boats=[]) {
    const x=nearestSeaX(p.x,middle)-shift;
    return [-SEA_WIDTH,0,SEA_WIDTH].map(offset=>({...p,x:x+offset}));
  });
- const route=chartRoute(id,start,end,others);
+ let route=chartRoute(id,start,end,others);
+ // moored boats can wall in a harbour's dock point (Bog's three moorings sit 380-620 around it): aim for the
+ // nearest free water beside it instead, and the arrival docks from there
+ if(!route&&others.length)for(let r=BOAT_GAP+100;r<=BOAT_GAP+1000&&!route;r+=150){
+   const ring=Array.from({length:16},(_,k)=>({x:end.x+Math.cos(k*Math.PI/8)*r,y:end.y+Math.sin(k*Math.PI/8)*r}))
+     .filter(q=>canSail(q.x+shift,q.y,id)&&others.every(o=>seaBoatSeparated(q,o,BOAT_GAP+1)))
+     .sort((a,b)=>Math.hypot(a.x-start.x,a.y-start.y)-Math.hypot(b.x-start.x,b.y-start.y));
+   for(const q of ring)if((route=chartRoute(id,start,q,others)))break;
+ }
  return route?.map(p=>({...p,x:p.x+shift}))??null;
 }
 function chartRoute(id,from,to,others) {
