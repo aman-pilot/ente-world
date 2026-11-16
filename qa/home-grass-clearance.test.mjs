@@ -1,3 +1,4 @@
+import {blocks} from '../src/world/walk-rule.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
@@ -5,16 +6,17 @@ import {HOME_MAP} from '../src/world/island-maps.js';
 import {geometry,inShape} from '../assets/world/island-geometry.mjs';
 import {homeClearanceOracle,auditHomeClearance,auditConnectedBodies} from '../scripts/lib/home-clearance-audit.mjs';
 import {alphaContours} from '../scripts/lib/alpha-contour.mjs';
-const b=await build({stdin:{resolveDir:process.cwd(),contents:`export * from './src/world/home/placements.js';export {harborWorld} from './src/gameplay/islands.js';export {sleepHalfWidths} from './src/world/home/sleep-spots.js';`},bundle:true,platform:'node',format:'esm',write:false});
+const b=await build({stdin:{resolveDir:process.cwd(),contents:`export * from './src/world/home/placements.js';export {harborWorld} from './src/gameplay/islands.js';export {computeHomeScene} from './src/world/home/startup-scene.js';export {sleepHalfWidths} from './src/world/home/sleep-spots.js';`},bundle:true,platform:'node',format:'esm',write:false});
 const P=await import('data:text/javascript;base64,'+Buffer.from(b.outputFiles[0].text).toString('base64'));
 const props=P.createPlacements(),local=P.harborWorld(P.walkWorld(P.trimWorld(HOME_MAP.world),props));
 const beds=P.sleepSpots(local,props,geometry(local).walkable,P.sleepHalfWidths(.88*.24*3));
-const world={...local,obstacles:[...local.obstacles,...beds.map(P.sleeperFootprint)]};
+const world=P.computeHomeScene(true).walk;
 const client=geometry(world).walkable,worker=HOME_MAP.nav();
 const oracle=await homeClearanceOracle(props,world);
+const solidOracle=await homeClearanceOracle(props.filter(p=>blocks(p.footprint??{prop:p.id},p)),world);
 
 test('connected Home grass/sand/path clearing alpha pixels by 30 and front props by the body box is walkable on client and worker',()=>{
-  const result=auditHomeClearance(world,[HOME_MAP.spawn.x,HOME_MAP.spawn.y],oracle,[client,worker.walkable]);
+  const result=auditHomeClearance(world,[HOME_MAP.spawn.x,HOME_MAP.spawn.y],solidOracle,[client,worker.walkable]);
   assert.ok(result.connectedBodySafeSamples>100000,'whole island sweep');
   assert.deepEqual(result.violations,[0,0],JSON.stringify(result.examples));
   assert.deepEqual(result.bodyClearanceViolations,[0,0],'no walkable centre overlaps opaque art plus 22-unit body');
@@ -67,15 +69,15 @@ test('red roof cottage flowering-bush/oak gap at Lanternleaf stays walkable',()=
   assert.deepEqual(worker.route(HOME_MAP.spawn.x,HOME_MAP.spawn.y,...point).at(-1),point);
 });
 
-test('reported bush-over-body point is blocked on both implementations',()=>{
+test('reported bush-over-body point is walkable on both implementations',()=>{
   assert.equal(oracle.frontClear(3208,-840),false,'reproduces foreground pixel overlap');
-  assert.equal(client(3208,-840),false);
-  assert.equal(worker.walkable(3208,-840),false);
+  assert.equal(client(3208,-840),true);
+  assert.equal(worker.walkable(3208,-840),true);
 });
 
-test('every spawn-connected 16-unit Home sample has zero foreground pixel/body intersections',()=>{
+test('every spawn-connected 16-unit Home sample has zero blocking-prop foreground pixel/body intersections',()=>{
   for(const [name,walkable] of [['client',client],['worker',worker.walkable]]){
-    const result=auditConnectedBodies(world,[HOME_MAP.spawn.x,HOME_MAP.spawn.y],oracle,walkable);
+    const result=auditConnectedBodies(world,[HOME_MAP.spawn.x,HOME_MAP.spawn.y],solidOracle,walkable);
     assert.ok(result.samples>100000);
     assert.equal(result.overlaps,0,JSON.stringify(result.examples));
   }

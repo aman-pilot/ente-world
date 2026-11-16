@@ -12,6 +12,7 @@ test('baked Home props, decals, beds and walk data equal the runtime computation
  const baked=JSON.parse(JSON.stringify(await bakeHomeScene(process.cwd())));
  const code=await build({stdin:{resolveDir:process.cwd(),contents:`
  import raw from './assets/world/world.json';
+ import {blocks} from './src/world/walk-rule.js';
  import {createPlacements,homeDecals,HOME_GROUND_DECALS,trimWorld,walkWorld,sleepSpots,sleeperFootprint} from './src/world/home/placements.js';
  import {harborWorld} from './src/gameplay/islands.js';
  import {geometry} from './assets/world/island-geometry.mjs';
@@ -20,7 +21,7 @@ test('baked Home props, decals, beds and walk data equal the runtime computation
  const props=createPlacements();
  const local=room?harborWorld(walkWorld(trimWorld(raw),props)):walkWorld(trimWorld(raw),props);
  const beds=sleepSpots(local,props,geometry(local).walkable,sleepHalfWidths(.88*.24*3));
- return {props,beds,dropped:beds.bad,decals:homeDecals(props),groundDecals:HOME_GROUND_DECALS,walk:{...local,obstacles:[...local.obstacles,...beds.map(sleeperFootprint)]}};
+ return {props,beds,dropped:beds.bad,decals:homeDecals(props),groundDecals:HOME_GROUND_DECALS,walk:{...local,obstacles:local.obstacles.filter(o=>blocks(o,props.find(p=>p.id===(o.prop??o.name??o.id))))}};
  });`},bundle:true,platform:'node',format:'esm',write:false});
  const {scenes}=await import('data:text/javascript;base64,'+Buffer.from(code.outputFiles[0].text).toString('base64'));
  assert.deepEqual(baked.solo.props,scenes[0].props);

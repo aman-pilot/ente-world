@@ -28,7 +28,7 @@ test('SUNBOB petals and seed disc are walkable in the client and room authority'
   }
   for(const b of bloomBlockers){
     assert.ok(b.rx<=102&&b.ry<=78,'only tight prop bases, never a plaza footprint');
-    assert.equal(authority.walkable(b.x,b.y),false,b.name+' stays solid');
+    assert.equal(authority.walkable(b.x,b.y),b.name.includes('planter'),b.name+' follows the walking rule');
   }
 });
 

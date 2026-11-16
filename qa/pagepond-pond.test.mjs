@@ -30,7 +30,7 @@ test('Pagepond reading pond uses an organic grassy bank and matching visual/clie
 
 test('Pagepond lily pads stay afloat and the river remains separated by a walkable grassy bank',()=>{
  const wet=(x,y)=>world.water.some(w=>inShape(x,y,w));
- for(const p of [[4390,3060],[4390,3125],[4410,3100]])assert(!map.nav().walkable(...p),'retained prop contours block old bank sample '+p);
+ for(const p of [[4390,3060],[4390,3125],[4410,3100]])assert(map.nav().walkable(...p),'retained scenery is walkable on the bank '+p);
  for(const f of art.floating.filter(f=>f.src.includes('lily-pad')))assert(wet(f.x,f.y),f.src+' afloat');
  for(const p of [[4501,2996],[4504,3012],[4501,3009]]){
   assert(!wet(...p),'dry separation from river '+p);
