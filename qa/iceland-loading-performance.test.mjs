@@ -1,11 +1,12 @@
+import {readyTexture} from './ready-texture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import sharp from 'sharp';
 import {Texture,ImageSource} from 'pixi.js';
-import {loadThemeArt} from '../src/pixi/theme-art.js';
-import {createGroundPool,tileInView,tileResolution} from '../src/pixi/ground-stream.js';
-import {icelandPieceTile,icelandPieceSVG} from '../src/pixi/iceland-art-stream.js';
+import {loadThemeArt} from '../src/rendering/pixi/art/theme-art.js';
+import {createGroundPool,tileInView,tileResolution} from '../src/rendering/pixi/art/ground-stream.js';
+import {icelandPieceTile,icelandPieceSVG} from '../src/rendering/pixi/art/iceland-art-stream.js';
 const art=JSON.parse(readFileSync('public/pixi-art/themes/snow/art.json'));
 const world=JSON.parse(readFileSync('assets/world/themes/snow/world.json'));
 const sprite=()=>({position:{set(){}},scale:{x:1},destroy(){}});
@@ -17,8 +18,8 @@ test('1440x900 Iceland arrivals acquire bounded unique shared pieces at full dev
  globalThis.fetch=async url=>({ok:true,json:async()=>url.endsWith('art.json')?art:{pieces:[]}});
  const acquired=[],released=[];
  const loader={acquire:async(src,r)=>{acquired.push(src);const c=new URL(src,'https://test').searchParams.get('rasterCrop').split(',').map(Number);return new Texture({source:new ImageSource({width:Math.ceil(c[4]*r)/r,height:Math.ceil(c[5]*r)/r,resolution:r})});},release:src=>released.push(src),destroy(){}};
- const ground=createGroundPool({acquire:async()=>Texture.EMPTY,release(){}});
- const loaded=await loadThemeArt({id:'snow',art:'/pixi-art/themes/snow/art.json',origin:{x:0,y:0},width:world.width,height:world.height},{groundPool:ground,icelandRasterLoaderFactory:()=>loader,acquire:async()=>Texture.EMPTY,release(){}});
+ const ground=createGroundPool({acquire:async()=>readyTexture(),release(){}});
+ const loaded=await loadThemeArt({id:'snow',art:'/pixi-art/themes/snow/art.json',origin:{x:0,y:0},width:world.width,height:world.height},{groundPool:ground,icelandRasterLoaderFactory:()=>loader,acquire:async()=>readyTexture(),release(){}});
  try{
   for(const zoom of [.6,1,1.8])for(const name of ['plaza','rink','bakery','lodge','workshop','harbour']){
    const camera={...world.zones[name],zoom},before=acquired.length;
@@ -83,7 +84,7 @@ for(const id of ['bakery','final-grove-0-tree-0','bakery-yard-bench-5','lake-war
 
 test('raster decode queue uses distance after fetch completion and yields between bounded batches',async t=>{
  const {DOMAdapter}=await import('pixi.js');const {createCanvas,Image}=await import('@napi-rs/canvas');
- const {createRasterLoader}=await import('../src/pixi/theme-art-stream.js');
+ const {createRasterLoader}=await import('../src/rendering/pixi/art/theme-art-stream.js');
  const old={adapter:DOMAdapter.get(),fetch:globalThis.fetch,location:globalThis.location};
  t.after(()=>{DOMAdapter.set(old.adapter);globalThis.fetch=old.fetch;globalThis.location=old.location;});
  let clock=0,reads=0;const frames=[],waiting=[],started=[];
@@ -93,7 +94,7 @@ test('raster decode queue uses distance after fetch completion and yields betwee
  const loader=createRasterLoader({concurrency:1,now:()=>clock,schedule:cb=>frames.push(cb),prepareSVG:(svg,c)=>{started.push({id:c[2],at:clock});return svg;}});
  const keys=[0,1,2].map(i=>'/kit.svg?rasterCrop=20,20,'+i+',0,20,20');
  const results=keys.map((key,i)=>loader.acquire(key,1,{visible:i!==0,priority:i===0?-2:2,distance:i===1?100:0}));await flush();
- for(let i=0;i<3;i++){clock=i*16;frames.shift()();assert.equal(started.length,i+1);clock+=8;await waiting.shift()();await flush();}
+ for(let i=0;i<3;i++){clock=i*16;frames.shift()();assert.equal(started.length,i+1);clock+=8;await flush();await waiting.shift()();await flush();}
  await Promise.all(results);assert.equal(reads,1);assert.deepEqual(started,[{id:2,at:0},{id:1,at:16},{id:0,at:32}]);
  keys.forEach(key=>loader.release(key));await flush();loader.destroy();
 });

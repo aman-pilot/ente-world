@@ -4,9 +4,152 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f7f5ef" />
-    <title>Ducky Land</title>
+    <title>Ente World</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Ente World" />
+    <meta property="og:title" content="Ente World" />
+    <meta property="og:url" content="https://world.ente.com/" />
+    <meta property="og:image" content="https://world.ente.com/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Ente World: an island on a round blue world, with Ducky peeking up from the clouds" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://world.ente.com/og.jpg" />
+    <!-- the landing intro's pictures (AVIF; a browser without AVIF skips these and fetches WebP at run time) and font, asked for before any script runs so the intro plays the moment the code lands -->
+    <link rel="preload" href="/guest/fredoka-700.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/pixi-art/karma/golden-feather.svg" as="image" />
+    <!-- coming back from GitHub, the sky behind the cover is the cover's own pale fill from the very first paint (the page can
+         paint before the cover's script has run, and the intro's blue sky flashed); mount() clears the class -->
+    <script>
+      try {
+        if (sessionStorage.getItem('ew-arrive') === '1') document.documentElement.classList.add('ew-arrive');
+        else if (!new URLSearchParams(location.search).has('auth') && sessionStorage.getItem('ew-signed-in') === '1') document.documentElement.classList.add('ew-connecting', 'ew-arrive');
+      } catch (e) {}
+    </script>
+    <style>
+      .ew-arrive #boot-sky { background: #F4F9FD !important; }
+      .island-connecting {
+        position: fixed; inset: 0; z-index: 31; display: grid; place-items: center; padding: 24px;
+        background: linear-gradient(rgb(10 22 40 / .48), rgb(10 22 40 / .48)) center / cover,
+          url(/guest/home-props.webp) center / cover, url(/guest/home-ground.webp) center / cover #6ec9de;
+        background-image: linear-gradient(rgb(10 22 40 / .48), rgb(10 22 40 / .48)),
+          image-set(url(/guest/home-props.avif) type("image/avif"), url(/guest/home-props.webp) type("image/webp")),
+          image-set(url(/guest/home-ground.avif) type("image/avif"), url(/guest/home-ground.webp) type("image/webp"));
+        color: #fff; text-align: center; font: 700 20px/1.3 'Fredoka', system-ui, sans-serif;
+      }
+      .island-connecting .arrival-loader { position: static; translate: none; animation: none; }
+      .island-connecting .arrival-msg { color: inherit; text-shadow: 0 2px 4px rgb(10 22 40 / .7); }
+      #boot-sky .island-connecting { display: none; }
+      .ew-connecting #boot-sky .island-connecting { display: grid; }
+    </style>
+    <!-- the GitHub-return cloud cover. It lives in the page head (not the game's CSS) so the very first frame back from GitHub
+   is already this cover: index.html draws it before any code loads, and ArrivalClouds.jsx takes it over in place -->
+    <style id="arrival-css">.arrival { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; } .arrival[data-phase="cover"] { pointer-events: auto; } .arrival-sky { position: absolute; inset: 0; background: #F4F9FD; } .arrival[data-phase="part"] .arrival-sky { animation: arrival-sky 450ms 250ms cubic-bezier(.45,0,.55,1) both; } .arrival-cloud { position: absolute; left: 50%; top: 50%; width: 130vmax; max-width: none; translate: -50% calc(-50% + var(--y)); } .arrival-cloud[data-side="l"] { translate: -95% calc(-50% + var(--y)); } .arrival-cloud[data-side="r"] { translate: -5% calc(-50% + var(--y)); } .arrival-cloud { animation: arrival-drift 5.2s calc(var(--i) * -700ms) cubic-bezier(.45,0,.55,1) infinite alternate; } .arrival-cloud:nth-child(odd) { animation-name: arrival-drift-b; } @keyframes arrival-drift { from { transform: translate(-2.5vw, 0) rotate(-.6deg); } to { transform: translate(2.5vw, -1.2vh) rotate(.6deg); } } @keyframes arrival-drift-b { from { transform: translate(2vw, -1vh) rotate(.5deg); } to { transform: translate(-2.5vw, .6vh) rotate(-.5deg); } } .arrival[data-phase="part"] .arrival-cloud { animation: arrival-out-l 1200ms calc(var(--i) * 45ms) cubic-bezier(.5,0,.3,1) both, arrival-drift 5.2s calc(var(--i) * -700ms) cubic-bezier(.45,0,.55,1) infinite alternate; } .arrival[data-phase="part"] .arrival-cloud:nth-child(odd) { animation-name: arrival-out-l, arrival-drift-b; } .arrival[data-phase="part"] .arrival-cloud[data-side="r"] { animation-name: arrival-out-r, arrival-drift; } .arrival[data-phase="part"] .arrival-cloud[data-side="r"]:nth-child(odd) { animation-name: arrival-out-r, arrival-drift-b; } .arrival[data-phase="part"] .arrival-cloud[data-side="b"] { animation-name: arrival-out-b, arrival-drift; } .arrival[data-phase="part"] .arrival-cloud[data-side="b"]:nth-child(odd) { animation-name: arrival-out-b, arrival-drift-b; } .arrival-loader { position: absolute; left: 50%; top: 50%; translate: -50% -50%; z-index: 1; display: grid; justify-items: center; row-gap: 18px; animation: arrival-loader-in 400ms 300ms cubic-bezier(.23,1,.32,1) both; }         .arrival[data-phase="part"] .arrival-loader { animation: arrival-loader-out 260ms cubic-bezier(.4,0,1,1) both; }    @keyframes arrival-loader-in { from { opacity: 0; scale: .6; } } @keyframes arrival-loader-out { to { opacity: 0; scale: .7; } } @keyframes arrival-feather { from { transform: translateY(6px) rotate(-14deg); } to { transform: translateY(-8px) rotate(10deg); } }  @keyframes arrival-sky { to { opacity: 0; } } @keyframes arrival-out-l { to { translate: -190% calc(-50% + var(--y)); scale: 1.35; } } @keyframes arrival-out-r { to { translate: 90% calc(-50% + var(--y)); scale: 1.35; } } @keyframes arrival-out-b { to { translate: -50% 120vh; scale: 1.35; } } .arrival-tag { position: absolute; left: 50%; top: calc(50% - 128px); translate: -50% 0; display: flex; align-items: center; gap: 12px; padding: 8px 24px 8px 8px; border-radius: 99px; background: #fff8e4; border: 3px solid #1c1a18; box-shadow: 0 6px 0 #1c1a18; color: #1c1a18; font: 700 20px/1 'Fredoka', system-ui, sans-serif; white-space: nowrap; transform-origin: 50% 100%; animation: arrival-tag-in 700ms 650ms linear both, arrival-tag-out 400ms 3350ms cubic-bezier(.4,0,.7,.4) forwards; } .arrival-tag b { color: #c46a00; } .arrival-avatar { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #1c1a18; background: #24292f; object-fit: cover; } @keyframes arrival-tag-in { 0% { opacity: 0; scale: 0; } 8% { opacity: 1; } 30% { scale: 1.12; } 50% { scale: .97; } 70% { scale: 1.01; } 100% { opacity: 1; scale: 1; } } @keyframes arrival-tag-out { to { opacity: 0; translate: -50% -12px; } } @media (prefers-reduced-motion: reduce) { .arrival-cloud, .arrival-sky, .arrival-tag, .arrival-loader, .arrival-loader * { animation-duration: 1ms !important; animation-iteration-count: 1 !important; }  } .arrival[data-phase="close"] .arrival-sky { animation: arrival-sky-in 520ms 180ms cubic-bezier(.45,0,.55,1) both; } .arrival[data-phase="close"] .arrival-cloud { animation: arrival-in-l 700ms calc(var(--i) * 30ms) cubic-bezier(.2,.7,.3,1) both, arrival-drift 5.2s calc(var(--i) * -700ms) cubic-bezier(.45,0,.55,1) infinite alternate; } .arrival[data-phase="close"] .arrival-cloud:nth-child(odd) { animation-name: arrival-in-l, arrival-drift-b; } .arrival[data-phase="close"] .arrival-cloud[data-side="r"] { animation-name: arrival-in-r, arrival-drift; } .arrival[data-phase="close"] .arrival-cloud[data-side="r"]:nth-child(odd) { animation-name: arrival-in-r, arrival-drift-b; } .arrival[data-phase="close"] .arrival-cloud[data-side="b"] { animation-name: arrival-in-b, arrival-drift; } .arrival[data-phase="close"] .arrival-cloud[data-side="b"]:nth-child(odd) { animation-name: arrival-in-b, arrival-drift-b; } .arrival[data-phase="close"] .arrival-loader { animation-delay: 600ms; } @keyframes arrival-sky-in { from { opacity: 0; } } @keyframes arrival-in-l { from { translate: -190% calc(-50% + var(--y)); scale: 1.35; } } @keyframes arrival-in-r { from { translate: 90% calc(-50% + var(--y)); scale: 1.35; } } @keyframes arrival-in-b { from { translate: -50% 120vh; scale: 1.35; } } .arrival-feather { position: relative; width: 96px; height: 96px; animation: arrival-feather 2.4s cubic-bezier(.45,0,.55,1) infinite alternate; } .arrival-feather img { display: block; width: 100%; height: 100%; filter: drop-shadow(0 6px 10px rgb(196 140 0 / 28%)); } .arrival-shine { position: absolute; inset: 0; overflow: hidden; -webkit-mask: url(/guest/feather-loader.svg) center / contain no-repeat; mask: url(/guest/feather-loader.svg) center / contain no-repeat; } .arrival-shine i { position: absolute; inset: -60%; background: linear-gradient(45deg, #fff0 38%, #fff8d455 44%, #ffffffe6 50%, #fff8d455 56%, #fff0 62%); animation: arrival-sweep 2s cubic-bezier(.45,0,.55,1) infinite; } @keyframes arrival-sweep { 0% { transform: translate(-45%, 45%); } 45%, 100% { transform: translate(45%, -45%); } } .arrival-gl { position: absolute; left: 66px; top: -14px; width: 34px; height: 34px; opacity: 0; pointer-events: none; clip-path: polygon(50% 0, 57% 43%, 100% 50%, 57% 57%, 50% 100%, 43% 57%, 0 50%, 43% 43%); background: radial-gradient(circle, #fff 0 18%, #ffe58a 45%, #f5b81a); filter: drop-shadow(0 0 3px #fff3c4) drop-shadow(0 0 6px #ffc928); animation: arrival-bloom 2s cubic-bezier(.45,0,.55,1) infinite, arrival-turn 2s linear infinite; } .arrival-gl.sm { left: 50px; top: 4px; width: 18px; height: 18px; animation-delay: -.12s, -.12s; } @keyframes arrival-bloom { 0%, 28% { opacity: 0; scale: .15; } 42% { opacity: 1; scale: 1; } 59%, 100% { opacity: 0; scale: .15; } } @keyframes arrival-turn { 0%, 28% { rotate: 0deg; } 59%, 100% { rotate: 70deg; } } .arrival-msg { margin: 0; white-space: nowrap; color: #69502D; font: 700 20px/1 'Fredoka', system-ui, sans-serif; } .arrival-msg i { display: inline-block; margin-left: .14em; font-style: normal; animation: arrival-hop 1.2s cubic-bezier(.45,0,.55,1) infinite; } .arrival-msg i:nth-child(2) { animation-delay: .15s; } .arrival-msg i:nth-child(3) { animation-delay: .3s; } @keyframes arrival-hop { 0%, 60%, 100% { translate: 0 0; opacity: .35; } 25% { translate: 0 -5px; opacity: 1; } } @media (prefers-reduced-motion: reduce) { .arrival-feather, .arrival-shine i, .arrival-gl, .arrival-msg i { animation: none !important; } .arrival-msg i { opacity: 1; } }</style>
   </head>
   <body>
+    <!-- the intro's first frame, the cloud bank, drawn by the page itself (clouds are code, not pictures, in the globe's cloud style) so it is there at once;
+         the intro starts from this exact picture and removes it (src/landing/Landing.jsx) -->
+    <div id="boot-sky" aria-hidden="true" style="position:fixed;inset:0;z-index:20;overflow:hidden;pointer-events:none;background:radial-gradient(60vmax 45vmax at 18% 8%,rgb(255 250 232/.55),transparent 70%),linear-gradient(#4aa6ec,#7cc6f1 55%,#b5e2f7)"><div class="island-connecting">Connecting to your island…</div></div>
+    <script>
+      // The intro's clouds in the globe's cloud colours (globe-clouds.js: lit #FFFEFC, shade #D3E5F1), no outline,
+      // with soft volume: the traced silhouette of one painted cloud and its puffs, recoloured into those two colours.
+      // One shape, only its size changes. EWClouds.url(n, solid): solid = plain white, for the GitHub-return cover.
+      (function (root) {
+        var D = {1:{h:328,b:["fff8e5","9bc0f6"],o:[672,18,686,18,707,21,732,29,757,42,775,56,797,79,813,90,825,102,838,121,847,137,860,170,862,171,879,169,886,169,905,172,917,177,928,183,945,196,952,203,964,220,970,231,975,245,982,273,984,293,984,312,984,315,987,318,989,318,991,317,1002,308,1017,299,1024,295,1039,290,1060,288,1076,289,1089,292,1107,300,1116,305,1127,314,1138,325,1145,334,1153,348,1158,360,1163,379,1166,380,1177,378,1188,378,1207,382,1223,390,1238,401,1249,416,1257,430,1262,445,1264,462,1262,481,1256,499,1244,518,1233,528,1216,540,1202,546,1189,550,1176,552,1152,551,1139,561,1120,570,1104,576,1082,580,1064,582,1046,582,1014,580,989,576,959,566,933,585,922,592,901,602,882,609,858,615,839,623,823,628,793,634,767,637,734,638,689,634,654,627,628,617,592,597,568,608,544,617,512,624,494,626,474,626,442,622,414,615,388,605,367,594,336,573,305,586,275,593,259,595,238,596,212,593,191,589,171,581,156,573,134,556,115,558,101,558,84,556,66,550,56,546,48,540,39,533,33,526,26,516,21,504,19,493,19,480,20,468,25,454,34,440,41,430,56,417,74,408,93,402,116,400,129,393,142,388,152,387,163,387,174,388,188,393,190,392,201,353,212,323,226,299,235,286,245,275,264,258,281,246,294,238,315,229,337,223,356,220,370,220,390,222,393,221,395,217,400,201,412,169,427,138,448,110,457,99,473,84,519,50,540,38,564,29,586,24,602,22,624,21,643,24,660,20],p:[0,369,263,192,768,27,50,16774623,0,767,183,299,151,154,41,10600959,0,940,525,751,97,179,21,6268415,0,822,361,195,81,76,50,16773601,0,528,361,53,143,30,50,16773087,0,958,247,233,55,3,41,10733308,0,1038,306,100,68,53,50,16772585,0,186,441,90,243,42,50,16773852,0,983,434,221,76,171,31,10075645,0,603,447,423,60,67,14,7579647,0,273,253,768,106,72,50,16580073,0,1192,395,79,46,79,38,16707310,0,843,301,127,28,171,50,16774378,0,383,375,360,70,73,4,13843414,0,100,541,61,73,46,27,9943039,1,401,399,185,141,78,7,9547263,0,737,477,86,122,45,24,12767739,0,861,649,200,347,32,49,9552121,0,971,286,27,62,157,50,11193339,0,724,394,75,26,162,47,16772831,0,1115,385,170,62,61,35,11652607,0,639,263,140,95,99,4,8612607,0,818,61,277,102,60,32,13031675,0,178,462,80,71,47,50,16510943,0,606,325,34,72,47,35,16772581,0,598,528,60,121,18,28,9156851,0,434,262,184,86,73,33,16708310,0,1175,468,174,64,171,22,12308735,0,891,178,45,29,95,50,16510186,0,738,336,20,83,112,50,10994938,2,851,407,126,122,160,47,16773089,0,818,258,36,96,119,46,11324155,0,1024,348,35,65,85,29,16772842,0,614,163,64,185,23,21,16768217,0,534,336,20,97,123,50,16775139,0,404,399,115,67,16,31,13687280,0,277,385,164,53,62,17,16771522,1,937,292,98,33,4,46,11587065,0,918,329,48,72,121,32,16772332,0,30,479,112,44,168,47,16708830,0,280,549,29,279,42,9,9875453,0,449,533,148,98,108,28,9944823,0,968,374,49,70,141,35,12112127,0,559,293,26,99,37,8,10264824,1,572,307,107,136,71,21,12571385,0,948,222,153,48,6,29,13096703,0,815,513,78,225,127,10,10992093,0,638,358,70,51,84,25,13424377,0,1070,367,39,130,22,23,13491199,2,890,365,92,102,168,43,16708839,0,915,262,17,96,50,40,11389434,0,822,410,107,70,83,10,16768498,0,264,598,704,52,1,18,11390975,0,1046,310,29,97,127,50,16577769,0,718,31,73,213,42,12,16642042,0,548,590,63,83,123,34,9355001,0,470,419,56,31,63,18,16181987,0,779,586,161,46,87,18,8828662,0,443,388,80,20,63,20,11847158,0,421,185,132,106,1,30,16448741,0,334,424,53,19,68,30,16773598,0,114,490,114,41,160,9,14204390,0,710,425,79,37,155,24,14671348,0,832,273,59,13,77,39,11454715,0,775,351,28,39,109,46,16774368,0,1161,573,389,148,101,12,9815551,0,717,293,70,96,13,50,11454711,0,201,450,54,24,173,37,16645864,0,820,374,44,73,23,18,16773843,0,1244,489,61,139,102,24,10865918,0,519,504,162,90,160,17,10010098,0,350,330,121,47,155,6,15182547,0,635,156,56,22,77,38,16774880,1,444,196,147,101,69,17,16770775,0,732,362,21,15,64,25,10534909,0,90,426,177,35,80,28,16711663,0,957,313,85,23,113,20,14605822,0,512,97,142,32,72,43,16580081,0,720,85,52,34,88,12,12698623,0,1224,419,39,153,37,17,14213375,0,830,320,88,37,168,47,16644583,0,903,281,14,50,49,36,16773098,0,599,214,80,39,111,7,12243967,0,217,513,188,47,87,4,16433395,0,534,147,54,104,11,23,16578777,0,46,503,108,29,162,4,16744910,1,1178,378,131,98,176,24,15393784,0,673,160,90,74,167,7,16376063,0,1072,450,31,95,106,8,8761844,0,822,190,67,49,58,32,11652860,0,446,446,272,62,80,9,13420287,2,943,307,57,28,18,36,10732795,0,678,107,47,16,88,29,16773351,0,612,432,91,37,178,28,11257849,0,1010,327,45,25,123,50,16774885,0,624,667,102,168,41,25,11259391,0,611,147,116,20,156,9,14144987,1,773,409,87,51,177,24,16510435,0,295,260,26,133,25,48,16579567,0,1196,374,62,23,159,49,16051435,0,328,526,39,106,133,25,11060980,0,228,374,82,110,22,11,16711123,0,913,382,35,129,27,12,14407935,0,320,403,86,22,63,4,10015447,0,604,311,43,16,179,50,16773604,0,484,370,18,56,22,42,16641505,0,762,280,40,67,117,50,11127032,1,923,283,33,30,84,17,13555702,0,872,343,40,76,126,32,16576226,0,459,51,29,237,11,4,16545078,1,1192,437,79,87,165,44,11587322,0,771,418,31,74,23,10,13489145,0,1138,418,52,21,160,12,15722234,0,420,594,55,126,130,11,11259131,0,858,455,107,54,72,15,11914748,0,77,561,64,94,36,28,11587058,0,161,488,45,18,141,33,16774879,0,647,272,62,29,159,35,12242677,0,555,377,110,35,167,10,15522290,0,144,555,49,36,100,19,10732789]}};
+        var SOFT = [0, 1, .25, .88, .5, .56, .75, .19, 1, 0], RIM = [.76, 0, .84, .5, .93, 1, 1, 0], RIM2 = [.82, 0, .9, .55, .96, 1, 1, 0], cache = {};
+        // the painting's puff colours become the globe's: lit #FFFEFC to shade #D3E5F1 by how dark the puff was
+        function hex(c) {
+          var t = Math.max(0, Math.min(1, (1 - ((c >> 16 & 255) * .3 + (c >> 8 & 255) * .59 + (c & 255) * .11) / 255) * 3.2)), L = [255, 254, 252], S = [211, 229, 241], o = '#';
+          for (var k = 0; k < 3; k++) o += ('0' + Math.round(L[k] + (S[k] - L[k]) * t).toString(16)).slice(-2);
+          return o;
+        }
+        function stops(s, col) {
+          var out = '', i;
+          for (i = 0; i < s.length; i += 2) out += '<stop offset="' + s[i] + '" stop-color="' + col + '" stop-opacity="' + s[i + 1] + '"/>';
+          return out;
+        }
+        function cloudSVG(n) {
+          if (cache[n]) return cache[n];
+          var c = D[1], o = c.o, p = c.p, id = 'ew', m = o.length / 2, i, j, d, defs, body = '', seen = {};
+          function pt(k) { k = (k + m) % m; return [o[2 * k] / 2, o[2 * k + 1] / 2]; }
+          function mid(a, b) { return ((a[0] + b[0]) / 2) + ' ' + ((a[1] + b[1]) / 2); }
+          d = 'M' + mid(pt(-1), pt(0));
+          for (i = 0; i < m; i++) d += 'Q' + pt(i)[0] + ' ' + pt(i)[1] + ' ' + mid(pt(i), pt(i + 1));
+          defs = '<clipPath id="' + id + 'c"><path d="' + d + 'Z"/></clipPath><linearGradient id="' + id + 'b" x1="0" y1="0" x2="0" y2="1"><stop offset=".35" stop-color="#FFFEFC"/><stop offset="1" stop-color="#D3E5F1"/></linearGradient>';
+          for (i = 0; i < p.length; i += 8) {
+            var t = p[i], x = p[i + 1] / 2, y = p[i + 2] / 2, g = id + 'srq'.charAt(t) + p[i + 7].toString(36);
+            if (!seen[g]) {
+              seen[g] = 1;
+              defs += '<radialGradient id="' + g + '"' + (t ? ' cy=".75" r=".75"' : '') + '>' + stops(t ? (t > 1 ? RIM2 : RIM) : SOFT, hex(p[i + 7])) + '</radialGradient>';
+            }
+            body += '<ellipse cx="' + x + '" cy="' + y + '" rx="' + p[i + 3] / 2 + '" ry="' + p[i + 4] / 2 + '"' + (p[i + 5] ? ' transform="rotate(' + p[i + 5] * 2 + ' ' + x + ' ' + y + ')"' : '') + ' fill="url(#' + g + ')"' + (p[i + 6] < 50 ? ' fill-opacity="' + p[i + 6] / 50 + '"' : '') + '/>';
+          }
+          return (cache[n] = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 ' + c.h + '" width="640" height="' + c.h + '"><defs>' + defs + '</defs><g clip-path="url(#' + id + 'c)"><rect width="640" height="' + c.h + '" fill="url(#' + id + 'b)"/>' + body + '</g></svg>');
+        }
+
+        var SVG = cloudSVG(1), SOLID = SVG.replace(/<defs>[\s\S]*$/, '') + '<path d="' + SVG.match(/ d="([^"]+)"/)[1] + '" fill="#FFFEFC"/></svg>';
+        var url = function (x) { return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(x); };
+        root.EWClouds = {svg: function (n, solid) { return solid ? SOLID : SVG; }, url: function (n, solid) { return url(solid ? SOLID : SVG); }};
+      })(typeof window !== 'undefined' ? window : globalThis);
+    </script>
+    <script>
+      // The GitHub-return cover, shared with ArrivalClouds.jsx: a solid bank of plain-white clouds over the pale inside-the-cloud
+      // fill, and the golden feather loader (shimmer, sparkles, three dots). Coming back from GitHub, the page draws it as its
+      // very first frame, so the half-open intro clouds never show; the game takes it over in place (same markup, same clocks).
+      (function () {
+        // the feather loader: a soft light glides up the feather and two gold stars bloom at its tip (the title's
+        // shimmer and letter stars), with words under it whose three dots hop in turn
+        var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]; }); };
+        window.EWArrival = {
+          t0: null, guest: false,
+          clouds: [[1, 'l', -34], [2, 'r', -30], [3, 'l', 0], [4, 'r', 4], [5, 'l', 34], [6, 'r', 38], [7, 'b', 60], [8, 'b', 92]],   // the last one fills the bottom of a tall phone
+          loader: function (text) {
+            return '<div class="arrival-feather"><img src="/guest/feather-loader.svg" alt="" width="96" height="96"><div class="arrival-shine"><i></i></div><b class="arrival-gl"></b><b class="arrival-gl sm"></b></div>' +
+              (text ? '<p class="arrival-msg">' + esc(text) + '<i>.</i><i>.</i><i>.</i></p>' : '');
+          },
+        };
+        // draws the cover into the page's own layer (#boot-sky), which the game removes once its own copy is up.
+        // 'cover': already closed (first frame back from GitHub); 'close': the clouds close in over the end screen (Watch as a guest)
+        EWArrival.mount = function (phase, text) {
+          var sky = document.getElementById('boot-sky');
+          if (!sky) { sky = document.createElement('div'); sky.id = 'boot-sky'; sky.setAttribute('aria-hidden', 'true'); sky.style.cssText = 'position:fixed;inset:0;pointer-events:none'; document.body.append(sky); }
+          sky.dataset.arrive = '1'; sky.style.background = 'none'; sky.style.zIndex = '40';
+          sky.innerHTML = '<div class="arrival" data-phase="' + phase + '"><div class="arrival-sky"></div>' +
+            EWArrival.clouds.map(function (c, i) { return '<img class="arrival-cloud" data-side="' + c[1] + '" style="--y:' + c[2] + 'vh;--i:' + i + '" src="' + EWClouds.url(c[0], true) + '" alt="">'; }).join('') +
+            '<div class="arrival-loader" role="status">' + EWArrival.loader(text) + '</div></div>';
+          EWArrival.t0 = performance.now();
+          document.documentElement.classList.remove('ew-arrive');
+        };
+        var arriving = false;
+        try { arriving = sessionStorage.getItem('ew-arrive') === '1'; } catch (e) {}
+        if (arriving) EWArrival.mount('cover', 'Landing on your island');
+        // a signed-in reload comes in under the same cloud cover, which parts once the island is drawn
+        else if (document.documentElement.classList.contains('ew-connecting')) EWArrival.mount('cover', 'Connecting to your island');
+      })();
+    </script>
+    <script>
+      (function () {
+        var sky = document.getElementById('boot-sky'), W = innerWidth, H = innerHeight, t0 = performance.now();
+        if (sky.dataset.arrive) return;   // coming back from GitHub: the cover is already drawn
+        // how far along the shared cloud path the page's clouds are (Landing.jsx picks them up from here)
+        window.__bootP = function () { return Math.min(.25, (performance.now() - t0) / 5000 * .25); };
+        // the same five clouds and the same first-frame placement as the intro (WHOOSH in Landing.jsx at t = 0)
+        [[-.28, .18, 1.05, 2], [.32, .3, 1.15, 3], [-.04, .55, 1.4, 1], [.42, -.12, .8, 6], [-.45, -.2, .75, 4]].forEach(function (c) {
+          var img = document.createElement('img'), x = c[0] * W, y = c[1] * H, k = c[2] * Math.max(W, H * .75) / 300 * 1.25;
+          img.src = EWClouds.url(c[3]); img.alt = '';
+          img.style.cssText = 'position:absolute;left:50%;top:50%;width:300px;height:auto;transform:translate(-50%,-50%) translate(' + x + 'px,' + y + 'px) scale(' + k + ')';
+          sky.append(img);
+          // never a still frame: the clouds already drift apart along the intro's own whoosh path (placeWhoosh in
+          // Landing.jsx at p = .25 after 5 s, linear), so the intro can pick them up exactly where they are
+          img.animate([{}, {transform:'translate(-50%,-50%) translate(' + x * 1.325 + 'px,' + (y + H * .6) + 'px) scale(' + k * 1.22 + ')'}],
+            {duration:5000, easing:'linear', fill:'forwards'});
+        });
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

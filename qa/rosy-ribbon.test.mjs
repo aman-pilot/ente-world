@@ -1,20 +1,21 @@
+import {assertRosySample} from './lib/rosy-clearance.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {mapOf} from '../src/pixi/island-maps.js';
+import {mapOf} from '../src/world/island-maps.js';
 import {IslandRoom} from '../worker/index.js';
 import {inShape} from '../assets/world/island-geometry.mjs';
-import {setWalkDestination,walkStep} from '../src/pixi/player-motion.js';
+import {setWalkDestination,walkStep} from '../src/gameplay/player-motion.js';
 import sharp from 'sharp';
 import {Path2D,createCanvas} from '@napi-rs/canvas';
 const read=p=>JSON.parse(readFileSync(p));
 const map=mapOf('sunset'),C=read('scripts/rosy-ground/data/centre.json'),B=read('scripts/rosy-ground/data/population.json'),art=read('public/pixi-art/themes/pink/art.json');
-test('Rosy circle is open in client and authority except the box and five lamps',()=>{
+test('Rosy circle matches opaque art and standing-body clearance in client and authority',()=>{
  for(const nav of [map.nav(),IslandRoom.prototype.navFor.call({},'sunset')]){
   let count=0;
   for(let x=3230;x<4770;x+=12)for(let y=2070;y<3170;y+=12){
-   if(((x-4000)/770)**2+((y-2620)/550)**2>=1||C.walkBlockers.some(o=>inShape(x,y,o,17)))continue;
-   assert.ok(nav.walkable(x,y),`open circle ${x},${y}`);count++;
+   if(((x-4000)/770)**2+((y-2620)/550)**2>=1)continue;
+   assertRosySample(nav,[x,y],`circle ${x},${y}`);count++;
   }
   assert.ok(count>7000);
   for(const o of C.walkBlockers)assert.equal(nav.walkable(o.x,o.y),false,o.name);
@@ -25,7 +26,6 @@ test('Rosy box SVG base centre matches the actual paving circle within four pixe
  const svg=readFileSync('public/pixi-art/themes/pink/ribbon-centre/music-box.svg','utf8');
  assert.match(svg,/viewBox="-270 -720 540 965"/);
  assert.match(svg,/scale\(\.9\) translate\(0 815\)/);
- // Source base centre (0,-815) maps to local (0,0), texture coordinate (270,720).
  const base=[p.x+(270/540-p.anchor.x)*p.width,p.y+(720/965-p.anchor.y)*p.height];
  const floor=art.flats.find(p=>p.id==='plaza-floor');
  const circle=[floor.x+782,floor.y+562];

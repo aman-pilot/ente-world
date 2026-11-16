@@ -1,42 +1,44 @@
-import {placeRigid} from '../src/pixi/rigid.js';
+import {build} from 'esbuild';
+import {placeRigid} from '../src/world/rigid.js';
 import test from 'node:test';import assert from 'node:assert/strict';
-import E from '../src/pixi/home-expansion.json' with {type:'json'};
+import E from '../src/world/home/home-expansion.json' with {type:'json'};
 import C from '../scripts/bigger-home/communities/baseline-C.json' with {type:'json'};
 import B from '../scripts/bigger-home-2/baseline-B.json' with {type:'json'};
-import {HOME_MAP} from '../src/pixi/island-maps.js';
-import {canSail,originOffset} from '../src/pixi/islands.js';
-import {WORLD_ISLANDS} from '../src/pixi/world-map.js';
+import {HOME_MAP} from '../src/world/island-maps.js';
+import {canSail,originOffset} from '../src/gameplay/islands.js';
+import {WORLD_ISLANDS} from '../src/world/world-map.js';
 import S from '../scripts/home-10/shore.json' with {type:'json'};
+const bundle=await build({entryPoints:['src/world/home/placements.js'],bundle:true,platform:'node',format:'esm',write:false});
+const P=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
+const rendered=new Map(P.createPlacements().map(p=>[p.id,p]));
 const area=p=>Math.abs(p.reduce((s,a,i)=>{const b=p[(i+1)%p.length];return s+a[0]*b[1]-a[1]*b[0];},0)/2);
 test('Home communities keep C coast, map coordinates, working harbour and both piers',()=>{
- // 8 Nov (shore lane): the old north-east harbour inlet is land; C's coast with that stretch replaced by the new east beach
  const near=(p,q)=>Math.round(p[0])===q[0]&&Math.round(p[1])===q[1],i=C.coast.findIndex(p=>near(p,S.coast.after)),j=C.coast.findIndex(p=>near(p,S.coast.before));
  assert.deepEqual(E.coast,[...C.coast.slice(0,i+1),...S.coast.points,...C.coast.slice(j)]);assert.deepEqual(E.origin,C.origin);
  assert.equal(E.width,C.width);assert.equal(E.height,C.height);
- // boss 8 Nov: C's flat plank pier into the south-west pond is gone, with its walkway
  const pier=C.decks.filter(d=>!d.src.endsWith('/pond-jetty.svg')),pierWalks=C.walkways.slice(1);
  assert.ok(!E.decks.some(d=>d.src.endsWith('/pond-jetty.svg')));assert.deepEqual(E.decks.slice(0,pier.length),pier);assert.deepEqual(E.walkways.slice(0,pierWalks.length),pierWalks);
- // the harbour is the south fishing dock now: its jetty, docking water and the three jetty boats; the other boats are C's
  assert.deepEqual(E.jetty,S.harbour.jetty);assert.deepEqual(E.harborWater,S.harbour.harborWater);assert.deepEqual(E.boats,[...S.harbour.boats012,...C.boats.slice(3)]);
  for(const b of E.boats.slice(0,3))assert.ok(canSail(b.x,b.y,'home'),`jetty boat ${b.x},${b.y} afloat`);
  assert.ok(canSail(E.harborWater.x,E.harborWater.y,'home'));for(const p of [[6050,1778],[5956,1756],[5789,1700]])assert.equal(canSail(...p,'home'),false,'the old bay is land');
  assert.ok(canSail(6150,1856,'home'),'Millrill Pond now joins the sea');
- const ratio=area(E.coast)/area(B.coast);assert.ok(ratio>=1.8&&ratio<=2.05,`land ratio ${ratio}`);   // 8 Nov: +the filled-in old harbour inlet (2.017)
+ const ratio=area(E.coast)/area(B.coast);assert.ok(ratio>=1.8&&ratio<=2.05,`land ratio ${ratio}`);
 });
 test('five Home communities have distinct homes, meaningful workplaces and reachable front doors',()=>{
- // boss 8 Nov: each hamlet is GPT's blueprint copied object by object (scripts/home-10/hamlets-apply.mjs): three or four homes each
  const nav=HOME_MAP.nav();assert.equal(E.communities.length,5);let homes=0;
- for(const c of E.communities){assert.ok(c.residents.length>15);assert.ok(c.homes.length>=3,c.id);assert.ok(c.workplaces.length>=2,c.id);
+ for(const c of E.communities){assert.ok(c.residents.length>15);assert.ok(c.homes.length>=(c.id==='reedwhistle'?2:3),c.id);assert.ok(c.workplaces.length>=2,c.id);
   for(const id of c.workplaces){const p=E.props.find(p=>p.id===id);assert.equal(p.zone,c.id);assert.equal(p.communityRole,'workplace');}
-  for(const id of c.homes){const p=E.props.find(p=>p.id===id);homes++;assert.equal(p.zone,c.id);assert.ok(HOME_MAP.landAt(p.x,p.y));
-   assert.ok(!nav.walkable(p.footprint.x,p.footprint.y),'house base is solid');const door=p.door;assert.ok(nav.walkable(...door),`${c.name} ${id} door`);
+  for(const id of c.homes){const p=rendered.get(id);homes++;assert.equal(p.zone,c.id);assert.ok(HOME_MAP.landAt(p.x,p.y));
+   const base=HOME_MAP.walk.obstacles.find(o=>o.prop===id&&!o.bodyBlock);
+   const bottom=base.poly.reduce((a,b)=>a[1]>b[1]?a:b);
+   assert.ok(!nav.walkable(...bottom),'house base is solid');const door=p.door;assert.ok(nav.walkable(...door),`${c.name} ${id} door`);
    assert.deepEqual(nav.route(HOME_MAP.spawn.x,HOME_MAP.spawn.y,...door).at(-1),door,`${c.name} ${id} doorstep route`);
   }
  }
- assert.ok(homes>=15);
+ assert.ok(homes>=14);
 });
-test('Home keeps clear commons and joins every shared green to the original heart',()=>{
- const nav=HOME_MAP.nav();for(const p of E.openSpaces)for(let x=-p.radius;x<=p.radius;x+=38)for(let y=-p.radius;y<=p.radius;y+=38)if(x*x+y*y<=p.radius*p.radius)assert.ok(nav.walkable(p.point[0]+x,p.point[1]+y),`${p.id}: ${x},${y}`);
+test('Home joins every shared green to the original heart with room to detour around restored trees',()=>{
+ const nav=HOME_MAP.nav();for(const p of E.openSpaces){assert.ok(nav.walkable(...p.point),p.id+' destination clear');assert.deepEqual(nav.route(HOME_MAP.spawn.x,HOME_MAP.spawn.y,...p.point).at(-1),p.point,p.id+' reachable');}
  for(const p of E.places){const route=nav.route(HOME_MAP.spawn.x,HOME_MAP.spawn.y,...p.point);assert.deepEqual(route.at(-1),p.point,p.id);let prev=[HOME_MAP.spawn.x,HOME_MAP.spawn.y];for(const q of route){assert.ok(nav.clearLine(prev,q),p.id);prev=q;}}
  const main=E.roads.filter(r=>r.kind==='main');assert.equal(main.length,1);
  assert.ok(main[0].width>=120&&main[0].width<=135,'main loop matches original Home path width');

@@ -1,3 +1,4 @@
+const walkMoves={"lib-339":{"x":2818.74,"y":705.07},"lib-340":{"x":3412.9,"y":690.9},"lib-54":{"x":1037.1,"y":2666.7},"hamlet-paperboat-mooring-post-midwest":{"x":8095.15,"y":6758.82},"hamlet-paperboat-mooring-post-mideast":{"x":8897.5,"y":6821.25},"lib-166":{"x":3247.8,"y":1060.3},"lib-10":{"x":3552.7,"y":1912.13},"lib-128":{"x":3343.44,"y":1163.47}};
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -40,7 +41,7 @@ test('Pagepond bench correction preserves every other prop, original obstacle an
  for(const id of changedIds){const p=art.props.find(p=>p.id===id),prior=keep.props.find(p=>p.id===id);assert(prior,id+' existing seat retained');for(const key of Object.keys(prior))if(!allowed.has(key))assert.deepEqual(p[key],prior[key],id+' preserves '+key);}
  const indices=new Set(records.map(b=>b.originalObstacleIndex??b.obstacleIndex));assert.equal(indices.size,9);
  const bridgeFix=read('scripts/pagepond-bridges/report.json'),cleared=new Set([...bridgeFix.clearedLandscape,...bridgeFix.retiredBridgeParts]);
- for(let i=0;i<old.obstacles.length;i++)if(!indices.has(i)){const o=old.obstacles[i];if(cleared.has(o.name)||!o.name&&bridgeFix.clearedProps.some(p=>Math.abs(o.x-p.x)<2&&Math.abs(o.y-p.y)<40))continue;assert(world.obstacles.some(q=>JSON.stringify(q)===JSON.stringify(o)),'unrelated original obstacle '+i);}
+ for(let i=0;i<old.obstacles.length;i++)if(!indices.has(i)){const o=old.obstacles[i];if(cleared.has(o.name)||!o.name&&bridgeFix.clearedProps.some(p=>Math.abs(o.x-p.x)<2&&Math.abs(o.y-p.y)<40))continue;const expected=structuredClone(o);if(walkMoves[o.name]){const prior=oldArt.props.find(p=>p.id===o.name),dx=walkMoves[o.name].x-prior.x,dy=walkMoves[o.name].y-prior.y;if(expected.poly)expected.poly=expected.poly.map(([x,y])=>[x+dx,y+dy]);else{expected.x+=dx;expected.y+=dy;}}assert(world.obstacles.some(q=>JSON.stringify(q)===JSON.stringify(expected)),'original obstacle retained at its prop '+i);}
  for(const b of records){const p=oldArt.props.find(p=>p.id===b.id),o=old.obstacles[b.originalObstacleIndex??b.obstacleIndex];assert(o.name===b.id||o.x===p.x&&Math.abs(o.y-p.y)<40,b.id+' replaces its own original blocker');}
  const placements=read(D+'placements.json');assert.deepEqual(placements,art.props);
 });

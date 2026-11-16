@@ -1,10 +1,117 @@
-import {BOG_BLOCKERS} from '../src/pixi/bog-blockers.js';
-import {BOG_COMBAT} from '../src/pixi/bog-combat/config.js';
-import {DUCK_RADIUS} from '../src/pixi/bog-combat/physics.js';
+import {BOG_BLOCKERS} from '../src/features/bog-combat/bog-blockers.js';
+import {BOG_COMBAT} from '../src/features/bog-combat/config.js';
+import {DUCK_RADIUS} from '../src/features/bog-combat/physics.js';
+// Exact floor samples beside the full drawing exclusions. No runtime search.
+const outlineSamples={
+ "lane-cover-north-west":{"bypass":{"a":[2768,1864],"b":[2768,2228],"vertical":true}},
+ "lane-cover-north-east":{"shelters":[[5184,2016],[5564,2046],[5268,1856],[5358,2220]]},
+ "wl-west-upper":{"shelters":[[1256,2596],[1112,2452],[1082,2800]],"bypass":{"a":[900,2356],"b":[1264,2356],"vertical":false}},
+ "lane-cover-west-pond":{"shelters":[[1286,3372],[1834,3372],[1492,3158],[1432,3674]],"bypass":{"a":[1310,3134],"b":[1674,3134],"vertical":false}},
+ "wl-west-site":{"shelters":[[942,4072],[1322,4102],[1086,3928],[1116,4276]],"bypass":{"a":[1346,3920],"b":[1346,4284],"vertical":true}},
+ "lane-cover-west-loop":{"shelters":[[1606,4922],[1986,4922],[1812,4708],[1782,5096]],"bypass":{"a":[1582,4740],"b":[1582,5104],"vertical":true}},
+ "wl-east-upper":{"shelters":[[7176,2672],[7322,2362],[7382,2846]],"bypass":{"a":[7152,2490],"b":[7152,2854],"vertical":true}},
+ "lane-cover-east-pond":{"shelters":[[6618,3547],[7182,3487],[7066,3269],[7036,3661]],"bypass":{"a":[7206,3305],"b":[7206,3669],"vertical":true}},
+ "wl-east-site":{"shelters":[[7236,4072],[7648,3982],[7472,3898],[7442,4246]],"bypass":{"a":[7212,3890],"b":[7212,4254],"vertical":true}},
+ "lane-cover-east-loop":{"shelters":[[6382,4832],[6762,4892],[6556,4678],[6496,5066]],"bypass":{"a":[6374,4654],"b":[6738,4654],"vertical":false}},
+ "lane-cover-site-a-approach":{"shelters":[[2934,3471],[3346,3531],[3170,3297],[3140,3645]]},
+ "lane-cover-site-b-approach":{"shelters":[[5038,3496],[5630,3466],[5424,3352],[5334,3700]]},
+ "lane-cover-spine-north":{"shelters":[[3722,2912],[4102,2942],[3866,2768],[3896,3116]]},
+ "lane-cover-spine-upper":{"shelters":[[4296,3982],[4676,3952],[4502,3768],[4502,4156]],"bypass":{"a":[4320,4176],"b":[4684,4176],"vertical":false}},
+ "wl-spine-middle":{"shelters":[[3782,4412],[4162,4442],[3926,4268],[3956,4616]],"bypass":{"a":[4186,4260],"b":[4186,4624],"vertical":true}},
+ "lane-cover-spine-lower":{"shelters":[[3722,4812],[4102,4842],[3896,4628],[3896,5016]],"bypass":{"a":[3714,5052],"b":[4078,5052],"vertical":false}},
+ "wl-spine-crossing":{"bypass":{"a":[4272,5190],"b":[4272,5554],"vertical":true}},
+ "lane-cover-spine-south":{"shelters":[[4266,5852],[4472,5638],[4412,6026]],"bypass":{"a":[4242,5670],"b":[4242,6034],"vertical":true}},
+ "wl-spine-cove":{"shelters":[[3722,6212],[4102,6242],[3986,6024],[3896,6416]]},
+ "lane-cover-south-west":{"shelters":[[2814,5181],[3438,5151],[3172,5007],[3142,5355]]},
+ "lane-cover-south-east":{"shelters":[[5080,5271],[5736,5271],[5348,5097],[5408,5445]]},
+ "lane-cover-cove-east":{"shelters":[[4844,6211],[5256,6181],[5140,5775],[5050,6355]]},
+ "site-a-wall-0":{"shelters":[[1434,3851],[1814,3821],[1670,3677],[1640,4025]]},
+ "site-a-wall-1":{"shelters":[[2406,3761],[2786,3791],[2490,3533],[2580,3965]]},
+ "site-b-wall-0":{"shelters":[[5764,3851],[6176,3941],[6060,3541],[5970,4025]]},
+ "site-b-wall-1":{"shelters":[[6614,3881],[7026,3851],[6820,4025]]},
+ "mid-wall-1":{"shelters":[[4578,2106],[4958,2136],[4722,1962],[4752,2310]]},
+ "karma-nw-wall-0":{"shelters":[[1224,1931],[1604,1901],[1460,1757],[1400,2105]],"bypass":{"a":[1248,2325],"b":[1612,2325],"vertical":false}},
+ "evil-ne-wall-0":{"bypass":{"a":[5800,1749],"b":[5800,2113],"vertical":true}},
+ "evil-ne-wall-1":{"shelters":[[6796,1901],[7176,1871],[7030,1713],[6970,2105]]},
+ "karma-sw-wall-0":{"shelters":[[1224,5731],[1604,5731],[1460,5557],[1400,5905]],"bypass":{"a":[1200,5549],"b":[1200,5913],"vertical":true}},
+ "karma-sw-wall-1":{"shelters":[[2196,5701],[2576,5731],[2430,5513],[2370,5905]]},
+ "evil-se-wall-0":{"bypass":{"a":[5800,5549],"b":[5800,5913],"vertical":true}},
+ "field-cover-north-pond-west":{"shelters":[[2741,2832],[3121,2922],[2947,2708],[2887,3356]],"bypass":{"a":[2765,2684],"b":[3129,2684],"vertical":false}},
+ "field-cover-north-pond-east":{"shelters":[[5279,2922],[5659,2922],[5543,2572],[5483,3096]],"bypass":{"a":[5683,2740],"b":[5683,3104],"vertical":true}},
+ "field-cover-north-inner-west":{"shelters":[[3448,2606],[3828,2636],[3592,2462],[3622,2810]]},
+ "field-cover-north-inner-east":{"shelters":[[4572,2636],[4808,2462],[4778,2810]],"bypass":{"a":[4548,2454],"b":[4548,2818],"vertical":true}},
+ "field-cover-north-outer-west":{"shelters":[[2566,1586],[2946,1556],[2802,1412],[2772,1760]]},
+ "field-cover-north-outer-east":{"shelters":[[5454,1556],[5834,1586],[5598,1412],[5628,1760]]},
+ "field-cover-north-back-west":{"shelters":[[3416,1486],[3796,1456],[3652,1312],[3652,1896]],"bypass":{"a":[3440,1248],"b":[3804,1248],"vertical":false}},
+ "field-cover-north-back-east":{"shelters":[[4604,1456],[4984,1486],[4748,1312],[4748,1896]],"bypass":{"a":[4596,1248],"b":[4960,1248],"vertical":false}},
+ "field-cover-middle-outer-west":{"shelters":[[1866,4386],[2246,4356],[2102,4212],[2072,4560]]},
+ "field-cover-middle-outer-east":{"shelters":[[6154,4356],[6534,4386],[6298,4212],[6328,4560]],"bypass":{"a":[6558,4204],"b":[6558,4568],"vertical":true}},
+ "field-cover-middle-court-west":{"shelters":[[2491,4311],[2871,4221],[2727,4137],[2697,4485]],"bypass":{"a":[2515,4073],"b":[2879,4073],"vertical":false}},
+ "field-cover-middle-court-east":{"shelters":[[5529,4281],[5909,4311],[5673,4137],[5733,4649]],"bypass":{"a":[5521,4689],"b":[5885,4689],"vertical":false}},
+ "field-cover-middle-inner-west":{"bypass":{"a":[3390,3894],"b":[3754,3894],"vertical":false}},
+ "field-cover-middle-inner-east":{"bypass":{"a":[4598,4290],"b":[4598,4654],"vertical":true}},
+ "field-cover-south-meadow-west":{"shelters":[[2148,4862],[2528,4922],[2322,4708],[2322,5096]],"bypass":{"a":[2552,4740],"b":[2552,5104],"vertical":true}},
+ "field-cover-south-meadow-east":{"shelters":[[5872,4922],[6252,4892],[6078,4708],[6078,5096]]},
+ "field-cover-south-inner-west":{"shelters":[[3073,4967],[3453,4997],[3247,4783],[3217,5327]],"bypass":{"a":[3065,5351],"b":[3429,5351],"vertical":false}},
+ "field-cover-south-inner-east":{"shelters":[[4947,5027],[5327,4997],[5153,4783],[5063,5171]],"bypass":{"a":[4971,5443],"b":[5335,5443],"vertical":false}},
+ "field-cover-south-back-west":{"shelters":[[3088,5632],[3728,5722],[3522,5508],[3552,5932]],"bypass":{"a":[3340,5484],"b":[3704,5484],"vertical":false}},
+ "field-cover-south-back-east":{"shelters":[[4672,5662],[5052,5722],[4878,5508]],"bypass":{"a":[4696,5928],"b":[5060,5928],"vertical":false}},
+ "field-cover-south-outer-west":{"shelters":[[1116,5222],[1496,5192],[1322,5008],[1262,5396]],"bypass":{"a":[1140,4984],"b":[1504,4984],"vertical":false}},
+ "field-cover-south-outer-east":{"shelters":[[7284,5222],[7078,5008],[7078,5396]],"bypass":{"a":[6896,4984],"b":[7260,4984],"vertical":false}},
+ "field-cover-south-coast-west":{"bypass":{"a":[2642,6440],"b":[2642,6804],"vertical":true}},
+ "evil-se-wall-1":{"bypass":{"a":[6788,5917],"b":[7152,5949]}},
+};
+
+const floorSamples={
+ "door:karma-nw-hall":[2020,1796],
+ "door:evil-ne-hall":[6620,1796],
+ "door:karma-sw-hall":[2020,5596],
+ "door:evil-se-hall":[6620,5596],
+ "door:site-b-cottage":[6956,3635],
+ "door:wz-west-shell":[2836,3353],
+ "door:wz-south-shell":[3234,5958],
+ "arcade:site-b-arcade-1":[5780,3659],
+ "arcade:site-b-arcade-2":[6021,3998],
+ "arcade:site-b-arcade-3":[6619,3532],
+ "arcade:site-b-arcade-4":[6612,3623],
+ "arcade:site-b-arcade-5":[6617,3855],
+ "arcade:site-b-arcade-upper-west":[6040,3515],
+ "arcade:site-b-arcade-upper-east":[6618,3529],
+ "mid-west:100":[3660,1966],
+ "mid-west:250":[3665,1950],
+ "mid-west:400":[3940,1954],
+ "mid-east:100":[4460,1954],
+ "mid-east:250":[4465,1954],
+ "mid-east:400":[5010,1954],
+ "4900,7670":[4876,7712],
+ "2050,3315":[2060,3328],
+ "6060,3770":[6121,3622],
+ "6650,3770":[6615,3855],
+ "6170,3970":[6178,3970],
+ "2050,3317.5":[2056,3328],
+ "wz-west-shell:0":[2836,3353],
+ "wz-west-shell:1":[2658,2988],
+ "wz-west-shell:2":[2718,3374],
+ "wz-west-shell:3":[3090,3260],
+ "wz-east-shell:1":[5670,4286],
+ "wz-east-shell:2":[5494,4650],
+ "wz-south-shell:0":[3234,5958],
+ "wz-south-shell:1":[3184,5601],
+ "wz-south-shell:3":[3533,5943],
+ "wz-north-shell:1":[5119,2519],
+ "wz-north-shell:3":[5287,2860],
+};
+export const bogFloorSample=(id,fallback)=>floorSamples[id]??fallback;
+
 export function groupFeet(g){return BOG_BLOCKERS.filter(b=>g.members.includes(b.prop??b.id));}
 export function groupBounds(g){const feet=groupFeet(g);return {l:Math.min(...feet.map(b=>b.x)),r:Math.max(...feet.map(b=>b.x+b.width)),t:Math.min(...feet.map(b=>b.y)),b:Math.max(...feet.map(b=>b.y+b.height))};}
-export function shelters(g){const {l,r,t,b}=groupBounds(g);return [[l-52,(t+b)/2],[r+52,(t+b)/2],[(l+r)/2,t-52],[(l+r)/2,b+52]].filter(p=>BOG_COMBAT.navigation.walkable(...p)&&BOG_COMBAT.navigation.route(4200,2800,...p).length);}
-export function hasWideBypass(g){const {l,r,t,b}=groupBounds(g),strips=[
+export function shelters(g){const {l,r,t,b}=groupBounds(g);return (outlineSamples[g.id]?.shelters??[[l-52,(t+b)/2],[r+52,(t+b)/2],[(l+r)/2,t-52],[(l+r)/2,b+52]]).filter(p=>BOG_COMBAT.navigation.walkable(...p)&&BOG_COMBAT.navigation.route(4200,2800,...p).length);}
+export function hasWideBypass(g){
+ const reviewed=outlineSamples[g.id]?.bypass;
+ if(reviewed){const {a,b}=reviewed,len=Math.hypot(b[0]-a[0],b[1]-a[1]),nx=-(b[1]-a[1])/len,ny=(b[0]-a[0])/len;
+  return [-DUCK_RADIUS,-DUCK_RADIUS/2,0,DUCK_RADIUS/2,DUCK_RADIUS].every(k=>BOG_COMBAT.navigation.clearLine([a[0]+nx*k,a[1]+ny*k],[b[0]+nx*k,b[1]+ny*k]));
+ }
+ const {l,r,t,b}=groupBounds(g),strips=[
  k=>[[l-60,t-60+k],[r+60,t-60+k]],k=>[[l-60,b+60+k],[r+60,b+60+k]],
  k=>[[l-60+k,t-60],[l-60+k,b+60]],k=>[[r+60+k,t-60],[r+60+k,b+60]],
 ];return strips.some(strip=>[-DUCK_RADIUS,-DUCK_RADIUS/2,0,DUCK_RADIUS/2,DUCK_RADIUS].every(k=>BOG_COMBAT.navigation.clearLine(...strip(k))));}

@@ -1,15 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import expansion from '../src/pixi/home-expansion.json' with {type:'json'};
-import original from '../src/pixi/home-original-world.json' with {type:'json'};
-import {HOME_MAP,mapOf} from '../src/pixi/island-maps.js';
-import {canSail,boardingPoint,originOffset,landingSpot} from '../src/pixi/islands.js';
-import {WORLD_ISLANDS,offsetOf} from '../src/pixi/world-map.js';
-import {MUSEUM_DOOR} from '../src/pixi/player-motion.js';
+import expansion from '../src/world/home/home-expansion.json' with {type:'json'};
+import original from '../src/world/home/home-original-world.json' with {type:'json'};
+import {HOME_MAP,mapOf} from '../src/world/island-maps.js';
+import {canSail,boardingPoint,originOffset,landingSpot} from '../src/gameplay/islands.js';
+import {WORLD_ISLANDS,offsetOf} from '../src/world/world-map.js';
+import {MUSEUM_DOOR} from '../src/gameplay/player-motion.js';
 
 test('bigger Home retains original landmark and save coordinates, every community connects to the plaza',()=>{
   const m=HOME_MAP,n=m.nav();
-  assert.deepEqual(m.spawn,{x:original.zones.plaza.spawn[0],y:original.zones.plaza.spawn[1]});
+  assert.deepEqual(m.spawn,{x:2820,y:2600},'spawn clears the traced plaza bench');
+  assert.equal(m.spawn.x,original.zones.plaza.spawn[0]);
+  assert.equal(m.spawn.y,original.zones.plaza.spawn[1]-40,'only the spawn moves, scenery and saved coordinates stay fixed');
+  assert.ok(n.walkable(m.spawn.x,m.spawn.y));
   assert.deepEqual(m.world.props,original.props);
   assert.ok(n.walkable(MUSEUM_DOOR.out.x,MUSEUM_DOOR.out.y));
   for(const {id,point} of expansion.places){
@@ -18,14 +21,14 @@ test('bigger Home retains original landmark and save coordinates, every communit
     assert.deepEqual(route.at(-1),point,id+' is reachable');
     let prev=[m.spawn.x,m.spawn.y];for(const p of route){assert.ok(n.clearLine(prev,p),id+' has no blocked route segment');prev=p;}
   }
-  // New land is north and west of the original frame; a detour must work through negative cells too.
   const west=[-544,2033],north=[2900,-77];
-  for(const point of [west,north])assert.ok(n.walkable(...point));
-  assert.deepEqual(n.route(...west,...north).at(-1),north);
+  const approaches=[west,north].map(point=>n.nearest(...point,180));
+  for(const point of approaches)assert.ok(point,'nearby saved-coordinate approach survives restored scenery');
+  assert.deepEqual(n.route(...approaches[0],...approaches[1]).at(-1),approaches[1]);
 });
 
-test('bigger Home has ten afloat moorings, walkable boarding points and usable west-coast docking',()=>{
-  const n=HOME_MAP.nav();assert.equal(HOME_MAP.boatSpots().length,10);
+test('bigger Home has fourteen afloat moorings (3 at the port, the rest all round it), walkable boarding points and usable west-coast docking',()=>{
+  const n=HOME_MAP.nav();assert.equal(HOME_MAP.boatSpots().length,14);
   for(const b of HOME_MAP.boatSpots()){
     assert.ok(canSail(b.x,b.y),'mooring is clear of shore');
     const p=boardingPoint({...b,islandId:'home'});assert.ok(n.walkable(p.x,p.y));

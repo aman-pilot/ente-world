@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {themedConstellations} from '../src/pixi/themed-constellations.js';
+import {themedConstellations} from '../src/rendering/pixi/themed-constellations.js';
 import {readFileSync} from 'node:fs';
-import {astronautAt,blinkingAstronaut} from '../src/pixi/space-ducky.js';
-import {createStargazeSky,hashAccount} from '../src/pixi/stargaze-sky.js';
-import {DEMO_SKY} from '../src/pixi/stargaze-demo.js';
-import {universePosition,projectStar,arrivalPose,cameraBasis,INTRO_MS,DEFAULT_FOV} from '../src/pixi/star-universe.js';
+import {astronautAt,blinkingAstronaut} from '../src/rendering/pixi/space-ducky.js';
+import {createStargazeSky,hashAccount} from '../src/rendering/pixi/stargaze-universe.js';
+import {DEMO_SKY} from '../src/features/stargaze-demo.js';
+import {universePosition,projectStar,arrivalPose,cameraBasis,INTRO_MS,DEFAULT_FOV} from '../src/rendering/pixi/star-universe.js';
 
 function mounted(width=1200,height=800,reduced=true){
   const previous=new Map(),set=(name,value)=>{previous.set(name,Object.getOwnPropertyDescriptor(globalThis,name));Object.defineProperty(globalThis,name,{value,writable:true,configurable:true});};
@@ -129,7 +129,7 @@ test('camera inertia settles and cannot keep repainting a still universe',()=>{
 
 
 test('original Figma artwork is preserved while only its existing two eye paths are marked for blinking',()=>{
-  const original=readFileSync(new URL('../src/pixi/assets/space-ducky.svg',import.meta.url),'utf8'),animated=blinkingAstronaut(original);
+  const original=readFileSync(new URL('../src/rendering/pixi/assets/space-ducky.svg',import.meta.url),'utf8'),animated=blinkingAstronaut(original);
   assert.equal((animated.match(/class="pixi-space-ducky-eye"/g)||[]).length,2);
   assert.equal(animated.replaceAll(' class="pixi-space-ducky-eye"',''),original);
 });

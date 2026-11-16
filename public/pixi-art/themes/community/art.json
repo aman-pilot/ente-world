@@ -13205,8 +13205,8 @@
       "id": "emoji-sign-20",
       "name": "Reaction sign",
       "src": "detail/emoji-sign.svg",
-      "x": 4380,
-      "y": 1460,
+      "x": 4377,
+      "y": 1463,
       "width": 548,
       "height": 586,
       "anchor": {
@@ -13237,8 +13237,8 @@
       "id": "lamp-typing-22",
       "name": "Typing lamp",
       "src": "detail/lamp-typing.svg",
-      "x": 4720,
-      "y": 1960,
+      "x": 4693,
+      "y": 1955,
       "width": 307,
       "height": 650,
       "anchor": {
@@ -13365,8 +13365,8 @@
       "id": "bush-lavender-32",
       "name": "Lavender bush",
       "src": "detail/bush-lavender.svg",
-      "x": 1484,
-      "y": 2472,
+      "x": 1452,
+      "y": 2633,
       "width": 606,
       "height": 487,
       "anchor": {
@@ -13381,8 +13381,8 @@
       "id": "bush-lavender-33",
       "name": "Lavender bush",
       "src": "detail/bush-lavender.svg",
-      "x": 2156,
-      "y": 2472,
+      "x": 2214,
+      "y": 2663,
       "width": 606,
       "height": 487,
       "anchor": {
@@ -13525,8 +13525,8 @@
       "id": "lamp-typing-42",
       "name": "Typing lamp",
       "src": "detail/lamp-typing.svg",
-      "x": 5531,
-      "y": 1454,
+      "x": 5446,
+      "y": 1733,
       "width": 307,
       "height": 650,
       "anchor": {
@@ -13542,7 +13542,7 @@
       "name": "Game table",
       "src": "detail/game-table.svg",
       "x": 5509,
-      "y": 2325,
+      "y": 2435,
       "width": 670,
       "height": 432,
       "anchor": {
@@ -13557,8 +13557,8 @@
       "id": "game-table-44",
       "name": "Game table",
       "src": "detail/game-table.svg",
-      "x": 5800,
-      "y": 2304,
+      "x": 5890,
+      "y": 2522,
       "width": 670,
       "height": 432,
       "anchor": {
@@ -13590,7 +13590,7 @@
       "name": "Typing lamp",
       "src": "detail/lamp-typing.svg",
       "x": 5260,
-      "y": 2760,
+      "y": 2870,
       "width": 307,
       "height": 650,
       "anchor": {
@@ -13909,8 +13909,8 @@
       "id": "chat-bubble",
       "name": "Chat bubble sculpture",
       "src": "detail/bubble-sculpture.svg",
-      "x": 5260,
-      "y": 3120,
+      "x": 5455,
+      "y": 3070,
       "width": 520,
       "height": 549,
       "anchor": {
@@ -13973,8 +13973,8 @@
       "id": "bench-lavender-70",
       "name": "Bench",
       "src": "detail/bench-lavender.svg",
-      "x": 1892,
-      "y": 4727,
+      "x": 2042,
+      "y": 4545,
       "width": 614,
       "height": 448,
       "anchor": {
@@ -14134,7 +14134,7 @@
       "name": "Typing lamp",
       "src": "detail/lamp-typing.svg",
       "x": 5480,
-      "y": 2438,
+      "y": 2548,
       "width": 307,
       "height": 650,
       "anchor": {
@@ -14295,8 +14295,8 @@
       "id": "nod-tree-5",
       "name": "Lilac tree",
       "src": "detail/tree-lilac.svg",
-      "x": 1250,
-      "y": 2200,
+      "x": 1190,
+      "y": 2160,
       "width": 607,
       "height": 648,
       "anchor": {
@@ -14311,8 +14311,8 @@
       "id": "nod-tree-6",
       "name": "Wisteria tree",
       "src": "detail/tree-wisteria.svg",
-      "x": 4700,
-      "y": 920,
+      "x": 4657,
+      "y": 798,
       "width": 605,
       "height": 654,
       "anchor": {
@@ -14439,8 +14439,8 @@
       "id": "tree-1-106",
       "name": "Oak tree",
       "src": "/pixi-art/plants/tree-1.svg",
-      "x": 4900,
-      "y": 850,
+      "x": 4866,
+      "y": 739,
       "width": 260,
       "height": 360,
       "anchor": {
@@ -14519,8 +14519,8 @@
       "id": "tree-3-111",
       "name": "Round tree",
       "src": "/pixi-art/plants/tree-3.svg",
-      "x": 4872,
-      "y": 1907,
+      "x": 4491,
+      "y": 1983,
       "width": 300,
       "height": 380,
       "anchor": {
@@ -14551,8 +14551,8 @@
       "id": "tree-lilac-113",
       "name": "Lilac tree",
       "src": "detail/tree-lilac.svg",
-      "x": 1081,
-      "y": 2843,
+      "x": 1003,
+      "y": 2727,
       "width": 607,
       "height": 648,
       "anchor": {
@@ -14856,7 +14856,7 @@
       "name": "Bushy tree",
       "src": "/pixi-art/plants/tree-4.svg",
       "x": 5283,
-      "y": 2450,
+      "y": 2560,
       "width": 200,
       "height": 280,
       "anchor": {
@@ -15064,7 +15064,7 @@
       "name": "Green bush",
       "src": "/pixi-art/plants/bush-1.svg",
       "x": 5167,
-      "y": 2951,
+      "y": 3061,
       "width": 130,
       "height": 100,
       "anchor": {
@@ -15175,8 +15175,8 @@
       "id": "bush-2-152",
       "name": "Green bush",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": 4613,
-      "y": 2048,
+      "x": 4460,
+      "y": 2334,
       "width": 168,
       "height": 110,
       "anchor": {
@@ -15479,8 +15479,8 @@
       "id": "bush-2-171",
       "name": "Green bush",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": 4951,
-      "y": 1948,
+      "x": 4670,
+      "y": 1717,
       "width": 168,
       "height": 110,
       "anchor": {
@@ -15495,8 +15495,8 @@
       "id": "bush-2-172",
       "name": "Green bush",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": 5570,
-      "y": 1260,
+      "x": 5699,
+      "y": 1067,
       "width": 168,
       "height": 110,
       "anchor": {
@@ -15784,7 +15784,7 @@
       "name": "Green bush",
       "src": "/pixi-art/plants/bush-1.svg",
       "x": 5539,
-      "y": 3178,
+      "y": 3288,
       "width": 130,
       "height": 100,
       "anchor": {
@@ -15992,7 +15992,7 @@
       "name": "Green bush",
       "src": "/pixi-art/plants/bush-1.svg",
       "x": 5517,
-      "y": 3292,
+      "y": 3402,
       "width": 130,
       "height": 100,
       "anchor": {
@@ -16184,7 +16184,7 @@
       "name": "Green bush",
       "src": "/pixi-art/plants/bush-1.svg",
       "x": 5289,
-      "y": 2882,
+      "y": 2992,
       "width": 130,
       "height": 100,
       "anchor": {
@@ -16472,7 +16472,7 @@
       "name": "Flower",
       "src": "/pixi-art/plants/flower-1.svg",
       "x": 5210,
-      "y": 2352,
+      "y": 2462,
       "width": 48,
       "height": 36,
       "anchor": {
@@ -16632,7 +16632,7 @@
       "name": "Flower",
       "src": "/pixi-art/plants/flower-1.svg",
       "x": 5442,
-      "y": 3057,
+      "y": 3167,
       "width": 48,
       "height": 36,
       "anchor": {
@@ -17656,7 +17656,7 @@
       "name": "Flower",
       "src": "/pixi-art/plants/flower-1.svg",
       "x": 5387,
-      "y": 2370,
+      "y": 2480,
       "width": 48,
       "height": 36,
       "anchor": {
@@ -17800,7 +17800,7 @@
       "name": "Flower",
       "src": "/pixi-art/plants/flower-2.svg",
       "x": 5396,
-      "y": 2989,
+      "y": 3099,
       "width": 48,
       "height": 36,
       "anchor": {
@@ -18222,7 +18222,7 @@
       "name": "Grove tree",
       "src": "/pixi-art/plants/tree-1.svg",
       "x": 5258,
-      "y": 2151,
+      "y": 2261,
       "width": 260,
       "height": 360,
       "scale": 1.3055555555555556,
@@ -18238,7 +18238,7 @@
       "name": "Green bush",
       "src": "/pixi-art/plants/bush-2.svg",
       "x": 5153,
-      "y": 2201,
+      "y": 2311,
       "width": 168,
       "height": 110,
       "scale": 0.85,
@@ -18254,7 +18254,7 @@
       "name": "Green bush",
       "src": "/pixi-art/plants/bush-2.svg",
       "x": 5358,
-      "y": 2216,
+      "y": 2270,
       "width": 168,
       "height": 110,
       "scale": 0.85,
@@ -18349,8 +18349,8 @@
       "id": "polish-root-350",
       "name": "Green bush",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": 5332,
-      "y": 965,
+      "x": 5631,
+      "y": 841,
       "width": 168,
       "height": 110,
       "scale": 0.85,
@@ -18990,7 +18990,7 @@
       "name": "Tall birch tree",
       "src": "/pixi-art/plants/tree-5.svg",
       "x": 5054,
-      "y": 988,
+      "y": 688,
       "width": 150,
       "height": 380,
       "scale": 1.368421052631579,
@@ -19261,8 +19261,8 @@
       "id": "polish-border-activity-1-3",
       "name": "Low garden hedge",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": 4566,
-      "y": 1962,
+      "x": 4570,
+      "y": 1964,
       "width": 120,
       "height": 78,
       "scale": 1,
@@ -19454,7 +19454,7 @@
       "name": "Flower border",
       "src": "/pixi-art/plants/flower-2.svg",
       "x": 5442,
-      "y": 2436,
+      "y": 2546,
       "width": 65,
       "height": 49,
       "scale": 1,
@@ -19469,7 +19469,7 @@
       "id": "polish-border-activity-2-21",
       "name": "Low garden hedge",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": 5635,
+      "x": 5639,
       "y": 2362,
       "width": 120,
       "height": 78,
@@ -19933,8 +19933,8 @@
       "id": "polish-border-stalls-2-21",
       "name": "Low garden hedge",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": 5273,
-      "y": 3384,
+      "x": 5279,
+      "y": 3320,
       "width": 120,
       "height": 78,
       "scale": 1,
@@ -19966,7 +19966,7 @@
       "name": "Flower border",
       "src": "/pixi-art/plants/flower-2.svg",
       "x": 5470,
-      "y": 3376,
+      "y": 3486,
       "width": 65,
       "height": 49,
       "scale": 1,
@@ -20655,8 +20655,8 @@
       "id": "ten-arc-campfire-2",
       "name": "Curved wooden bench",
       "src": "detail/ten-arc-campfire-2.svg",
-      "x": 4689.82478779769,
-      "y": 2426.5509904208493,
+      "x": 4586,
+      "y": 2427,
       "width": 132,
       "height": 213,
       "anchor": {
@@ -20913,8 +20913,8 @@
       "id": "ten-root-bush-6",
       "name": "Low root bush",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": 4802,
-      "y": 1937,
+      "x": 4629,
+      "y": 1903,
       "width": 95,
       "height": 62,
       "scale": 1,
@@ -21041,8 +21041,8 @@
       "id": "ten-root-bush-14",
       "name": "Low root bush",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": 5552,
-      "y": 1924,
+      "x": 5547,
+      "y": 1913,
       "width": 95,
       "height": 62,
       "scale": 1,
@@ -21057,8 +21057,8 @@
       "id": "ten-root-bush-15",
       "name": "Low root bush",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": 4865,
-      "y": 2458,
+      "x": 4928,
+      "y": 2484,
       "width": 95,
       "height": 62,
       "scale": 1,
@@ -21121,8 +21121,8 @@
       "id": "ten-root-bush-19",
       "name": "Low root bush",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": 5579,
-      "y": 2268,
+      "x": 5560,
+      "y": 2459,
       "width": 95,
       "height": 62,
       "scale": 1,
@@ -21494,7 +21494,7 @@
       "name": "Flower rim planter",
       "src": "detail/community-rim-planter.svg",
       "x": 5363,
-      "y": 2538,
+      "y": 2648,
       "width": 534,
       "height": 795,
       "scale": 0.175,
@@ -21624,7 +21624,11 @@
             8.073
           ]
         ]
-      }
+      },
+      "approach": [
+        -261,
+        376
+      ]
     },
     {
       "id": "hamlet-storynest-cottage-east",
@@ -22104,7 +22108,11 @@
             152.612
           ]
         ]
-      }
+      },
+      "approach": [
+        579,
+        391
+      ]
     },
     {
       "id": "hamlet-storynest-notice-board",
@@ -26061,8 +26069,8 @@
       "id": "hamlet-storynest-southeast-green",
       "name": "Campfire southeast-green",
       "src": "/pixi-art/plants/tree-3.svg",
-      "x": 472,
-      "y": 896.5,
+      "x": 444,
+      "y": 894,
       "width": 309,
       "height": 258,
       "scale": 1,
@@ -26652,7 +26660,11 @@
             1020.604
           ]
         ]
-      }
+      },
+      "approach": [
+        7172,
+        1001
+      ]
     },
     {
       "id": "hamlet-patchwing-cottage-northeast",
@@ -26892,7 +26904,11 @@
             1474.57
           ]
         ]
-      }
+      },
+      "approach": [
+        7545,
+        1552
+      ]
     },
     {
       "id": "hamlet-patchwing-cottage-southeast",
@@ -27012,7 +27028,11 @@
             1477.796
           ]
         ]
-      }
+      },
+      "approach": [
+        8409,
+        1832
+      ]
     },
     {
       "id": "hamlet-patchwing-quilt-line-west",
@@ -27498,8 +27518,8 @@
       "id": "hamlet-patchwing-stool-west",
       "name": "stool-west",
       "src": "hamlets/patchwing/stool-west.svg",
-      "x": 7826.875,
-      "y": 1401,
+      "x": 7627,
+      "y": 1268,
       "width": 94.25196850393701,
       "height": 91.25984251968504,
       "scale": 1,
@@ -27978,8 +27998,8 @@
       "id": "hamlet-patchwing-lamp-northwest",
       "name": "lamp-northwest",
       "src": "hamlets/patchwing/lamp-northwest.svg",
-      "x": 7688.75,
-      "y": 1246.5,
+      "x": 7693,
+      "y": 1207,
       "width": 83.77952755905511,
       "height": 206.45669291338584,
       "scale": 1,
@@ -28098,8 +28118,8 @@
       "id": "hamlet-patchwing-lamp-northeast",
       "name": "lamp-northeast",
       "src": "hamlets/patchwing/lamp-northeast.svg",
-      "x": 8323.75,
-      "y": 1246.5,
+      "x": 8324,
+      "y": 1155,
       "width": 83.77952755905511,
       "height": 206.45669291338584,
       "scale": 1,
@@ -28218,8 +28238,8 @@
       "id": "hamlet-patchwing-lamp-southwest",
       "name": "lamp-southwest",
       "src": "hamlets/patchwing/lamp-southwest.svg",
-      "x": 7701.25,
-      "y": 1588.5,
+      "x": 7447,
+      "y": 1724,
       "width": 80.78740157480316,
       "height": 190,
       "scale": 1,
@@ -28458,8 +28478,8 @@
       "id": "hamlet-patchwing-bench-southwest",
       "name": "bench-southwest",
       "src": "hamlets/patchwing/bench-southwest.svg",
-      "x": 7807.5,
-      "y": 1597.5,
+      "x": 7846,
+      "y": 1670,
       "width": 167.55905511811022,
       "height": 125.66929133858268,
       "scale": 1,
@@ -31926,7 +31946,7 @@
       "id": "hamlet-patchwing-tree-19",
       "name": "Campfire tree-19",
       "src": "/pixi-art/plants/tree-1.svg",
-      "x": 7763.75,
+      "x": 8024,
       "y": 1812,
       "width": 222,
       "height": 210,
@@ -32754,7 +32774,11 @@
             5067.112
           ]
         ]
-      }
+      },
+      "approach": [
+        865,
+        5174
+      ]
     },
     {
       "id": "hamlet-sproutshare-cottage-northwest",
@@ -32874,7 +32898,11 @@
             4961.595
           ]
         ]
-      }
+      },
+      "approach": [
+        -294,
+        4999
+      ]
     },
     {
       "id": "hamlet-sproutshare-cottage-northeast",
@@ -33114,7 +33142,11 @@
             5575.786
           ]
         ]
-      }
+      },
+      "approach": [
+        -123,
+        6033
+      ]
     },
     {
       "id": "hamlet-sproutshare-cottage-southeast",
@@ -39815,14 +39847,18 @@
             4975.514
           ]
         ]
-      }
+      },
+      "approach": [
+        8375,
+        5078
+      ]
     },
     {
       "id": "hamlet-lanternloaf-lamp-northwest",
       "name": "lamp-northwest",
       "src": "hamlets/lanternloaf/lamp-northwest.svg",
-      "x": 6526.25,
-      "y": 5053.8,
+      "x": 6291,
+      "y": 5101,
       "width": 90.39647577092511,
       "height": 179.1189427312775,
       "scale": 1,
@@ -40055,7 +40091,11 @@
             5001.612
           ]
         ]
-      }
+      },
+      "approach": [
+        7594,
+        5348
+      ]
     },
     {
       "id": "hamlet-lanternloaf-bakery-workbench",
@@ -41024,8 +41064,8 @@
       "id": "hamlet-lanternloaf-bench-west",
       "name": "bench-west",
       "src": "hamlets/lanternloaf/bench-west.svg",
-      "x": 6598.125,
-      "y": 5129.2,
+      "x": 6614,
+      "y": 5142,
       "width": 148.98678414096915,
       "height": 113.83259911894272,
       "scale": 1,
@@ -43424,8 +43464,8 @@
       "id": "hamlet-lanternloaf-lamp-southeast",
       "name": "lamp-southeast",
       "src": "hamlets/lanternloaf/lamp-southeast.svg",
-      "x": 7719.375,
-      "y": 5533.5,
+      "x": 7743,
+      "y": 5534,
       "width": 92.0704845814978,
       "height": 195.85903083700438,
       "scale": 1,
@@ -43658,7 +43698,11 @@
             5469.612
           ]
         ]
-      }
+      },
+      "approach": [
+        6892,
+        5794
+      ]
     },
     {
       "id": "hamlet-lanternloaf-cottage-southeast",
@@ -43778,7 +43822,11 @@
             5470.912
           ]
         ]
-      }
+      },
+      "approach": [
+        7949,
+        5576
+      ]
     },
     {
       "id": "hamlet-lanternloaf-flower-box-cottage",
@@ -55525,7 +55573,7 @@
       "id": "outer-north-library-75",
       "name": "Campfire grove tree",
       "src": "/pixi-art/plants/tree-4.svg",
-      "x": 1935,
+      "x": 1991,
       "y": -190,
       "width": 162,
       "height": 226.8,
@@ -55765,8 +55813,8 @@
       "id": "outer-north-library-77",
       "name": "Campfire flower bush",
       "src": "detail/bush-lavender.svg",
-      "x": 1745,
-      "y": -150,
+      "x": 1689,
+      "y": -145,
       "width": 125,
       "height": 100,
       "scale": 1,
@@ -55885,8 +55933,8 @@
       "id": "outer-north-library-78",
       "name": "Campfire flower bush",
       "src": "/pixi-art/plants/bush-1.svg",
-      "x": 1855,
-      "y": -110,
+      "x": 1929,
+      "y": 28,
       "width": 100,
       "height": 65.60000000000001,
       "scale": 1,
@@ -60805,8 +60853,8 @@
       "id": "outer-north-heart-119",
       "name": "Campfire flower bush",
       "src": "detail/bush-lavender.svg",
-      "x": 3845,
-      "y": -170,
+      "x": 3943,
+      "y": -316,
       "width": 125,
       "height": 100,
       "scale": 1,
@@ -61405,8 +61453,8 @@
       "id": "outer-north-heart-124",
       "name": "Campfire flower bush",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": 3800,
-      "y": -80,
+      "x": 3931,
+      "y": -67,
       "width": 100,
       "height": 65.60000000000001,
       "scale": 1,
@@ -81565,8 +81613,8 @@
       "id": "outer-crown-coast-f-292",
       "name": "Campfire grove tree",
       "src": "detail/tree-lilac.svg",
-      "x": 6100,
-      "y": -630,
+      "x": 6400,
+      "y": -730,
       "width": 300,
       "height": 320,
       "scale": 1,
@@ -81805,8 +81853,8 @@
       "id": "outer-crown-coast-f-294",
       "name": "Campfire grove tree",
       "src": "detail/tree-wisteria.svg",
-      "x": 6325,
-      "y": -525,
+      "x": 6625,
+      "y": -625,
       "width": 280.5,
       "height": 303.45,
       "scale": 1,
@@ -101365,8 +101413,8 @@
       "id": "outer-east-coast-a-457",
       "name": "Campfire grove tree",
       "src": "/pixi-art/plants/tree-1.svg",
-      "x": 9010,
-      "y": 2360,
+      "x": 9332,
+      "y": 2227,
       "width": 218.4,
       "height": 302.64,
       "scale": 1,
@@ -101725,8 +101773,8 @@
       "id": "outer-east-coast-a-460",
       "name": "Campfire flower bush",
       "src": "/pixi-art/plants/bush-1.svg",
-      "x": 8965,
-      "y": 2430,
+      "x": 8992,
+      "y": 2342,
       "width": 100,
       "height": 65.60000000000001,
       "scale": 1,
@@ -114205,8 +114253,8 @@
       "id": "outer-west-south-coast-564",
       "name": "Campfire flower bush",
       "src": "/pixi-art/plants/bush-2.svg",
-      "x": -780,
-      "y": 4840,
+      "x": -791,
+      "y": 4846,
       "width": 125,
       "height": 82,
       "scale": 1,
@@ -177268,7 +177316,7 @@
       "name": "Campfire north-crown tree",
       "src": "/pixi-art/plants/tree-4.svg",
       "x": 3450,
-      "y": -30,
+      "y": -110,
       "width": 136,
       "height": 190.4,
       "scale": 1,
@@ -177889,5 +177937,6 @@
   },
   "raster": {
     "enabled": false
-  }
+  },
+  "contactShadows": true
 }

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {mapOf} from '../src/pixi/island-maps.js';
+import {mapOf} from '../src/world/island-maps.js';
 import {IslandRoom} from '../worker/index.js';
-import {setWalkDestination,walkStep} from '../src/pixi/player-motion.js';
-import {createNavigation} from '../src/pixi/navigation.js';
+import {setWalkDestination,walkStep} from '../src/gameplay/player-motion.js';
+import {createNavigation} from '../src/world/navigation.js';
 import {auditBloom,bloomApproaches,bloomBlockers,bloomFloor} from './sunbob-plaza-audit.mjs';
 
 const map=mapOf('blossom');
@@ -28,7 +28,7 @@ test('SUNBOB petals and seed disc are walkable in the client and room authority'
   }
   for(const b of bloomBlockers){
     assert.ok(b.rx<=102&&b.ry<=78,'only tight prop bases, never a plaza footprint');
-    assert.equal(authority.walkable(b.x,b.y),false,b.name+' stays solid');
+    assert.equal(authority.walkable(b.x,b.y),b.name.includes('planter'),b.name+' follows the walking rule');
   }
 });
 
@@ -60,8 +60,6 @@ test('SUNBOB stone base ellipse is within 4 px of the innermost disc centre',()=
   const disc=[tile.x+tx,tile.y+ty];
   const svg=readFileSync(new URL('../public/pixi-art/themes/sunflower/centre/clock.svg',import.meta.url),'utf8');
   assert.match(svg,/viewBox="0 0 817 1434"/);
-  // The lower stone rim ellipse is centred at (407.5, 1306) in this SVG.
-  // Its centre, not the flower head or the sprite bottom, is the ground anchor.
   for(const data of [centre,read('public/pixi-art/themes/sunflower/art.json'),map.world]){
     const clock=data.props.find(p=>p.id==='centre-clock'),scale=clock.scale??1;
     const base=[clock.x+(407.5/817-clock.anchor.x)*clock.width*scale,clock.y+(1306/1434-clock.anchor.y)*clock.height*scale];

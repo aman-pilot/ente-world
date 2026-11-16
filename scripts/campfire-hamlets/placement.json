@@ -136446,6 +136446,14 @@
           6696,
           1553
         ]
+      ],
+      "approachStart": [
+        7009,
+        935
+      ],
+      "approachEnd": [
+        6696,
+        1553
       ]
     },
     {
@@ -136465,6 +136473,10 @@
           7029,
           3117
         ]
+      ],
+      "approachStart": [
+        8411,
+        2956
       ]
     },
     {
@@ -136572,6 +136584,10 @@
           7000,
           5200
         ]
+      ],
+      "approachEnd": [
+        6887,
+        5114
       ]
     },
     {
@@ -136603,6 +136619,10 @@
           590,
           5380
         ]
+      ],
+      "approachEnd": [
+        863,
+        5171
       ]
     },
     {
@@ -136638,7 +136658,15 @@
           434.5
         ]
       ],
-      "target": "hamlet-storynest-cottage-northwest"
+      "target": "hamlet-storynest-cottage-northwest",
+      "approachStart": [
+        -257,
+        376
+      ],
+      "approachEnd": [
+        173,
+        491
+      ]
     },
     {
       "id": "hamlet-storynest-cottage-east-door",
@@ -136654,7 +136682,15 @@
           434.5
         ]
       ],
-      "target": "hamlet-storynest-cottage-east"
+      "target": "hamlet-storynest-cottage-east",
+      "approachStart": [
+        1041,
+        368
+      ],
+      "approachEnd": [
+        173,
+        491
+      ]
     },
     {
       "id": "hamlet-storynest-cottage-southwest-door",
@@ -136670,7 +136706,15 @@
           434.5
         ]
       ],
-      "target": "hamlet-storynest-cottage-southwest"
+      "target": "hamlet-storynest-cottage-southwest",
+      "approachStart": [
+        -505,
+        706
+      ],
+      "approachEnd": [
+        173,
+        491
+      ]
     },
     {
       "id": "hamlet-storynest-cottage-southeast-door",
@@ -136686,7 +136730,15 @@
           434.5
         ]
       ],
-      "target": "hamlet-storynest-cottage-southeast"
+      "target": "hamlet-storynest-cottage-southeast",
+      "approachStart": [
+        953,
+        840
+      ],
+      "approachEnd": [
+        173,
+        491
+      ]
     },
     {
       "id": "hamlet-storynest-reading-treehouse-door",
@@ -136702,7 +136754,15 @@
           434.5
         ]
       ],
-      "target": "hamlet-storynest-reading-treehouse"
+      "target": "hamlet-storynest-reading-treehouse",
+      "approachStart": [
+        581,
+        391
+      ],
+      "approachEnd": [
+        173,
+        491
+      ]
     },
     {
       "id": "hamlet-patchwing-quilting-hall-door",
@@ -136718,7 +136778,15 @@
           1368
         ]
       ],
-      "target": "hamlet-patchwing-quilting-hall"
+      "target": "hamlet-patchwing-quilting-hall",
+      "approachStart": [
+        8012,
+        1086
+      ],
+      "approachEnd": [
+        7911,
+        1456
+      ]
     },
     {
       "id": "hamlet-patchwing-cottage-northwest-door",
@@ -136734,7 +136802,15 @@
           1368
         ]
       ],
-      "target": "hamlet-patchwing-cottage-northwest"
+      "target": "hamlet-patchwing-cottage-northwest",
+      "approachStart": [
+        7173,
+        1011
+      ],
+      "approachEnd": [
+        7911,
+        1456
+      ]
     },
     {
       "id": "hamlet-patchwing-cottage-northeast-door",
@@ -136750,7 +136826,15 @@
           1368
         ]
       ],
-      "target": "hamlet-patchwing-cottage-northeast"
+      "target": "hamlet-patchwing-cottage-northeast",
+      "approachStart": [
+        8604,
+        1105
+      ],
+      "approachEnd": [
+        7911,
+        1456
+      ]
     },
     {
       "id": "hamlet-patchwing-cottage-southwest-door",
@@ -136766,7 +136850,15 @@
           1368
         ]
       ],
-      "target": "hamlet-patchwing-cottage-southwest"
+      "target": "hamlet-patchwing-cottage-southwest",
+      "approachStart": [
+        7546,
+        1550
+      ],
+      "approachEnd": [
+        7911,
+        1456
+      ]
     },
     {
       "id": "hamlet-patchwing-cottage-southeast-door",
@@ -136782,7 +136874,15 @@
           1368
         ]
       ],
-      "target": "hamlet-patchwing-cottage-southeast"
+      "target": "hamlet-patchwing-cottage-southeast",
+      "approachStart": [
+        8415,
+        1836
+      ],
+      "approachEnd": [
+        7911,
+        1456
+      ]
     },
     {
       "id": "hamlet-sproutshare-greenhouse-door",
@@ -136798,7 +136898,15 @@
           5322.75
         ]
       ],
-      "target": "hamlet-sproutshare-greenhouse"
+      "target": "hamlet-sproutshare-greenhouse",
+      "approachStart": [
+        866,
+        5163
+      ],
+      "approachEnd": [
+        866,
+        5176
+      ]
     },
     {
       "id": "hamlet-sproutshare-cottage-northwest-door",
@@ -136814,7 +136922,15 @@
           5322.75
         ]
       ],
-      "target": "hamlet-sproutshare-cottage-northwest"
+      "target": "hamlet-sproutshare-cottage-northwest",
+      "approachStart": [
+        -290,
+        4995
+      ],
+      "approachEnd": [
+        866,
+        5176
+      ]
     },
     {
       "id": "hamlet-sproutshare-cottage-northeast-door",
@@ -136830,7 +136946,15 @@
           5322.75
         ]
       ],
-      "target": "hamlet-sproutshare-cottage-northeast"
+      "target": "hamlet-sproutshare-cottage-northeast",
+      "approachStart": [
+        1309,
+        5047
+      ],
+      "approachEnd": [
+        866,
+        5176
+      ]
     },
     {
       "id": "hamlet-sproutshare-cottage-southwest-door",
@@ -136846,7 +136970,15 @@
           5322.75
         ]
       ],
-      "target": "hamlet-sproutshare-cottage-southwest"
+      "target": "hamlet-sproutshare-cottage-southwest",
+      "approachStart": [
+        -119,
+        6033
+      ],
+      "approachEnd": [
+        866,
+        5176
+      ]
     },
     {
       "id": "hamlet-sproutshare-cottage-southeast-door",
@@ -136862,7 +136994,15 @@
           5322.75
         ]
       ],
-      "target": "hamlet-sproutshare-cottage-southeast"
+      "target": "hamlet-sproutshare-cottage-southeast",
+      "approachStart": [
+        1341,
+        5708
+      ],
+      "approachEnd": [
+        866,
+        5176
+      ]
     },
     {
       "id": "hamlet-lanternloaf-cottage-northwest-door",
@@ -136878,7 +137018,15 @@
           5237.099853515625
         ]
       ],
-      "target": "hamlet-lanternloaf-cottage-northwest"
+      "target": "hamlet-lanternloaf-cottage-northwest",
+      "approachStart": [
+        6772,
+        5019
+      ],
+      "approachEnd": [
+        7600,
+        5345
+      ]
     },
     {
       "id": "hamlet-lanternloaf-cottage-northeast-door",
@@ -136894,7 +137042,15 @@
           5237.099853515625
         ]
       ],
-      "target": "hamlet-lanternloaf-cottage-northeast"
+      "target": "hamlet-lanternloaf-cottage-northeast",
+      "approachStart": [
+        8375,
+        5050
+      ],
+      "approachEnd": [
+        7600,
+        5345
+      ]
     },
     {
       "id": "hamlet-lanternloaf-bakery-door",
@@ -136910,7 +137066,15 @@
           5237.099853515625
         ]
       ],
-      "target": "hamlet-lanternloaf-bakery"
+      "target": "hamlet-lanternloaf-bakery",
+      "approachStart": [
+        7608,
+        5335
+      ],
+      "approachEnd": [
+        7600,
+        5345
+      ]
     },
     {
       "id": "hamlet-lanternloaf-cottage-southwest-door",
@@ -136926,7 +137090,15 @@
           5237.099853515625
         ]
       ],
-      "target": "hamlet-lanternloaf-cottage-southwest"
+      "target": "hamlet-lanternloaf-cottage-southwest",
+      "approachStart": [
+        6900,
+        5789
+      ],
+      "approachEnd": [
+        7600,
+        5345
+      ]
     },
     {
       "id": "hamlet-lanternloaf-cottage-southeast-door",
@@ -136942,7 +137114,11 @@
           5237.099853515625
         ]
       ],
-      "target": "hamlet-lanternloaf-cottage-southeast"
+      "target": "hamlet-lanternloaf-cottage-southeast",
+      "approachEnd": [
+        7600,
+        5345
+      ]
     },
     {
       "id": "storynest-entry",
@@ -136965,6 +137141,10 @@
           700,
           1400
         ]
+      ],
+      "approachStart": [
+        188,
+        677
       ]
     },
     {
@@ -136984,6 +137164,10 @@
           7140,
           1300
         ]
+      ],
+      "approachStart": [
+        7806,
+        1395
       ]
     },
     {
@@ -137007,6 +137191,10 @@
           1400,
           6400
         ]
+      ],
+      "approachStart": [
+        863,
+        5171
       ]
     },
     {
@@ -137030,6 +137218,10 @@
           8250,
           6030
         ]
+      ],
+      "approachStart": [
+        7626,
+        5417
       ]
     }
   ],

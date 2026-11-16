@@ -1,9 +1,10 @@
+import {assertRosySample} from './lib/rosy-clearance.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {mapOf} from '../src/pixi/island-maps.js';
-import {canSail,harborOf,setSailDestination,sailStep} from '../src/pixi/islands.js';
-import {setWalkDestination,walkStep} from '../src/pixi/player-motion.js';
+import {mapOf} from '../src/world/island-maps.js';
+import {canSail,harborOf,setSailDestination,sailStep} from '../src/gameplay/islands.js';
+import {setWalkDestination,walkStep} from '../src/gameplay/player-motion.js';
 import {Path2D,createCanvas} from '@napi-rs/canvas';
 const read=p=>JSON.parse(readFileSync(new URL('../'+p,import.meta.url)));
 const text=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
@@ -27,7 +28,7 @@ test('Rosy uses Home widths and one unoutlined path surface in its retained pale
  }
  assert.ok(!art.flats.some(p=>p.id==='path-joins'||p.src.includes('floor-detail-')));
  assert.ok(map.JETTY.art,'the marina has one authored deck');
- for(const r of routes)for(const p of r.samples)assert.ok(map.nav().walkable(...p),r.id+' at '+p);
+ for(const r of routes)for(const p of r.samples)assertRosySample(map.nav(),p,r.id+' alpha audit at '+p);
 });
 function homeBody(s,dir){
  let inner=s.replace(/^[\s\S]*?<svg[^>]*>/,'').replace(/<\/svg>\s*$/,'');

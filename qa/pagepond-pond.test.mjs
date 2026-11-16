@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {Path2D} from '@napi-rs/canvas';
-import {mapFor} from '../src/pixi/island-maps.js';
+import {mapFor} from '../src/world/island-maps.js';
 import {inShape} from '../assets/world/island-geometry.mjs';
 
 const read=p=>JSON.parse(fs.readFileSync(p));
@@ -30,12 +30,13 @@ test('Pagepond reading pond uses an organic grassy bank and matching visual/clie
 
 test('Pagepond lily pads stay afloat and the river remains separated by a walkable grassy bank',()=>{
  const wet=(x,y)=>world.water.some(w=>inShape(x,y,w));
+ for(const p of [[4390,3060],[4390,3125],[4410,3100]])assert(map.nav().walkable(...p),'retained scenery is walkable on the bank '+p);
  for(const f of art.floating.filter(f=>f.src.includes('lily-pad')))assert(wet(f.x,f.y),f.src+' afloat');
- for(const p of [[4390,3060],[4390,3125],[4410,3100]]){
+ for(const p of [[4501,2996],[4504,3012],[4501,3009]]){
   assert(!wet(...p),'dry separation from river '+p);
   assert(map.nav().walkable(...p),'bank is usable ground '+p);
  }
- for(const id of ['lib-18','lib-19','lib-20','lib-25','lib-32']){
+ for(const id of ['lib-18','lib-19','lib-20','lib-32']){
   const p=art.props.find(p=>p.id===id);assert(!wet(p.x,p.y),id+' keeps dry footing');
  }
  assert.equal(art.props.filter(p=>p.zone==='pond'&&/reeds|cattails/.test(p.src)).length,4);

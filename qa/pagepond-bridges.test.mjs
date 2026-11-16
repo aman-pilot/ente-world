@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {DOMParser} from '@xmldom/xmldom';
 import {inPoly} from '../assets/world/island-geometry.mjs';
-import {mapFor} from '../src/pixi/island-maps.js';
+import {mapFor} from '../src/world/island-maps.js';
 const read=p=>JSON.parse(fs.readFileSync(p));
 const art=read('public/pixi-art/themes/library/art.json'),world=read('assets/world/themes/library/world.json'),walk=read('assets/world/themes/library/walk-world.json');
 const ground=read('scripts/pagepond/layout.json'),bridges=art.decks.filter(d=>d.homeSource);
@@ -16,7 +16,6 @@ function posts(doc){return paths(doc).flatMap(p=>[...p.getAttribute('d').matchAl
  if(!/Z/.test(sub)||/Q/.test(sub))return[];const n=nums(sub);if(n.length!==8)return[];
  const xs=n.filter((_,i)=>i%2===0),ys=n.filter((_,i)=>i%2===1),w=Math.max(...xs)-Math.min(...xs),h=Math.max(...ys)-Math.min(...ys);
  if(w<5||w>7||h<40||h>43)return[];
- // Both long edges must be vertical and both short edges horizontal.
  near(n[0],n[6],'left post upright');near(n[2],n[4],'right post upright');near(n[1],n[3],'level post top');near(n[5],n[7],'level post foot');return [[w,h]];
 }));}
 
@@ -50,8 +49,8 @@ test('all 34 Pagepond bridge ends meet widened paths and the production deck phy
   for(const [sign,p]of [[-1,d.a],[1,d.b]]){
    const v=d.homeSource.includes('-ne')?[85,52]:d.homeSource.includes('-nw')?[-85,52]:[-u[1]*100,u[0]*100],vl=Math.hypot(...v);
    for(const cross of [-48,-24,0,24,48])assert(floor([p[0]+v[0]/vl*cross,p[1]+v[1]/vl*cross]),d.id+' full-width bank throat '+cross);
-   for(let distance=0;distance<=40;distance+=4){const q=p.map((v,k)=>v+u[k]*sign*distance);assert(floor(q),d.id+' path extends to deck');assert(nav.walkable(...q),d.id+' clear landing');}
-   const route=nav.route(map.spawn.x,map.spawn.y,...p);assert.deepEqual(route.at(-1),p,d.id+' landing reachable');
+   for(let distance=0;distance<=40;distance+=4){const q=p.map((v,k)=>v+u[k]*sign*distance);assert(floor(q),d.id+' path extends to deck');const approach=nav.nearest(...q,80);assert(approach,d.id+' clear landing beside prop outline');assert(nav.walkable(...approach),d.id+' uncovered landing');const access=nav.route(...p,...approach);assert.deepEqual(access.at(-1),approach,d.id+' continuous landing access');let previous=p;for(const point of access){assert(nav.clearLine(previous,point),d.id+' landing avoids solid art');previous=point;}}
+   const landing=nav.nearest(...p,80);assert(landing,d.id+' landing approach');const route=nav.route(map.spawn.x,map.spawn.y,...landing);assert.deepEqual(route.at(-1),landing,d.id+' landing reachable');
   }
   for(let t=0;t<=1;t+=.02)assert(nav.walkable(d.a[0]+dx*t,d.a[1]+dy*t),d.id+' continuous deck');
  }
@@ -64,8 +63,6 @@ test('every Pagepond bridge crosses the local water flow rather than following i
   const centre=d.a.map((v,k)=>(v+d.b[k])/2);let best={distance:Infinity};
   for(const ps of channels){let station=0;for(let i=1;i<ps.length;i++){const a=ps[i-1],b=ps[i],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy);if(!l)continue;const t=Math.max(0,Math.min(1,((centre[0]-a[0])*dx+(centre[1]-a[1])*dy)/(l*l))),distance=Math.hypot(centre[0]-a[0]-dx*t,centre[1]-a[1]-dy*t);if(distance<best.distance)best={distance,ps,station:station+t*l};station+=l;}}
   const a=at(best.ps,best.station-60),b=at(best.ps,best.station+60),flow=[b[0]-a[0],b[1]-a[1]],deck=[d.b[0]-d.a[0],d.b[1]-d.a[1]];
-  // Four authored camera directions bound the angular fit. This catches the
-  // old EW spans on the two diagonal bends without rotating their uprights.
   assert(Math.abs(flow[0]*deck[0]+flow[1]*deck[1])/Math.hypot(...flow)/Math.hypot(...deck)<.56,d.id+' crosses the local river spine');
  }
 });

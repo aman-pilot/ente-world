@@ -1,0 +1,58 @@
+/* Signed-out landing: the intro (sky, clouds, planet, dive) over the plaza, then the Play buttons. */
+.landing-boot { position: fixed; inset: 0; background: #8fd0ef; }
+.landing { position: fixed; inset: 0; overflow: hidden; background: #8fd0ef; }
+.landing[data-settled="true"] .landing[data-settled="true"] .ld-intro, .landing[data-intro-done="true"] .ld-intro { display: none; }
+.landing[data-intro-done="true"] .ld-intro { position: absolute; inset: 0; pointer-events: none; }
+.ld-globe { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; will-change: transform, opacity; }
+.landing[data-settled="true"] .ld-globe, .landing[data-playing] .ld-globe, .landing[data-intro-done="true"] .ld-globe { opacity: 1; }
+.ld-sky { position: absolute; inset: 0; background: radial-gradient(60vmax 45vmax at 18% 8%, rgb(255 250 232 / .55), transparent 70%), linear-gradient(#4aa6ec, #7cc6f1 55%, #b5e2f7); }
+.ld-cloud { position: absolute; height: auto; will-change: transform, opacity; }
+.landing:not([data-playing]):not([data-settled="true"]) :is(.ld-globe, .ld-intro) { visibility: hidden; }
+.ld-title { --big: min(13.6vw, 200px); position: absolute; left: 0; right: 0; top: 17%; display: flex; flex-direction: column; align-items: center; gap: 12px; color: #fff4d8; font: 700 16px/1 'Fredoka', system-ui, sans-serif; white-space: nowrap; }
+.ld-title i { display: inline-block; transform-origin: 50% 90%; font-style: normal; opacity: 0; -webkit-text-stroke: .07em #332b23; paint-order: stroke fill; text-shadow: 0 .035em 0 #332b23; }
+.ld-small { font-size: calc(var(--big) * .32); letter-spacing: .02em; line-height: 1; }
+.ld-big { font-size: var(--big); letter-spacing: .01em; line-height: .95; }
+.ld-ente { position: fixed; z-index: 9; top: max(16px, env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px)); width: 77px; height: 24px; padding: 8px 12px; box-sizing: content-box; border-radius: 12px; background: #332b23; }
+@media (max-width: 899px) {
+  .ld-ente { width: 58px; height: 18px; padding: 11px 9px; border-radius: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+}
+@media (max-width: 599px) {
+  .ld-title { --big: clamp(56px, 16.5vw, 84px); top: 20svh; left: 20px; right: 20px; gap: 8px; }
+  .ld-small { font-size: 27px; }
+}
+
+/* the title: chunky gold letters with a 3D edge */
+.landing { --fill: #ffd84a; --fill2: #ffd84a; --edge: #332b23; --small: #fff; }
+.landing .ld-big i { color: var(--fill); -webkit-text-stroke: calc(.075em + 8px) var(--edge); text-shadow: 0 .03em 0 var(--edge), 0 .06em 0 var(--edge), 0 .09em 0 var(--edge), 0 .16em .06em rgb(31 70 120 / 30%); }
+.landing .ld-big i:nth-child(n+6) { color: var(--fill2); }
+.landing .ld-big { letter-spacing: -.02em; }
+.landing .ld-small { letter-spacing: -.01em; }
+/* every outline sits behind every gold fill, so a letter's thick outline never cuts into its neighbour */
+.landing .ld-big i { position: relative; }
+.landing .ld-big .face { position: relative; z-index: 0; }
+@property --sx { syntax: '<length>'; inherits: true; initial-value: -3000px; }
+.landing .ld-big .face { display: inline-block; transform: translateY(var(--y, 0)) rotate(var(--r, 0deg)); }
+.landing .ld-big .sh { position: absolute; left: 0; top: 0; z-index: 2; font-weight: inherit; transform: translateY(var(--y, 0)) rotate(var(--r, 0deg)); color: transparent; -webkit-text-stroke: 0; text-shadow: none; pointer-events: none;
+  background: linear-gradient(115deg, transparent 0 38%, rgb(255 255 255 / 90%) 50%, transparent 62% 100%) no-repeat; background-size: calc(var(--ww, 1000px) * .5) 100%; background-position: calc(var(--sx) - var(--ox, 0px)) 0; -webkit-background-clip: text; background-clip: text; }
+/* gold sparkle. A warm gold fill ride the shine layer (clipped to the letters), a soft
+   light glides through once the letters have popped, and each letter gets a star as the light crosses it */
+/* no orange copy under the letters (read as a duplicate inside the holes); one dark edge, soft shadow under the whole word */
+.landing .ld-big i { text-shadow: 0 .03em 0 var(--edge), 0 .055em 0 var(--edge); }
+.landing .ld-big { filter: drop-shadow(0 .09em .05em rgb(31 70 120 / 28%)); }
+.landing .ld-big .sh {
+  background: linear-gradient(100deg, rgb(255 255 255 / 0) 0%, rgb(255 250 214 / .35) 28%, rgb(255 255 255 / .95) 50%, rgb(255 250 214 / .35) 72%, rgb(255 255 255 / 0) 100%),   /* the sweep did not read at .5 */
+    linear-gradient(172deg, #fff8c4 6%, #ffe066 32%, #ffbf1f 62%, #ff9100 92%);   /* no white band across the letters */
+  background-repeat: no-repeat; background-size: calc(var(--ww, 1000px) * .6) 100%, 100% 100%;
+  background-position: calc(var(--sx) - var(--ox, 0px)) 0, 0 0; -webkit-background-clip: text; background-clip: text; }
+.landing .ld-big { position: relative; }
+.ld-gl { position: absolute; z-index: 2; width: .42em; height: .42em; pointer-events: none; opacity: 0;
+  clip-path: polygon(50% 0, 57% 43%, 100% 50%, 57% 57%, 50% 100%, 43% 57%, 0 50%, 43% 43%); background: radial-gradient(circle, #fff 0 18%, #ffe58a 45%, #f5b81a);   /* gold, like the feather's trail (was mostly white) */
+  filter: drop-shadow(0 0 .1em #fff3c4) drop-shadow(0 0 .2em #ffc928); }
+.ld-gl.sm { width: .22em; height: .22em; }
+.landing .ld-small i { color: var(--small); -webkit-text-stroke-color: var(--edge); text-shadow: 0 .05em 0 var(--edge), 0 .1em .08em rgb(31 70 120 / 25%); }
+
+/* the cloud whoosh at the start, and the landing: sparkles and feathers blasting out of the impact */
+.ld-whoosh { left: 50%; top: 50%; width: 300px; z-index: 3; }
+.ld-flurry { position: fixed; inset: 0; z-index: 9; width: 100%; height: 100%; pointer-events: none; }   /* the blast: one canvas, drawn in Landing.jsx */

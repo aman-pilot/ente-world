@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {BOG_COMBAT} from '../src/pixi/bog-combat/config.js';
-import {BOG_BLOCKERS} from '../src/pixi/bog-blockers.js';
-import {DUCK_RADIUS,traceShot} from '../src/pixi/bog-combat/physics.js';
-import {shelters,hasWideBypass,shortCrossing} from './bog-wall-layout-helpers.mjs';
+import {BOG_COMBAT} from '../src/features/bog-combat/config.js';
+import {BOG_BLOCKERS} from '../src/features/bog-combat/bog-blockers.js';
+import {DUCK_RADIUS,traceShot} from '../src/features/bog-combat/physics.js';
+import {shelters,hasWideBypass,shortCrossing,bogFloorSample} from './bog-wall-layout-helpers.mjs';
 const art=JSON.parse(fs.readFileSync('public/pixi-art/themes/bog-arena/art.json'));
 const layout=JSON.parse(fs.readFileSync('scripts/bog-environment/layout.json'));
 const cover=art.props.filter(p=>p.author==='warzone'&&p.coverFootprints);
@@ -14,7 +14,8 @@ const footprint=p=>BOG_BLOCKERS.filter(b=>b.prop===p.id&&b.author==='warzone');
 
 test('all war-zone walls and supply stacks have exact shared paint and movement footprints',()=>{
  assert.equal(cover.length,layout.warzone.coverStations);
- assert.ok(cover.length>0&&layout.wallLayout.groups.reduce((n,g)=>n+g.members.length,0)<=97);
+ assert.equal(cover.length,123);
+ assert.equal(layout.wallLayout.groups.reduce((n,g)=>n+g.members.length,0),131);
  for(const p of cover){
   const feet=footprint(p);assert.equal(feet.length,p.coverFootprints.length,p.id);
   for(const [i,[x,y,w,h]]of p.coverFootprints.entries()){
@@ -67,7 +68,8 @@ test('four boarded Home cottages are solid cover with connected front and rear f
  const shells=art.props.filter(p=>p.name==='boarded-cottage');assert.equal(shells.length,4);
  for(const p of shells){
   const b=BOG_BLOCKERS.find(b=>b.id===p.id);assert.ok(b,p.id);
-  for(const q of [[p.x,p.y+30],[p.x,b.y-50],[b.x-50,p.y],[b.x+b.width+50,p.y]]){
+  for(const [i,original] of [[p.x,p.y+30],[p.x,b.y-50],[b.x-50,p.y],[b.x+b.width+50,p.y]].entries()){
+   const q=bogFloorSample(p.id+':'+i,original);
    assert.ok(nav.walkable(...q),p.id+' clear shoulder '+q);
    assert.ok(nav.route(4200,2800,...q).length,p.id+' shoulder connected '+q);
   }

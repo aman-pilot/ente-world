@@ -1,9 +1,10 @@
 import test from 'node:test';
+import {bogFloorSample} from './bog-wall-layout-helpers.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import data from '../src/pixi/bog-environment.json' with {type:'json'};
-import {makeMap} from '../src/pixi/island-maps.js';
-import {BOG_BLOCKERS} from '../src/pixi/bog-blockers.js';
+import data from '../src/features/bog-combat/bog-environment.json' with {type:'json'};
+import {makeMap} from '../src/world/island-maps.js';
+import {BOG_BLOCKERS} from '../src/features/bog-combat/bog-blockers.js';
 import {views} from '../scripts/bog-environment/arcade-modules.mjs';
 const root='public/pixi-art/themes/bog-arena/';
 const art=JSON.parse(fs.readFileSync(root+'art.json'));
@@ -17,8 +18,9 @@ test('every upright Home facade has a connected door lane and one contact shadow
   assert.ok(p.shadow&&p.shadowSize[1]<=25,p.id+' contact');
   const route=layout.routes.find(r=>r.id===p.id+'-door');
   assert.ok(route,p.id+' lane');assert.deepEqual(route.points[0],[p.x,p.y-12]);
-  assert.ok(nav.walkable(p.x,p.y+30),p.id+' doorstep');
-  assert.ok(nav.route(1900,2090,p.x,p.y+30).length,p.id+' route');
+  const [x,y]=bogFloorSample('door:'+p.id,[p.x,p.y+30]);
+  assert.ok(nav.walkable(x,y),p.id+' doorstep');
+  assert.ok(nav.route(1900,2010,x,y).length,p.id+' route');
   for(const q of buildings.filter(q=>q.id!==p.id&&Math.hypot(q.x-p.x,q.y-p.y)<700))assert.notEqual(q.homeSource,p.homeSource,p.id+' distinct neighbour');
  }
 });
@@ -28,7 +30,7 @@ test('fight areas have no benches, names, planters, flowers, sleepers or lane wi
  assert.ok(!art.flats.some(p=>p.src.includes('site-bed.svg')));
  assert.ok(!fs.readdirSync(root+'home').some(p=>/^label-.*\.svg$/.test(p)));
  const lamps=art.props.filter(p=>p.name==='lantern');assert.equal(lamps.length,4);
- for(const p of lamps)assert.match(p.id,/^(privacy-nw|google-ne|privacy-sw|google-se)-lamp-0$/);
+ for(const p of lamps)assert.match(p.id,/^(karma-nw|evil-ne|karma-sw|evil-se)-lamp-0$/);
 });
 test('arcade uses three independently drawn straight views and exact pier collision',()=>{
  const bays=art.props.filter(p=>p.id.startsWith('site-b-arcade-'));
@@ -38,7 +40,8 @@ test('arcade uses three independently drawn straight views and exact pier collis
   assert.equal(views[p.view][0][1],views[p.view][1][1],p.id+' feet and lintel are horizontal');
   assert.equal((svg.match(/data-contact-shadow=/g)||[]).length,1);assert.equal(p.shadow,false);
   assert.equal(BOG_BLOCKERS.filter(b=>b.id.startsWith(p.id+'-pier-')).length,2);
-  assert.ok(nav.walkable(p.x,p.y-25),p.id+' open bay');
+  const [x,y]=bogFloorSample('arcade:'+p.id,[p.x,p.y-25]);
+  assert.ok(nav.walkable(x,y),p.id+' uncovered bay approach');
  }
 });
 test('Home bridge retains exact source, source deck width and flush physical endpoints',()=>{

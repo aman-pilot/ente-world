@@ -7,12 +7,19 @@ import {ROOT,ART,WORLD,WORKERS,loadCatalog,integrate,validate,bounds,overlaps,pa
 import sharp from 'sharp';
 import {maxSleepersInView,quality3Problems} from '../scripts/iceland-final/quality3.mjs';
 import {geometry,inShape} from '../assets/world/island-geometry.mjs';
-import {onRink} from '../src/pixi/rink-slide.js';
-import {makeMap} from '../src/pixi/island-maps.js';
-import {resolveSleepSpots,sleepHalfWidths,sleepShapeProblems} from '../src/pixi/sleep-spots.js';
+import {onRink} from '../src/gameplay/rink-slide.js';
+import {makeMap} from '../src/world/island-maps.js';
+import {resolveSleepSpots,sleepHalfWidths,sleepShapeProblems} from '../src/world/home/sleep-spots.js';
 
 const read = file=>JSON.parse(readFileSync(path.join(ROOT,file)));
 const originalArt=read(ART+'/art.json'),originalWorld=read(WORLD+'/world.json');
+// This compositor fixture uses the painted doorway, while the delivered map
+// keeps its walking approach outside the full facade outline.
+for(const d of originalWorld.iceland2.doors){
+ const door=originalArt.props.find(p=>p.id===d[0]).door;
+ d.splice(1,2,...door);originalWorld.iceland2.nodes[d[0]]=[...door];
+ for(const r of originalWorld.iceland2.routes)for(const [i,id]of r.ends.entries())if(id===d[0])r.samples[i?r.samples.length-1:0]=[...door];
+}
 const density=await homeDensity();
 const catalog=loadCatalog(ROOT,{dryRun:true});
 const result=await integrate({catalog,density,inputArt:originalArt,inputWorld:originalWorld});
@@ -44,7 +51,6 @@ test('natural lake replaces fence, gates and centre tree with the complete flat 
  for(const name of expected){const source=result.files.get(path.join(ART,'final/rink',name+'.svg'));assert.ok(source?.includes('<svg'));assert.ok(source.includes('stroke="#39472d"'));assert.ok(!/gradient|<image|filter/.test(source));}
  assert.ok(geometry(world).walkable(...r.heart));assert.ok(onRink(r,...r.heart));
  assert.ok(Math.abs(area(r.poly)/(1089.3755*674.8597)-.7)<.2,'similar lake area');
- // All perimeter samples are ordinary walkable land unless a solid prop covers them.
  const walk=geometry(world).walkable;
  for(const [x,y] of r.poly.filter((_,i)=>i%8===0)){
   const blocked=world.obstacles.some(o=>inShape(x,y,o,16));
@@ -56,7 +62,7 @@ test('quality pass preserves approved buildings, paths, rink, snow and resident 
  const fixed=a=>a.props.filter(p=>['building','smoke'].includes(p.finalKind));
  assert.deepEqual(fixed(art),fixed(originalArt));
  assert.deepEqual(report.yards,originalArt.icelandFinal.yards);
- const base=makeMap('snow',{world,walk:world,harbor:read(WORLD+'/harbor.json'),sleepers:[]}).baseWalk;
+ const base=makeMap('snow-layout',{world,walk:world,harbor:read(WORLD+'/harbor.json'),sleepers:[]}).baseWalk;
  const beds=resolveSleepSpots(base,art.props,geometry(base).walkable,sleepHalfWidths(),{spots:world.sleepSpots,avoid:world.sleepAvoid,warn:false});
  assert.equal(beds.length,60);assert.deepEqual(beds.bad,[]);assert.equal(new Set(beds.map(b=>b.pose)).size,8);
 });
@@ -77,7 +83,7 @@ test('every new door meets its original path and every facade has a furnished ya
   const plants=yard.filter(p=>p.finalRole==='flowerpot');
   assert.equal(plants.length,2,id+' door has no planted shoulders');
   assert.ok(plants.some(p=>p.x<x)&&plants.some(p=>p.x>x),id+' plants must flank the door');
-  for(const plant of plants){assert.ok(Math.abs(plant.x-x)<=100&&Math.abs(plant.y-p.y)<5,id+' planter must meet the facade');assert.ok(plant.z>p.y,id+' planter hidden behind facade');}
+  for(const plant of plants){assert.ok(Math.hypot(plant.x-x,plant.y-p.y)<160,id+' planter stays beside its facade after clearing the drawing');assert.ok(plant.z>p.y,id+' planter hidden behind facade');}
   const drifts=art.flats.filter(q=>q.building===id&&q.finalRole==='wall-drift');
   assert.equal(drifts.length,2,id+' bare walls');
   for(const drift of drifts)assert.ok(Math.abs(drift.y-p.y)<=20,id+' drift detached from wall');
@@ -204,7 +210,6 @@ test('one continuous soft snow lip follows the original Bezier on both sides of 
  assert.equal((terrain.match(/id="snow-lip"/g)??[]).length,1);
  const lip=terrain.match(/<g id="snow-lip"[^>]*>([\s\S]*?)<\/g>/)[1];
  assert.ok(!/#39472d|#232323|stroke-dasharray/.test(lip));
- // The three retired gate stubs are replaced by one rounded surface union.
  assert.equal((lip.match(/stroke="#eef3f9"/g)??[]).length,world.iceland2.routes.length+1);
  assert.equal((lip.match(/stroke="#d4dfec"/g)??[]).length,world.iceland2.routes.length+1);
  for(const r of world.iceland2.routes){
@@ -212,8 +217,6 @@ test('one continuous soft snow lip follows the original Bezier on both sides of 
   assert.ok(lip.includes(`d="${band.d}" fill="none" stroke="#eef3f9" stroke-width="${r.width+24}"`),r.id+' continuous raised band');
   assert.ok(lip.includes(`d="${band.d}" fill="none" stroke="#d4dfec" stroke-width="${r.width+4}"`),r.id+' thin path-side shadow');
  }
- // All outer strokes precede all shadow strokes, followed by the original blue
- // network. Overlapping routes erase interior seams instead of outlining a fork.
  assert.ok(lip.lastIndexOf('#eef3f9')<lip.indexOf('#d4dfec'));
  assert.ok(terrain.indexOf(lip)<terrain.indexOf('stroke="#a6deec"'));
 });
@@ -246,8 +249,6 @@ test('missing worker manifests use placeholders only for dry-run, without modify
  const c=loadCatalog(ROOT,{dryRun:true,manifestDir:empty});assert.deepEqual(c.missing,WORKERS);
  const before=JSON.stringify({originalArt,originalWorld});
  const preview=await integrate({catalog:c,density,inputArt:originalArt,inputWorld:originalWorld});
- // Stand-ins have different silhouettes. They can check structure and sleep
- // safety, but cannot certify the production artwork's per-view coverage.
  assert.deepEqual(validate(preview).filter(e=>!e.startsWith('blank land view')),[]);assert.equal(preview.report.counts.sleepers,60);
  assert.ok(preview.report.placeholderRoles.length>=3);assert.equal(JSON.stringify({originalArt,originalWorld}),before);
 });

@@ -1,0 +1,1185 @@
+[
+  {
+    "id": "home-0",
+    "region": "home",
+    "islandId": "home",
+    "x": 6956.944444444443,
+    "y": -757.3611111111109
+  },
+  {
+    "id": "home-1",
+    "region": "home",
+    "islandId": "home",
+    "x": -1293.0555555555554,
+    "y": 5017.638888888889
+  },
+  {
+    "id": "home-2",
+    "region": "home",
+    "islandId": "home",
+    "x": 556.2777777777778,
+    "y": -757.3611111111109
+  },
+  {
+    "id": "home-3",
+    "region": "home",
+    "islandId": "home",
+    "x": 5123.6111111111095,
+    "y": 5017.638888888889
+  },
+  {
+    "id": "home-4",
+    "region": "home",
+    "islandId": "home",
+    "x": 3290.277777777778,
+    "y": 1765.6388888888891
+  },
+  {
+    "id": "home-5",
+    "region": "home",
+    "islandId": "home",
+    "x": -1293.0555555555554,
+    "y": 1717.6388888888891
+  },
+  {
+    "id": "home-6",
+    "region": "home",
+    "islandId": "home",
+    "x": 6956.944444444443,
+    "y": 2542.638888888889
+  },
+  {
+    "id": "home-7",
+    "region": "home",
+    "islandId": "home",
+    "x": 1456.9444444444443,
+    "y": 4192.638888888889
+  },
+  {
+    "id": "home-8",
+    "region": "home",
+    "islandId": "home",
+    "x": 4206.944444444445,
+    "y": -757.3611111111109
+  },
+  {
+    "id": "home-9",
+    "region": "home",
+    "islandId": "home",
+    "x": 2373.611111111111,
+    "y": -1582.3611111111109
+  },
+  {
+    "id": "home-10",
+    "region": "home",
+    "islandId": "home",
+    "x": 6040.277777777776,
+    "y": 892.6388888888891
+  },
+  {
+    "id": "home-11",
+    "region": "home",
+    "islandId": "home",
+    "x": 1456.9444444444443,
+    "y": 892.6388888888891
+  },
+  {
+    "id": "home-12",
+    "region": "home",
+    "islandId": "home",
+    "x": 540.2777777777778,
+    "y": 2542.638888888889
+  },
+  {
+    "id": "home-13",
+    "region": "home",
+    "islandId": "home",
+    "x": 4206.944444444445,
+    "y": 3367.638888888889
+  },
+  {
+    "id": "home-14",
+    "region": "home",
+    "islandId": "home",
+    "x": -1293.0555555555554,
+    "y": -757.3611111111109
+  },
+  {
+    "id": "home-15",
+    "region": "home",
+    "islandId": "home",
+    "x": 6956.944444444443,
+    "y": 4192.638888888889
+  },
+  {
+    "id": "home-16",
+    "region": "home",
+    "islandId": "home",
+    "x": -1260,
+    "y": 3491
+  },
+  {
+    "id": "home-17",
+    "region": "home",
+    "islandId": "home",
+    "x": 4176.034818003195,
+    "y": 5850.921098332169
+  },
+  {
+    "id": "home-18",
+    "region": "home",
+    "islandId": "home",
+    "x": 5137.46751757166,
+    "y": 2550.638888888889
+  },
+  {
+    "id": "home-19",
+    "region": "home",
+    "islandId": "home",
+    "x": 3290.277777777778,
+    "y": 67.63888888888914
+  },
+  {
+    "id": "home-20",
+    "region": "home",
+    "islandId": "home",
+    "x": 4206.944444444445,
+    "y": 892.6388888888891
+  },
+  {
+    "id": "home-21",
+    "region": "home",
+    "islandId": "home",
+    "x": 3290.277777777778,
+    "y": 4192.638888888889
+  },
+  {
+    "id": "home-22",
+    "region": "home",
+    "islandId": "home",
+    "x": -376.3888888888887,
+    "y": 67.63888888888914
+  },
+  {
+    "id": "home-23",
+    "region": "home",
+    "islandId": "home",
+    "x": 540.2777777777778,
+    "y": 5017.638888888889
+  },
+  {
+    "id": "blossom-0",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 9450,
+    "y": 2422
+  },
+  {
+    "id": "blossom-1",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": -550,
+    "y": 4102
+  },
+  {
+    "id": "blossom-2",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 3438.686291501015,
+    "y": -109.31370849898475
+  },
+  {
+    "id": "blossom-3",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 4450,
+    "y": 5782
+  },
+  {
+    "id": "blossom-4",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 5450,
+    "y": 2422
+  },
+  {
+    "id": "blossom-5",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 7449.999999999998,
+    "y": -98
+  },
+  {
+    "id": "blossom-6",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 7449.999999999998,
+    "y": 4942
+  },
+  {
+    "id": "blossom-7",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 450.00000000000045,
+    "y": 742
+  },
+  {
+    "id": "blossom-8",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 2450,
+    "y": 4102
+  },
+  {
+    "id": "blossom-9",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 5450,
+    "y": -98
+  },
+  {
+    "id": "blossom-10",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 7449.999999999998,
+    "y": 2422
+  },
+  {
+    "id": "blossom-11",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 1450,
+    "y": 5782
+  },
+  {
+    "id": "blossom-12",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 2393.431457505076,
+    "y": 1525.4314575050762
+  },
+  {
+    "id": "blossom-13",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": -550,
+    "y": 2422
+  },
+  {
+    "id": "blossom-14",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 4450,
+    "y": 4102
+  },
+  {
+    "id": "blossom-15",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 1474.846628329842,
+    "y": 2514.7288793237503
+  },
+  {
+    "id": "blossom-16",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 4434,
+    "y": 1554.287187078898
+  },
+  {
+    "id": "blossom-17",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 8449.999999999998,
+    "y": 742
+  },
+  {
+    "id": "blossom-18",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 8449.999999999998,
+    "y": 3262
+  },
+  {
+    "id": "blossom-19",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 6449.999999999998,
+    "y": 4102
+  },
+  {
+    "id": "blossom-20",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 3450,
+    "y": 4942
+  },
+  {
+    "id": "blossom-21",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 6449.999999999998,
+    "y": 5782
+  },
+  {
+    "id": "blossom-22",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 1450,
+    "y": -98
+  },
+  {
+    "id": "blossom-23",
+    "region": "blossom",
+    "islandId": "blossom",
+    "x": 450.00000000000045,
+    "y": 4942
+  },
+  {
+    "id": "sunset-0",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": -1005,
+    "y": 599
+  },
+  {
+    "id": "sunset-1",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 8895,
+    "y": 3539
+  },
+  {
+    "id": "sunset-2",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 3395,
+    "y": 6479
+  },
+  {
+    "id": "sunset-3",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 4092,
+    "y": 40
+  },
+  {
+    "id": "sunset-4",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 7,
+    "y": 4519
+  },
+  {
+    "id": "sunset-5",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 5595,
+    "y": 3539
+  },
+  {
+    "id": "sunset-6",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 7794.999999999998,
+    "y": -381
+  },
+  {
+    "id": "sunset-7",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 2439,
+    "y": 1583
+  },
+  {
+    "id": "sunset-8",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 636,
+    "y": -312
+  },
+  {
+    "id": "sunset-9",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 6343,
+    "y": 1323
+  },
+  {
+    "id": "sunset-10",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 2295,
+    "y": 4543
+  },
+  {
+    "id": "sunset-11",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 4495,
+    "y": 1579
+  },
+  {
+    "id": "sunset-12",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 8895,
+    "y": 1579
+  },
+  {
+    "id": "sunset-13",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": -1005,
+    "y": 2559
+  },
+  {
+    "id": "sunset-14",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 7843,
+    "y": 4391
+  },
+  {
+    "id": "sunset-15",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 95.00000000000045,
+    "y": 1579
+  },
+  {
+    "id": "sunset-16",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 3407,
+    "y": 571
+  },
+  {
+    "id": "sunset-17",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 1196,
+    "y": 2544
+  },
+  {
+    "id": "sunset-18",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 4315,
+    "y": 4527
+  },
+  {
+    "id": "sunset-19",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 5619,
+    "y": 579
+  },
+  {
+    "id": "sunset-20",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 7810.999999999998,
+    "y": 2559
+  },
+  {
+    "id": "sunset-21",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 2295,
+    "y": -381
+  },
+  {
+    "id": "sunset-22",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 6436,
+    "y": -192
+  },
+  {
+    "id": "sunset-23",
+    "region": "sunset",
+    "islandId": "sunset",
+    "x": 3395,
+    "y": 4519
+  },
+  {
+    "id": "isle-251-0",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 9641,
+    "y": 3158
+  },
+  {
+    "id": "isle-251-1",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": -1391,
+    "y": -465
+  },
+  {
+    "id": "isle-251-2",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 3129,
+    "y": 6151
+  },
+  {
+    "id": "isle-251-3",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 5555,
+    "y": -531
+  },
+  {
+    "id": "isle-251-4",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 6858.333333333332,
+    "y": 6692.000000000002
+  },
+  {
+    "id": "isle-251-5",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": -1308.3333333333333,
+    "y": 3572
+  },
+  {
+    "id": "isle-251-6",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 2192,
+    "y": 1728
+  },
+  {
+    "id": "isle-251-7",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 9191.666666666666,
+    "y": -588
+  },
+  {
+    "id": "isle-251-8",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 5691.666666666666,
+    "y": 3572
+  },
+  {
+    "id": "isle-251-9",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 4549,
+    "y": 5693.569219381653
+  },
+  {
+    "id": "isle-251-10",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 8025,
+    "y": 4612
+  },
+  {
+    "id": "isle-251-11",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 1025,
+    "y": 4612
+  },
+  {
+    "id": "isle-251-12",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 8025,
+    "y": 1492
+  },
+  {
+    "id": "isle-251-13",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": -169.37947958776857,
+    "y": 1476
+  },
+  {
+    "id": "isle-251-14",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 4525,
+    "y": 1492
+  },
+  {
+    "id": "isle-251-15",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 9176,
+    "y": 6769
+  },
+  {
+    "id": "isle-251-16",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": -515,
+    "y": 5297
+  },
+  {
+    "id": "isle-251-17",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 3369,
+    "y": 3627
+  },
+  {
+    "id": "isle-251-18",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 925,
+    "y": -646
+  },
+  {
+    "id": "isle-251-19",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 3358.333333333333,
+    "y": -588
+  },
+  {
+    "id": "isle-251-20",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 1091,
+    "y": 2667
+  },
+  {
+    "id": "isle-251-21",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": -955,
+    "y": 5249
+  },
+  {
+    "id": "isle-251-22",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 6858.333333333332,
+    "y": 2532
+  },
+  {
+    "id": "isle-251-23",
+    "region": "isle-251",
+    "islandId": "isle-251",
+    "x": 9191.666666666666,
+    "y": 2532
+  },
+  {
+    "id": "isle-250-0",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": -692,
+    "y": 689
+  },
+  {
+    "id": "isle-250-1",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 8744,
+    "y": 5236
+  },
+  {
+    "id": "isle-250-2",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 5413,
+    "y": -337
+  },
+  {
+    "id": "isle-250-3",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 2346.666666666667,
+    "y": 6208
+  },
+  {
+    "id": "isle-250-4",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 8610,
+    "y": 1171
+  },
+  {
+    "id": "isle-250-5",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 5559,
+    "y": 3421
+  },
+  {
+    "id": "isle-250-6",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": -886,
+    "y": 4332
+  },
+  {
+    "id": "isle-250-7",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 2501,
+    "y": 1386
+  },
+  {
+    "id": "isle-250-8",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 5569,
+    "y": 6545
+  },
+  {
+    "id": "isle-250-9",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 1294,
+    "y": -554
+  },
+  {
+    "id": "isle-250-10",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 1234,
+    "y": 3512
+  },
+  {
+    "id": "isle-250-11",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 3622,
+    "y": 4374
+  },
+  {
+    "id": "isle-250-12",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 6613.333333333332,
+    "y": 1408
+  },
+  {
+    "id": "isle-250-13",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 213.33333333333348,
+    "y": 6208
+  },
+  {
+    "id": "isle-250-14",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 3595,
+    "y": -512
+  },
+  {
+    "id": "isle-250-15",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 4474,
+    "y": 1500
+  },
+  {
+    "id": "isle-250-16",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": -853.3333333333333,
+    "y": 2368
+  },
+  {
+    "id": "isle-250-17",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 8622,
+    "y": 3344
+  },
+  {
+    "id": "isle-250-18",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 7671,
+    "y": 4280
+  },
+  {
+    "id": "isle-250-19",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 7679.999999999998,
+    "y": 6208
+  },
+  {
+    "id": "isle-250-20",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 4480,
+    "y": 5248
+  },
+  {
+    "id": "isle-250-21",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 213.33333333333348,
+    "y": 1408
+  },
+  {
+    "id": "isle-250-22",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 1245,
+    "y": 5202
+  },
+  {
+    "id": "isle-250-23",
+    "region": "isle-250",
+    "islandId": "isle-250",
+    "x": 7978,
+    "y": 301
+  },
+  {
+    "id": "isle-55-0",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 1515.7333333333333,
+    "y": 1507.84
+  },
+  {
+    "id": "isle-55-1",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 12001.066666666666,
+    "y": 3453.44
+  },
+  {
+    "id": "isle-55-2",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 5695.76,
+    "y": 8297.48
+  },
+  {
+    "id": "isle-55-3",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 6742.400000000001,
+    "y": 2480.64
+  },
+  {
+    "id": "isle-55-4",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 1502.02,
+    "y": 6399.64
+  },
+  {
+    "id": "isle-55-5",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 9878.4,
+    "y": 7344.639999999999
+  },
+  {
+    "id": "isle-55-6",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 4666.97,
+    "y": 5631.54
+  },
+  {
+    "id": "isle-55-7",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 9873.74,
+    "y": 1490.45
+  },
+  {
+    "id": "isle-55-8",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 7787.733333333334,
+    "y": 5399.04
+  },
+  {
+    "id": "isle-55-9",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 4651.733333333334,
+    "y": 1507.84
+  },
+  {
+    "id": "isle-55-10",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 9964.55,
+    "y": 4172.46
+  },
+  {
+    "id": "isle-55-11",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 2561.066666666667,
+    "y": 4426.24
+  },
+  {
+    "id": "isle-55-12",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 2561.066666666667,
+    "y": 8317.44
+  },
+  {
+    "id": "isle-55-13",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 4595.57,
+    "y": 3663.05
+  },
+  {
+    "id": "isle-55-14",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 7787.733333333334,
+    "y": 7344.639999999999
+  },
+  {
+    "id": "isle-55-15",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 4553.86,
+    "y": 7254.8
+  },
+  {
+    "id": "isle-55-16",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 8833.066666666666,
+    "y": 2480.64
+  },
+  {
+    "id": "isle-55-17",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 2561.066666666667,
+    "y": 2480.64
+  },
+  {
+    "id": "isle-55-18",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 1515.7333333333333,
+    "y": 3453.44
+  },
+  {
+    "id": "isle-55-19",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 6742.73,
+    "y": 4421.25
+  },
+  {
+    "id": "isle-55-20",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 5721.06,
+    "y": 6251.2
+  },
+  {
+    "id": "isle-55-21",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 7789.65,
+    "y": 1503.22
+  },
+  {
+    "id": "isle-55-22",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 10886.67,
+    "y": 2294.29
+  },
+  {
+    "id": "isle-55-23",
+    "region": "isle-55",
+    "islandId": "isle-55",
+    "x": 7734.85,
+    "y": 3449.97
+  },
+  {
+    "id": "sea-1-1-0",
+    "region": "sea-1-1",
+    "islandId": "isle-249",
+    "x": 4104.66,
+    "y": 13669.46
+  },
+  {
+    "id": "sea-1-1-1",
+    "region": "sea-1-1",
+    "islandId": "isle-249",
+    "x": 4240.31,
+    "y": 13721.87
+  },
+  {
+    "id": "sea-1-1-2",
+    "region": "sea-1-1",
+    "islandId": "isle-249",
+    "x": 3997.07,
+    "y": 13579.18
+  },
+  {
+    "id": "sea-1-1-3",
+    "region": "sea-1-1",
+    "islandId": "isle-249",
+    "x": 4207.14,
+    "y": 13566.97
+  },
+  {
+    "id": "sea-1-1-4",
+    "region": "sea-1-1",
+    "islandId": "isle-249",
+    "x": 3971.09,
+    "y": 13717.84
+  },
+  {
+    "id": "sea-2-1-0",
+    "region": "sea-2-1",
+    "islandId": "home",
+    "x": -6655.89,
+    "y": 2103.12
+  },
+  {
+    "id": "sea-2-1-1",
+    "region": "sea-2-1",
+    "islandId": "home",
+    "x": -6768.77,
+    "y": 2188.5
+  },
+  {
+    "id": "sea-2-1-2",
+    "region": "sea-2-1",
+    "islandId": "home",
+    "x": -6501.4,
+    "y": 2113.37
+  },
+  {
+    "id": "sea-2-1-3",
+    "region": "sea-2-1",
+    "islandId": "home",
+    "x": -6622.01,
+    "y": 2253.03
+  },
+  {
+    "id": "sea-2-1-4",
+    "region": "sea-2-1",
+    "islandId": "home",
+    "x": -6571.17,
+    "y": 1986.85
+  },
+  {
+    "id": "sea-3-1-0",
+    "region": "sea-3-1",
+    "islandId": "isle-55",
+    "x": 6277.91,
+    "y": -5123.5
+  },
+  {
+    "id": "sea-3-1-1",
+    "region": "sea-3-1",
+    "islandId": "isle-55",
+    "x": 6213.04,
+    "y": -4997.02
+  },
+  {
+    "id": "sea-3-1-2",
+    "region": "sea-3-1",
+    "islandId": "isle-55",
+    "x": 6379.43,
+    "y": -5220.21
+  },
+  {
+    "id": "sea-3-1-3",
+    "region": "sea-3-1",
+    "islandId": "isle-55",
+    "x": 6387.8,
+    "y": -4995.95
+  },
+  {
+    "id": "sea-3-1-4",
+    "region": "sea-3-1",
+    "islandId": "isle-55",
+    "x": 6241.72,
+    "y": -5261.22
+  },
+  {
+    "id": "sea-6-1-0",
+    "region": "sea-6-1",
+    "islandId": "isle-251",
+    "x": 14000.55,
+    "y": 4089.74
+  },
+  {
+    "id": "sea-6-1-1",
+    "region": "sea-6-1",
+    "islandId": "isle-251",
+    "x": 13857.65,
+    "y": 4098.44
+  },
+  {
+    "id": "sea-6-1-2",
+    "region": "sea-6-1",
+    "islandId": "isle-251",
+    "x": 14143.32,
+    "y": 4086.69
+  },
+  {
+    "id": "sea-6-1-3",
+    "region": "sea-6-1",
+    "islandId": "isle-251",
+    "x": 13984.76,
+    "y": 4228.91
+  },
+  {
+    "id": "sea-6-1-4",
+    "region": "sea-6-1",
+    "islandId": "isle-251",
+    "x": 14067.77,
+    "y": 3958.95
+  },
+  {
+    "id": "sea-7-1-0",
+    "region": "sea-7-1",
+    "islandId": "sunset",
+    "x": -5024.95,
+    "y": 8567.51
+  },
+  {
+    "id": "sea-7-1-1",
+    "region": "sea-7-1",
+    "islandId": "sunset",
+    "x": -5108.42,
+    "y": 8684.05
+  },
+  {
+    "id": "sea-7-1-2",
+    "region": "sea-7-1",
+    "islandId": "sunset",
+    "x": -4880.33,
+    "y": 8551.57
+  },
+  {
+    "id": "sea-7-1-3",
+    "region": "sea-7-1",
+    "islandId": "sunset",
+    "x": -4964.21,
+    "y": 8698.85
+  },
+  {
+    "id": "sea-7-1-4",
+    "region": "sea-7-1",
+    "islandId": "sunset",
+    "x": -4966.56,
+    "y": 8437.39
+  }
+]

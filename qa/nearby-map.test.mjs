@@ -1,36 +1,35 @@
-import {angle,dot} from '../src/pixi/sphere.js';
-import {spherePoint,viewFrame} from '../src/pixi/sphere-coordinates.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {nearbyMapFrame} from '../src/pixi/nearby-map.js';
-import {WORLD_GEO, offsetOf} from '../src/pixi/world-map.js';
-import {mapOf} from '../src/pixi/island-maps.js';
-
-const home = mapOf('home');
-const centre = {x: home.cx, y: home.cy};
-test('minimap keeps only three nearest islands and moves them opposite the duck', () => {
-  const start = nearbyMapFrame('home', centre);
-  assert.equal(start.length, 3);
-  assert.equal(start[0].id, 'home');
-  assert.equal(start[0].x, 0);
-  const moved = nearbyMapFrame('home', {x: centre.x + 500, y: centre.y + 300});
-  assert.ok(moved[0].x<0&&moved[0].y<0);
-  assert.ok(Math.abs(Math.hypot(moved[0].x,moved[0].y)-Math.hypot(500,300))<1e-8,'geodesic displacement equals walked chart distance');
-  assert.notDeepEqual(nearbyMapFrame('home', {x: centre.x + 10000, y: centre.y}).map(i => i.id), start.map(i => i.id));
+import {nearbyMapFrame,nearbyHeading} from '../src/app/nearby-map.js';
+import {mapPoint} from '../src/world/sphere-coordinates.js';
+import {mapOf} from '../src/world/island-maps.js';
+const m=mapOf('home'),centre={x:m.cx,y:m.cy};
+test('minimap keeps three nearest flat, upright islands and moves opposite the duck',()=>{
+ const a=nearbyMapFrame('home',centre),b=nearbyMapFrame('home',{x:m.cx+500,y:m.cy+300});
+ assert.equal(a.length,3);assert.equal(a[0].id,'home');
+ assert.equal(b[0].x,-500);assert.equal(b[0].y,-300);
+ for(const i of b)assert.equal(i.bearing,0);
+ assert.notDeepEqual(nearbyMapFrame('home',{x:m.cx+17000,y:m.cy}).map(i=>i.id),a.map(i=>i.id));
 });
-test('minimap remains continuous across world wrapping and island landing', () => {
-  const close=(a,b)=>{assert.deepEqual(a.map(i=>i.id),b.map(i=>i.id));for(let k=0;k<a.length;k++)for(const axis of ['x','y'])assert.ok(Math.abs(a[k][axis]-b[k][axis])<1e-8,'same position within floating-point roundoff');};
-  close(nearbyMapFrame('home', {...centre, x: centre.x + WORLD_GEO.SX}), nearbyMapFrame('home', centre));
-  const destination = mapOf('blossom');
-  const offset = offsetOf('home', 'blossom');
-  const before = nearbyMapFrame('home', {x: centre.x + offset.x, y: centre.y + offset.y});
-  const after = nearbyMapFrame('blossom', {x: destination.cx, y: destination.cy});
-  assert.deepEqual(before.map(i=>i.id),after.map(i=>i.id));
-  const oldFrame=viewFrame('home',{x:centre.x+offset.x,y:centre.y+offset.y});
-  const newFrame=viewFrame('blossom',{x:destination.cx,y:destination.cy});
-  for(let k=0;k<after.length;k++){
-    const x=after[k].x,y=after[k].y;
-    assert.ok(Math.abs(before[k].x-(dot(newFrame.east,oldFrame.east)*x-dot(newFrame.north,oldFrame.east)*y))<1e-8);
-    assert.ok(Math.abs(before[k].y-(-dot(newFrame.east,oldFrame.north)*x+dot(newFrame.north,oldFrame.north)*y))<1e-8,'same physical location in the new screen orientation');
+test('minimap positions and headings stay fixed across island frame changes',()=>{
+ for(const to of ['blossom','isle-55','isle-251']){
+  const m=mapOf(to),p={x:m.cx+300,y:m.cy-200};
+  const a=nearbyMapFrame('home',mapPoint(to,'home',p)),b=nearbyMapFrame(to,p);
+  assert.deepEqual(a.map(i=>i.id),b.map(i=>i.id));
+  for(let k=0;k<a.length;k++){assert.ok(Math.hypot(a[k].x-b[k].x,a[k].y-b[k].y)<1e-8);assert.equal(b[k].bearing,0);}
+  assert.equal(nearbyHeading(to,p,1,0),90);assert.equal(nearbyHeading(to,p,0,-1),0);
+ }
+});
+
+test('minimap shows the nearest islands the short way round the wrapping sea, before and after crossing the edge', async () => {
+  const {FLAT_POSITIONS, wrapSea} = await import('../src/world/flat-layout.js');
+  const {mapOf: map} = await import('../src/world/island-maps.js');
+  const h = map('home');
+  for (const dx of [0, 7500, -30000, -45000, -72000, 45000, 79000]) {
+    const p = {x: h.cx + dx, y: h.cy + 3000};
+    const truth = ['home', 'blossom', 'isle-251', 'sunset', 'isle-250', 'isle-55', 'isle-249']
+      .map(id => Math.hypot(wrapSea(FLAT_POSITIONS[id].x - dx), FLAT_POSITIONS[id].y - 3000)).sort((a, b) => a - b).slice(0, 3);
+    const shown = nearbyMapFrame('home', p, null).map(i => Math.hypot(i.x, i.y));
+    shown.forEach((d, k) => assert.ok(Math.abs(d - truth[k]) < 1, `x ${dx}: island ${k} at ${d.toFixed(0)}, nearest is ${truth[k].toFixed(0)}`));
   }
 });

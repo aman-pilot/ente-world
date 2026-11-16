@@ -38,7 +38,7 @@ function redirect(to, cookies = []) {
 }
 
 function room(env) {
-  return env.ISLAND.get(env.ISLAND.idFromName('main-island'));
+  return env.ISLAND.get(env.ISLAND.idFromName(env.ISLAND_ROOM_NAME ?? 'main-island'));
 }
 
 function call(env, path, data) {
@@ -148,7 +148,6 @@ export async function outfit({request,env}) {
   }
 }
 
-// The telescope's sky. The room knows who has played here; GitHub knows how many people starred the repository.
 const starCountAge = 10 * 60 * 1000;
 export async function stars({request,env}, fetchGitHub = fetch) {
   const key = await digest(cookie(request,sessionCookie));
@@ -174,7 +173,6 @@ export async function stars({request,env}, fetchGitHub = fetch) {
         sky.total = count;
       }
     } catch {
-      // GitHub is unreachable: keep the last count the room saw.
     }
   }
   const {checked, ...body} = sky;

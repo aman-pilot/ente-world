@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import sharp from 'sharp';
 import {Container,Sprite,Texture} from 'pixi.js';
-import {createPlantContacts,plantKind,LEAF_CAP} from '../src/pixi/plant-contact.js';
-import {createPlantReactions} from '../src/pixi/plant-reactions.js';
-import {thinSnowSVG,SNOW_CLUMP_CAP,SNOW_PILE_CAP,SNOW_REFILL} from '../src/pixi/plant-snow.js';
-import {mapFor} from '../src/pixi/island-maps.js';
+import {createPlantContacts,plantKind,LEAF_CAP} from '../src/rendering/pixi/environment/plant-contact.js';
+import {createPlantReactions} from '../src/rendering/pixi/environment/plant-reactions.js';
+import {thinSnowSVG,SNOW_CLUMP_CAP,SNOW_PILE_CAP,SNOW_REFILL} from '../src/rendering/pixi/environment/plant-snow.js';
+import {mapFor} from '../src/world/island-maps.js';
 
 const manifest=JSON.parse(readFileSync('public/pixi-art/themes/snow/art.json')),map=mapFor('snow');
 const nodes=n=>[n,...n.children.flatMap(nodes)],find=(parent,label)=>nodes(parent).filter(n=>n.label===label);
@@ -29,7 +29,7 @@ async function fixture(t,props) {
 
 test('Iceland variant recognises actual pines, shrubs and snowy bushes while Home classification stays unchanged',()=>{
   const candidates=manifest.props.filter(p=>p.finalKind==='tree'||p.finalKind==='shrub');
-  const contact=createPlantContacts(candidates,map.walk.obstacles,()=>{},{snow:true});
+  const contact=createPlantContacts(candidates.map(p=>({...p,footprint:map.world.props.find(q=>q.id===p.id)?.footprint})),map.walk.obstacles,()=>{},{snow:true});
   assert.equal(contact.plants.length,candidates.length,'all real snowy grove/camp plants have matching contacts');
   assert.ok(contact.plants.filter(p=>p.kind==='tree').length>=510);
   assert.ok(contact.plants.filter(p=>p.kind==='bush').length>=20);
@@ -51,7 +51,6 @@ test('local or remote bumps shed white clumps and flakes, a fading trunk pile an
   fx.update(.65);assert.ok(falling.y>start.y);assert.notEqual(falling.x,start.x);
   fx.update(3.7);assert.ok(pile.alpha<.7&&pile.alpha>0);assert.ok(cap.alpha<.6&&cap.alpha>0);
   fx.update(.1+SNOW_REFILL+.01);assert.equal(pile.visible,false);assert.equal(cap.alpha,0);
-  // A separate remote actor uses the same contact throttle and snow variant.
   await bump(0,6,{});assert.ok(clumps.some(g=>g.visible));assert.ok(cap.alpha>.9);
   fx.begin('snow',7);fx.track(who,ps[0].x-46,ps[0].y-18);fx.update(7.5);
   assert.ok([...clumps,...flakes].every(g=>!g.visible),'holding a trunk cannot repeatedly shed snow');

@@ -1,11 +1,11 @@
+export {prepareIsland,islandReady} from './rendering/pixi/art/whole-svg-loader.js';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import PixiPage from './pixi/PixiPage.jsx';
+import LandingGate from './landing/Landing.jsx';
 import './index.css';
 
-// Normal entry sails to Bog. Keep the direct arena URL as a dev-only shortcut.
 const Page = import.meta.env.DEV && new URLSearchParams(location.search).has('arena')
-  ? (await import('./pixi/BogReview.jsx')).default : PixiPage;
+  ? (await import('./features/bog-combat/BogReview.jsx')).default : LandingGate;
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Page />

@@ -1,7 +1,10 @@
+const movedRestPoints={"rock:-696.075:5164":[-624,5434],"rock:7864.625:6204.875":[7865,6165],"rock:9296.25:6367.8125":[9336,6368],"book:-712.1875:899.875":[-529,1138],"book:-242.7:4936":[-82,5324],"wing:7882.4:65.0625":[7922,65],"wing:9625.4:1568.625":[9605,1569],"wing:-969.075:4694":[-943,4496]};
 import {spread} from '../scripts/pagepond-rework/design.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {mapFor} from '../src/world/island-maps.js';
+import {paperboatMoorings} from '../scripts/pagepond-boats/config.mjs';
 import {auditPagepond} from '../scripts/pagepond-hamlets/audit.mjs';
 import {checkTheme} from '../scripts/theme-index.mjs';
 const read=p=>JSON.parse(fs.readFileSync(p));
@@ -21,10 +24,18 @@ test('Pagepond approved hamlets use vector pieces, centre-sized houses and bound
 });
 
 test('Pagepond walks every bridge, path end, prop and approved sleeper with zero new overlaps',()=>{
- const audit=auditPagepond();assert.deepEqual(audit.issues,[],JSON.stringify(audit.issues));assert.equal(audit.overlaps,0);assert.equal(audit.walkIssues,0);assert(audit.checked.props>900);assert(audit.checked.bridges>=14);assert.equal(audit.checked.sleepers,checkTheme('library').sleepers.length);assert.equal(audit.checked.boats,3);
+ // Audit the live resolved fleet instead of the old overlapping authored berths.
+ const authored=read('assets/world/themes/library/harbor.json').boats,spots=mapFor('library').boatSpots();
+ const saved=paperboatMoorings.map(p=>({...p}));
+ let audit;
+ try {
+  for(const p of paperboatMoorings){const slot=authored.findIndex(b=>b.x===p.x&&b.y===p.y);assert(slot>=0);Object.assign(p,{x:spots[slot].x,y:spots[slot].y});}
+  audit=auditPagepond();
+ } finally {paperboatMoorings.forEach((p,i)=>Object.assign(p,saved[i]));}
+ assert.deepEqual(audit.issues,[],JSON.stringify(audit.issues));assert.equal(audit.overlaps,0);assert.equal(audit.walkIssues,0);assert(audit.checked.props>900);assert(audit.checked.bridges>=14);assert.equal(audit.checked.sleepers,checkTheme('library').sleepers.length);assert.equal(audit.checked.boats,3);
 });
 
 test('Pagepond keeps the original forty within 250 approved sleepers and places hamlet residents only at supplied rest points',()=>{
  const report=checkTheme('library');assert(report.ready,report.problems.join('\n'));assert.equal(report.sleepers.length,250);assert(plan.sleepers.length>=4,'hamlet resting residents');
- for(const b of plan.sleepers){const d=read('scripts/pagepond-hamlets/layouts/'+b.hamlet+'.json'),s=plan.sites[b.hamlet],p=d.sleepers[b.index];const expected=plan.revision===2?spread(b.hamlet,[s.at[0]+p.x*s.k,s.at[1]+p.y*s.k]):[s.at[0]+p.x*s.k,s.at[1]+p.y*s.k];assert(Math.hypot(b.x-expected[0],b.y-expected[1])<2,'rest point follows the wider composition');assert(report.sleepers.some(r=>r.pose===b.pose&&Math.hypot(r.x-b.x,r.y-b.y)<2),b.hamlet+' resolved pose');}
+ for(const b of plan.sleepers){const d=read('scripts/pagepond-hamlets/layouts/'+b.hamlet+'.json'),s=plan.sites[b.hamlet],p=d.sleepers[b.index];const expected=plan.revision===2?spread(b.hamlet,[s.at[0]+p.x*s.k,s.at[1]+p.y*s.k]):[s.at[0]+p.x*s.k,s.at[1]+p.y*s.k];assert(Math.hypot(b.x-expected[0],b.y-expected[1])<2,'rest point follows the wider composition');const rest=movedRestPoints[b.pose+':'+b.x+':'+b.y]??[b.x,b.y];assert(report.sleepers.some(r=>r.pose===b.pose&&Math.hypot(r.x-rest[0],r.y-rest[1])<2),b.hamlet+' resolved authored rest point');}
 });

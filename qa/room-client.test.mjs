@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {RoomClient,OfflineFleet} from '../src/pixi/room-client.js';
-import {mapOf} from '../src/pixi/island-maps.js';
-import {ISLANDS} from '../src/pixi/islands.js';
-// Home is the sole Home-map island after the duplicate islands were removed.
+import {RoomClient,OfflineFleet} from '../src/multiplayer/room-client.js';
+import {mapOf} from '../src/world/island-maps.js';
+import {ISLANDS} from '../src/gameplay/islands.js';
 const PLAIN=ISLANDS.find(island => island.id!=='home' && mapOf(island.id).home)?.id ?? 'home';
-import {destinationsFor,harborOf,boatSpots,boatHome,boatSlot,MOORING_CLEAR} from '../src/pixi/islands.js';
-import {JUMP_SECONDS,JUMP_CROUCH,JUMP_AIR,JUMP_LAND,JUMP_RISE,jumpHeight,jumpPose,startJump,walkStep} from '../src/pixi/player-motion.js';
+import {destinationsFor,harborOf,boatSpots,boatHome,boatSlot,MOORING_CLEAR,harborApproachClear,boatRoom} from '../src/gameplay/islands.js';
+import {JUMP_SECONDS,JUMP_CROUCH,JUMP_AIR,JUMP_LAND,JUMP_RISE,jumpHeight,jumpPose,startJump,walkStep} from '../src/gameplay/player-motion.js';
 
 function setup() {
   const events=[],sent=[];
@@ -17,7 +16,7 @@ function setup() {
   return {room,events,sent};
 }
 const packet=(tick,islandId='home',mode='walking')=>({epoch:'epoch',tick,islandId,online:2,
-  players:[{id:'player',islandId,mode,x:mode==='sailing'?3960:1800,y:mode==='sailing'?6400:430,turn:0,action:0,emoteVersion:0,travel:0}],
+  players:[{id:'player',boatId:mode==='sailing'?'home-0':null,islandId,mode,x:mode==='sailing'?3960:1800,y:mode==='sailing'?6400:430,turn:0,action:0,emoteVersion:0,travel:0}],
   boats:[{id:'home-0',islandId,x:mode==='sailing'?3960:1800,y:mode==='sailing'?6400:430,turn:0,occupant:mode==='sailing'?'player':null}],
   self:{ack:0,path:[],emoteLeft:0},
 });
@@ -72,7 +71,7 @@ test('jump arc lands exactly, respects reduced motion and keeps ground collision
   assert.equal(startJump(actor),true);
   assert.equal(jumpHeight(JUMP_SECONDS),0);
   assert.equal(jumpHeight(0),0);
-  const apex=JUMP_SECONDS-JUMP_CROUCH-JUMP_AIR/2;   // jumpLeft at the top of the flight
+  const apex=JUMP_SECONDS-JUMP_CROUCH-JUMP_AIR/2;
   assert.equal(jumpHeight(apex),JUMP_RISE);
   assert.ok(jumpHeight(apex,true)>0 && jumpHeight(apex,true)<jumpHeight(apex));
   for(let i=0;i<40;i++) walkStep(actor,{clearLine:()=>false,walkable:()=>false},.05,i*.05,{x:1,y:0});
@@ -83,7 +82,7 @@ test('jump arc lands exactly, respects reduced motion and keeps ground collision
 });
 
 test('the jump crouches, stretches up, leans the way it walks, squashes on landing and settles (boss 6 Nov)',()=>{
-  const at=t=>jumpPose(JUMP_SECONDS-t,false,{turn:Math.PI/2,moving:true});   // walking right
+  const at=t=>jumpPose(JUMP_SECONDS-t,false,{turn:Math.PI/2,moving:true});
   assert.ok(JUMP_SECONDS>=.45 && JUMP_SECONDS<=.6);
   const crouch=at(JUMP_CROUCH*.95);
   assert.equal(crouch.phase,'crouch'); assert.equal(crouch.lift,0);
@@ -93,7 +92,6 @@ test('the jump crouches, stretches up, leans the way it walks, squashes on landi
   assert.ok(rising.sy>1.1 && rising.sx<.95,'stretched on the way up');
   assert.ok(at(JUMP_CROUCH+JUMP_AIR*.6).rotation>.03,'leans into the walking direction');
   assert.ok(jumpPose(JUMP_SECONDS-JUMP_CROUCH-JUMP_AIR*.6,false,{turn:-Math.PI/2,moving:true}).rotation<-.03,'and the other way walking left');
-  // ease-out up, ease-in down: the first fifth of the flight climbs more than the fifth before the top
   const lift=u=>at(JUMP_CROUCH+JUMP_AIR*u).lift;
   assert.ok(lift(.2)-lift(0)>lift(.5)-lift(.3));
   assert.ok(lift(.8)-lift(1)>lift(.6)-lift(.8),'falls faster at the end');
@@ -106,7 +104,7 @@ test('the jump crouches, stretches up, leans the way it walks, squashes on landi
   assert.ok(Math.abs(settled.sy-1)<.01 && Math.abs(settled.sx-1)<.01,'settles back to rest');
   assert.deepEqual(jumpPose(0),{lift:0,sx:1,sy:1,rotation:0,shadow:0,shadowScale:1,phase:'ground'});
   const calm=jumpPose(JUMP_SECONDS-JUMP_CROUCH-JUMP_AIR*.2,true);
-  assert.equal(calm.sx,1); assert.equal(calm.rotation,0);   // reduced motion: a small lift only
+  assert.equal(calm.sx,1); assert.equal(calm.rotation,0);
 });
 
 test('Shift sends a run flag with keyboard input and changing it alone resends input (boss 6 Nov)',()=>{
@@ -227,7 +225,7 @@ test('boarding and island changes clear prediction and boat interpolation withou
   room.snapshot(packet(2,'home','sailing'));
   assert.equal(room.pending.length,0);
   assert.equal(room.offsetX,0);
-  assert.equal(room.emote(3),false);
+  assert.ok(room.emote(3),'dance is allowed on a boat');assert.equal(room.emote(4),false,'other emotes still wait for land');
   room.destination(3960,6500);
   assert.deepEqual(room.player.sailTarget,{x:3960,y:6500});
   room.snapshot(packet(3,'blossom','sailing'));
@@ -241,11 +239,10 @@ test('boarding and island changes clear prediction and boat interpolation withou
 });
 
 test('sailing prediction uses bounded motion and sends the authoritative island with commands',()=>{
-  // an island on the home map (boss 6 Nov: the nearest three are themed, with their own coasts)
   const {room,sent}=setup();
   room.snapshot(packet(1,PLAIN,'sailing'));
   room.step(.05,{x:0,y:1});
-  assert.equal(room.player.y,6419);
+  assert.ok(Math.abs(room.player.y-(6400+570*.05))<1e-6);
   assert.equal(sent.at(-1).islandId,PLAIN);
   room.disembark();
   assert.equal(room.player.docking,true);
@@ -280,12 +277,11 @@ test('the dock button asks the server to dock at the nearest shore',()=>{
   Object.assign(next.players[0],{x:target.x,y:target.y-250});
   room.snapshot(next);
   room.disembark();
-  assert.equal(sent.at(-1).type,'disembark');   // boss 5 Nov: dock anywhere; the server picks the harbor or the nearest sand
+  assert.equal(sent.at(-1).type,'disembark');
   room.dispose();
 });
 
-// boss 6 Nov ("I took the boat already. Every island should have all the boats"): concepts/feel/boats-spec.md
-const moored=(fleet,islandId)=>fleet.boats(islandId).filter(boat=>!boat.occupant && boatSpots(islandId).some(spot=>spot.x===boat.x && spot.y===boat.y));   // that island's own map's moorings
+const moored=(fleet,islandId)=>fleet.boats(islandId).filter(boat=>!boat.occupant && boatSpots(islandId).some(spot=>spot.x===boat.x && spot.y===boat.y));
 test('offline: every island starts with all its moored boats',()=>{
   const fleet=new OfflineFleet();
   for (const id of ['home',...destinationsFor('home').map(d=>d.destination)]) assert.equal(moored(fleet,id).length,boatSpots(id).length,id);
@@ -297,30 +293,31 @@ test('offline: a taken boat refills its mooring once the sailor is clear, and on
   assert.ok(fleet.take('home-4','me'));
   assert.equal(fleet.take('home-5','me'),null,'one boat at a time');
   assert.equal(fleet.sail('me',{x:spot.x+MOORING_CLEAR-20,y:spot.y,turn:0,islandId:'home'}),false,'still beside the mooring: no refill yet');
-  assert.equal(moored(fleet,'home').length,9);
+  assert.equal(moored(fleet,'home').length,boatSpots('home').length-1);
   assert.equal(fleet.sail('me',{x:spot.x+MOORING_CLEAR+40,y:spot.y,turn:0,islandId:'home'}),true);
   const fresh=fleet.boats('home').find(boat=>boat.id!=='home-4' && boatSlot(boat)===4 && boatHome(boat)==='home');
   assert.ok(fresh && !fresh.occupant,'a fresh boat waits at the mooring');
   assert.deepEqual([fresh.x,fresh.y],[spot.x,spot.y]);
-  assert.equal(moored(fleet,'home').length,10);
-  assert.equal(fleet.boats('home').length,11,'10 moored + 1 sailing');
+  assert.equal(moored(fleet,'home').length,boatSpots('home').length);
+  assert.equal(fleet.boats('home').length,boatSpots('home').length+1,'every mooring full + 1 sailing');
   assert.ok(fleet.take(fresh.id,'friend'),'the next sailor takes the refill');
 });
 
 test('offline: crossing to another island refills home and keeps the boat where you landed',()=>{
   const fleet=new OfflineFleet(), away=destinationsFor('home')[0], there=away.destination, per=boatSpots(there).length;
   fleet.take('home-0','me');
-  const water=harborOf(there).water;   // docked beside that island's own jetty, in its own coordinates
+  const water=harborOf(there).water;
   assert.equal(fleet.sail('me',{x:water.x,y:water.y,turn:0,islandId:there}),true);
-  assert.equal(moored(fleet,'home').length,10,'the jetty you left is full again');
+  assert.equal(moored(fleet,'home').length,boatSpots('home').length,'the jetty you left is full again');
   assert.equal(moored(fleet,there).length,per,'the island you reach already has all its boats');
   const boat=fleet.land('me');
   assert.equal(boat.id,'home-0');
   assert.ok(fleet.list.includes(boat));
-  assert.deepEqual([boat.x,boat.y,boat.occupant],[water.x,water.y,null]);
+  assert.equal(boat.occupant,null);
+  assert.ok(harborApproachClear(boat));assert.ok(boatRoom(boat,fleet.list));
   assert.equal(fleet.boats(there).length,per+1);
   assert.ok(fleet.take(boat.id,'friend'),'another sailor can take the parked arrival boat');
-  assert.equal(fleet.boats('home').length,10);
+  assert.equal(fleet.boats('home').length,boatSpots('home').length);
 });
 
 test('offline: stepping off beside your own empty mooring ties the boat back up',()=>{
@@ -331,7 +328,7 @@ test('offline: stepping off beside your own empty mooring ties the boat back up'
   const boat=fleet.list.find(boat=>boat.id==='home-1');
   assert.ok(boat && !boat.occupant);
   assert.deepEqual([boat.x,boat.y],[spot.x,spot.y]);
-  assert.equal(fleet.boats('home').length,10);
+  assert.equal(fleet.boats('home').length,boatSpots('home').length);
 });
 
 test('a refilled boat appears at its mooring, never slides in from the sailing one',()=>{
