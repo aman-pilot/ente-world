@@ -1541,7 +1541,7 @@ export class PixiIsland {
         const clouds=await acquire(CLOUD_TEXTURE);
         if(this.disposed)return;
         clouds.source.style.addressModeU='repeat';clouds.source.style.maxAnisotropy=4;clouds.source.style.update();
-        this.worldView=createWorldView(this.app,this.scene,this.isletView,clouds);
+        this.worldView=createWorldView(this.app,this.scene,this.isletView,clouds,()=>this.room?.islandPresence??{});
         // The globe shader warms when the globe is first opened.
       }
       await uploadIsland(this.app.renderer,[this.scene,...this.isletView.transient()],{cancelled:()=>this.disposed});

@@ -6,7 +6,7 @@ import {flatRigid} from '../../world/rigid.js';
 import {globeScreen,paintWeight} from '../shared/globe-screen.js';
 import {globeDrag,lonLat,centreOf,globeBall} from '../shared/globe-look.js';
 import {mapOf} from '../../world/island-maps.js';
-import {createHeartLocations,HEART_ACTIVITY_INTERVAL,HEART_ACTIVITY_CHANCE,HEART_ACTIVITY_LIMIT} from '../shared/heart-activity.js';
+import {createHeartLocations,HEART_ACTIVITY_LIMIT} from '../shared/heart-activity.js';
 import {ISLETS} from '../../world/islets.js';
 import {cloudState,CLOUD_SHADER} from './globe-clouds.js';
 import {BOG_RADAR_ICON} from '../../features/bog-combat/bog-radar.js';
@@ -272,7 +272,7 @@ function makePin(text = 'You', color = PALETTE.sun, icon = null) {
   return pin;
 }
 
-export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPTY) {
+export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPTY,presence=()=>({})) {
   const shoreTextures = new Map();
   let rt = RenderTexture.create({width: 2, height: 2, resolution: 1}), w = 0, h = 0, worldTex = null, worldVersion = -1, lastGlobeTime = -Infinity;
   let skyOpenedAt = null;
@@ -460,9 +460,10 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
       const busy = ease((ball - .25) / .4);
       life.visible = busy > .01; life.alpha = busy;
       if (busy > .01) {
-        const pick=()=>{const {island,x,y}=heartLocation();return {...localPoint(id,expMap(island,x,y,Rw)),bog:island.id===bogIsland.id};};
-        for (rippleDue -= dt; rippleDue < 0; rippleDue += HEART_ACTIVITY_INTERVAL*(.8+rand()*.4)) {
-          if(ripples.length<HEART_ACTIVITY_LIMIT)ripples.push({...pick(), at: time, heart: rand() < HEART_ACTIVITY_CHANCE, team: rand() < .5 ? 'karma' : 'evil', dur: 2 + rand() * .8});
+        const occupied=presence();
+        const pick=()=>{const location=heartLocation(occupied);if(!location)return null;const {island,x,y}=location;return {...localPoint(id,expMap(island,x,y,Rw)),islandId:island.id,bog:island.id===bogIsland.id};};
+        for (rippleDue -= dt; rippleDue < 0; rippleDue += .35*(.8+rand()*.4)) {
+          if(ripples.length<HEART_ACTIVITY_LIMIT){const point=pick();if(point)ripples.push({...point, at: time, heart: true, team: rand() < .5 ? 'karma' : 'evil', dur: 2 + rand() * .8});}
         }
         const px = Math.min(1.5, Math.max(1, Rp / 240));
         for (const c of glows.children) c.visible = false;
@@ -470,7 +471,7 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
         rings.clear();
         for (let i = ripples.length - 1; i >= 0; i--) {
           const r = ripples[i], age = (time - r.at) / r.dur;
-          if (age >= 1) {ripples.splice(i, 1); continue;}
+          if (age >= 1 || !(occupied[r.islandId]>0)) {ripples.splice(i, 1); continue;}
           const p = project(r.x, r.y);
           if (p.face < .08) continue;
           const f = ease(p.face / .3), sq = .45 + .55 * p.face;

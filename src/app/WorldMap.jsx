@@ -1,3 +1,4 @@
+import IslandLegend from './IslandLegend.jsx';
 import {useEffect, useRef, useState} from 'react';
 import {worldIsland} from '../world/world-map.js';
 import {nearbyMapFrame, nearbyHeading, nearbyFriends, NEARBY_MAP_WIDTH, NEARBY_MAP_HEIGHT} from './nearby-map.js';
@@ -99,6 +100,7 @@ export default function WorldMap({island, globeOpen = false, indoors = false}) {
   {globeOpen && <button type="button" className="pixi-world-back" onClick={() => island.current?.closeGlobe()}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="#564537" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
     Back to island</button>}
+  {!indoors && !globeOpen && <div className="pixi-map-guide"><IslandLegend island={island}/></div>}
   <button type="button" className={`pixi-world-map${globeOpen ? ' pixi-world-map--hidden' : ''}`} disabled={indoors || globeOpen}
     aria-label="Open the world view" title="Open the world view" onClick={() => island.current?.openGlobe()}>
     <svg ref={svg} id="pixi-world-map-view" viewBox={`0 0 ${width} ${height}`} role="img"
