@@ -3,7 +3,7 @@
   position: fixed;
   z-index: 1;
   top: max(84px, calc(env(safe-area-inset-top) + 68px));
-  left: max(16px, env(safe-area-inset-left));
+  right: max(16px, env(safe-area-inset-right));
   display: flex;
   align-items: center;
   gap: 4px;
@@ -21,7 +21,7 @@
 .pixi-music-options summary { list-style: none; font-size: 20px; }
 .pixi-music-options summary::-webkit-details-marker { display: none; }
 .pixi-music-options:not([open]) .pixi-music-menu { display: none; }
-.pixi-music-menu { box-sizing: border-box; position: absolute; top: calc(100% + 8px); left: 0; display: grid; gap: 12px; width: min(248px, calc(100vw - 32px)); padding: 14px; border: 1px solid #564537; border-radius: 14px; background: #fff9df; box-shadow: 0 4px 16px #332b231a; }
+.pixi-music-menu { box-sizing: border-box; position: absolute; top: calc(100% + 8px); right: 0; display: grid; gap: 12px; width: min(248px, calc(100vw - 32px)); padding: 14px; border: 1px solid #564537; border-radius: 14px; background: #fff9df; box-shadow: 0 4px 16px #332b231a; }
 .pixi-music-menu select { width: 100%; min-height: 36px; padding: 6px; color: inherit; background: transparent; border: 1px solid #56453740; border-radius: 6px; font: inherit; }
 .pixi-music-skip { display: flex; justify-content: space-between; }
 .pixi-music-skip button { border-radius: 6px; }
@@ -29,7 +29,7 @@
 .pixi-music-menu input { flex: 1; min-width: 0; margin: 0; accent-color: #9b7430; }
 .pixi-music-menu a { color: #735c37; text-underline-offset: 3px; }
 .pixi-music-status:empty { display: none; }
-.pixi-music-status { position: absolute; top: calc(100% + 8px); left: 0; width: 230px; padding: 8px 10px; background: #fff9df; border-radius: 8px; pointer-events: none; }
+.pixi-music-status { position: absolute; top: calc(100% + 8px); right: 0; width: 230px; padding: 8px 10px; background: #fff9df; border-radius: 8px; pointer-events: none; }
 .pixi-music-options[open] ~ .pixi-music-status { top: calc(100% + 220px); }
 .pixi-music :is(button,summary,select,input,a):focus-visible { outline: 2px solid #564537; outline-offset: 3px; }
 @media (pointer: coarse) {
