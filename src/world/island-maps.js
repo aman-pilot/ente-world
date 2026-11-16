@@ -17,6 +17,8 @@ import READY from './delivered-themes.js';
 import {geometry, inPoly, inShape, coastIndex, polygonIndex, shapeIndex} from '../../assets/world/island-geometry.mjs';
 import {resolveSleepSpots, sleepHalfWidths} from './home/sleep-spots.js';
 import {createNavigation} from './navigation.js';
+// Boats: the port holds its moorings; more wait all round the island, one on every stretch of coast COAST_SPREAD long.
+export const PORT_BOATS=3, PORT_CLEAR=1000, COAST_SPREAD=2000;
 import {FINISHED_THEMES, TEST_THEMES, WORLD_ISLANDS} from './world-map.js';
 
 export {FINISHED_THEMES};
@@ -142,17 +144,40 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
     });
   const spaceMoorings = spots => {
     const placed=[];
-    for(const spot of spots){
+    for(const [slot,spot] of spots.entries()){
       const at=nearestBoatSpace(spot,p=>boatSeparated(p,HARBOR.water,BOAT_GAP+24) && placed.every(q=>boatSeparated(p,q,BOAT_GAP+1)) && mooringWet(p) && mooringBoardable(p));
-      if(!at)throw Error(`No safe mooring on ${id}`);
+      if(!at){if(slot<PORT_BOATS)throw Error(`No safe mooring on ${id}`);continue;}   // a coast boat with no safe water is skipped
       placed.push({...spot,...at});
     }
     // HARBOR and boatSpots describe the same harbour slots.
     return placed;
   };
   let SPOTS = null;
+  // The port keeps its moorings only (2-3 boats). Every other boat waits on the open coast around the island,
+  // spread out so each part of the shore has one to board.
+  const aroundIsland = spots => {
+    const port=spots.slice(0,PORT_BOATS),c=centre ?? coastCentre(walking.coast);
+    // Hand-placed boats (Home's fleet, Pagepond's river paperboats) stay unless they crowd the port itself.
+    const coast=spots.slice(PORT_BOATS).filter(p=>Math.hypot(p.x-HARBOR.water.x,p.y-HARBOR.water.y)>PORT_CLEAR);
+    const order=[0,180,90,270,45,225,135,315,22.5,202.5,112.5,292.5,67.5,247.5,157.5,337.5];
+    for(const deg of order){
+      const a=deg*Math.PI/180;
+      // Come in from the open sea, so inner lakes and rivers are never mistaken for the coast.
+      const o=world.origin??{x:0,y:0},edge=Math.min(...[[Math.cos(a),c.x,o.x,o.x+W],[Math.sin(a),c.y,o.y,o.y+H]]
+        .map(([d,p,lo,hi])=>Math.abs(d)<1e-6?Infinity:((d>0?hi:lo)-p)/d))-200;
+      for(let r=edge;r>300;r-=20){
+        const x=c.x+Math.cos(a)*r,y=c.y+Math.sin(a)*r;
+        if(!landAt(x,y))continue;
+        const bx=Math.round(x+Math.cos(a)*145),by=Math.round(y+Math.sin(a)*145);
+        if(Math.hypot(bx-HARBOR.water.x,by-HARBOR.water.y)>PORT_CLEAR*2 && [...port,...coast].every(o=>Math.hypot(o.x-bx,o.y-by)>COAST_SPREAD) &&
+          !nav().walkable(bx,by) && localWet(bx,by) && shoreFor(bx,by,200))coast.push({x:bx,y:by,turn:Math.cos(a)<0?-Math.PI/2:Math.PI/2});
+        break;
+      }
+    }
+    return [...port,...coast];
+  };
   const boatSpots = () => SPOTS ??= (() => {
-    if (harbor.boats?.length) return spaceMoorings(harbor.boats.map(({x, y, turn}) => ({x: Math.round(x), y: Math.round(y), turn: turn ?? Math.PI})));
+    if (harbor.boats?.length) return spaceMoorings(aroundIsland(harbor.boats.map(({x, y, turn}) => ({x: Math.round(x), y: Math.round(y), turn: turn ?? Math.PI}))));
     const spots = [0, 1, 2].map(i => ({...moorings[i], turn: Math.PI}));
     const c = centre ?? coastCentre(walking.coast);
     for (const [cx, cy, rx, ry] of islets) {
@@ -170,9 +195,9 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
         }
       }
     }
-    return spaceMoorings(spots);
+    return spaceMoorings(aroundIsland(spots));
   })();
-  Object.defineProperty(HARBOR,'moorings',{enumerable:true,get:()=>boatSpots().slice(0,moorings.length).map(({x,y})=>({x,y}))});
+  Object.defineProperty(HARBOR,'moorings',{enumerable:true,get:()=>boatSpots().slice(0,Math.min(PORT_BOATS,moorings.length)).map(({x,y})=>({x,y}))});
   let FIELD = null;
   const field = () => FIELD ??= landDistance(landAt, W, H, world.origin);
   const spawn = harbor.spawn ?? world.zones?.plaza?.spawn ?? [W / 2, H / 2];

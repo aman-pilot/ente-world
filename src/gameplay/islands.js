@@ -7,7 +7,7 @@ import {placeIslet,unplaceIslet} from '../world/islet-placement.js';
 import {isletClearance,ISLETS} from '../world/islets.js';
 import {walkNav,isletWalks,inWalkArea} from '../world/islet-walk.js';
 import {WORLD_ISLANDS, neighboursOf, offsetOf} from '../world/world-map.js';
-import {HOME_MAP, mapOf, mapsVersion, islandMapReady, FIELD_RES, FIELD_PAD} from '../world/island-maps.js';
+import {HOME_MAP, mapOf, mapsVersion, islandMapReady, FIELD_RES, FIELD_PAD, PORT_CLEAR} from '../world/island-maps.js';
 
 export const ISLANDS = WORLD_ISLANDS.map(({id,name,accent}) => ({id,name,accent}));
 const ISLAND_BY_ID = new Map(ISLANDS.map(island => [island.id,island]));
@@ -125,7 +125,7 @@ export function refusedLandingPosition(actor,islandId,boats=[]) {
   return nearestBoatSpace(origin,p=>canSail(p.x,p.y,actor.islandId,BOAT_RADIUS+room) &&
     others.every(q=>seaBoatSeparated(p,q,BOAT_GAP+room+1)),4160);
 }
-export const MOORING_CLEAR=BOAT_GAP+40;
+export const MOORING_CLEAR=BOAT_GAP+40, PARKED_PER_ISLAND=3, PARKED_LINGER=90000;
 let MINT=Date.now();
 function nextBoatId(islandId,slot,ids) {
   const base=`${islandId}-${slot}`;
@@ -133,23 +133,36 @@ function nextBoatId(islandId,slot,ids) {
   while (ids.has(id)) id=`${base}~${(MINT++).toString(36)}`;
   return id;
 }
-const atMooring = (boat,spot) => boat.islandId === boatHome(boat) && boat.x === spot.x && boat.y === spot.y;
+const atMooring = (boat,spot) => Boolean(spot) && boat.islandId === boatHome(boat) && boat.x === spot.x && boat.y === spot.y;
 export function fillMoorings(boats) {
   const SPOTS=new Map(), spotsOf=id => {if (!SPOTS.has(id)) SPOTS.set(id,boatSpots(id)); return SPOTS.get(id);};
   const held=new Set(), ids=new Set(), keep=[];
   let moved=false;
   const keyOf=boat => mooringOf(boat).key;
-  const valid=boat => typeof boat?.id === 'string' && islandFor(boatHome(boat)) && spotsOf(boatHome(boat))[boatSlot(boat)];
+  // A boat sailing or parked keeps going even if its home slot no longer exists (island boat layouts can change).
+  const valid=boat => typeof boat?.id === 'string' && islandFor(boatHome(boat)) && (spotsOf(boatHome(boat))[boatSlot(boat)] || boat.occupant || boat.parked === true);
   const spotOf=boat => spotsOf(boatHome(boat))[boatSlot(boat)];
   for (const boat of boats) {
     if (!valid(boat) || boat.occupant || ids.has(boat.id) || !atMooring(boat,spotOf(boat)) || held.has(keyOf(boat))) continue;
     if (!harborApproachClear(boat) || !boatRoom(boat,[...keep,...boats.filter(b=>b.occupant)])) continue;
     held.add(keyOf(boat)); ids.add(boat.id); keep.push(boat);
   }
+  // Left-behind boats never crowd a port (its moorings are always refilled) and at most PARKED_PER_ISLAND,
+  // the newest, wait on any island's beaches. A player's own built boat is always kept.
+  // They linger PARKED_LINGER first, so whoever just landed can hop straight back in.
+  const parkedKept=new Map(), now=Date.now(), dropped=new Set();
+  const leftBoats=boats.filter(b=>valid(b)&&!b.occupant&&b.parked===true&&!b.owner&&islandFor(b.islandId));
+  for (const boat of leftBoats) if (!Number.isFinite(boat.parkedAt)) {boat.parkedAt=now; moved=true;}
+  leftBoats.sort((a,b)=>b.parkedAt-a.parkedAt);
+  for (const boat of leftBoats) {
+    const n=parkedKept.get(boat.islandId)??0;
+    if (now-boat.parkedAt>=PARKED_LINGER && (near(boat,harborOf(boat.islandId).water,PORT_CLEAR) || n>=PARKED_PER_ISLAND)) {dropped.add(boat);continue;}
+    parkedKept.set(boat.islandId,n+1);
+  }
   for (const boat of boats) {
-    if (!valid(boat) || ids.has(boat.id) || (!boat.occupant && boat.parked !== true)) continue;
+    if (!valid(boat) || ids.has(boat.id) || dropped.has(boat) || (!boat.occupant && boat.parked !== true)) continue;
     if (!islandFor(boat.islandId) || !Number.isFinite(boat.x) || !Number.isFinite(boat.y)) continue;
-    if (boat.occupant && boat.islandId === boatHome(boat) && near(boat,spotOf(boat),MOORING_CLEAR)) held.add(keyOf(boat));
+    if (boat.occupant && spotOf(boat) && boat.islandId === boatHome(boat) && near(boat,spotOf(boat),MOORING_CLEAR)) held.add(keyOf(boat));
     if (!boat.occupant) {
       const at=parkedBoatPosition(boat,[...keep,...boats.filter(b=>b.occupant)]);
       if (!at) continue;
@@ -169,7 +182,7 @@ export function fillMoorings(boats) {
 }
 export function retireBoat(boats,boat,landing=null) {
   const spot=boatSpot(boat), home=boatHome(boat);
-  boat.occupant=null; boat.parked=true;
+  boat.occupant=null; boat.parked=true; boat.parkedAt=Date.now();
   if (landing) boat.landing={x:landing.x,y:landing.y};
   else if (boat.landing) boat.landing=null;
   if (!landing && !boat.owner && boatRoom({...boat,...spot},boats) && boat.islandId === home && near(boat,spot,MOORING_CLEAR) && !boats.some(other => other !== boat && !other.occupant && boatHome(other) === home && boatSlot(other) === boatSlot(boat) && atMooring(other,spot)))
@@ -476,7 +489,18 @@ export function sailStep(actor,dt,input,now=null,boats=[]) {
     const steps=Math.ceil(travel/6);
     for (let i=0;i<steps;i++) {
       const x=actor.x+dx/distance*travel/steps, y=actor.y+dy/distance*travel/steps;
-      if (!others.every(p=>seaBoatSeparated({x,y},p,BOAT_GAP+.1)) || !canSail(x,y,actor.islandId)) {actor.sailTarget=null; actor.sailRoute=null; actor.docking=false; break;}
+      // A boat already inside another's gap may still sail away from it, never closer, so no boat is ever boxed in.
+      const boatInWay=!others.every(p=>seaBoatSeparated({x,y},p,BOAT_GAP+.1) || Math.hypot(wrapSea(x-p.x),y-p.y)>Math.hypot(wrapSea(actor.x-p.x),actor.y-p.y));
+      if (boatInWay || !canSail(x,y,actor.islandId)) {
+        // A boat moored or sailing across a planned course: plan round it instead of stopping (a few tries).
+        const goal=!manual&&target?(actor.sailRoute?.at(-1)??target):null, docking=actor.docking;
+        if (boatInWay && goal && (actor.reroutes??0)<8) {
+          actor.reroutes=(actor.reroutes??0)+1;
+          if (setSailDestination(actor,goal.x,goal.y,boats)) {actor.docking=docking; break;}
+        }
+        actor.sailTarget=null; actor.sailRoute=null; actor.docking=false; break;
+      }
+      actor.reroutes=0;
       actor.x=x; actor.y=y;
       const gy=FLAT_POSITIONS[actor.islandId].y+actor.y-mapOf(actor.islandId).cy;
       if(Math.abs(gy)<=SEA_HEIGHT/2)delete actor.seaCurrent;

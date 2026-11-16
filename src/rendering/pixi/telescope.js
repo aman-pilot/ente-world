@@ -30,3 +30,12 @@ export function telescopePeerAt(props, pose) {
   }
   return null;
 }
+
+// Some telescopes stand where their look spot is blocked, so the walk ends a step short.
+// Once the Ducky has stopped beside one, it is there: open the sky straight away.
+export const TELESCOPE_STOP = 140;
+export function telescopeArrived(props, pose, spot) {
+  if (telescopePeerAt(props, pose)) return true;
+  if (!pose || !spot || pose.mode === 'sailing' || pose.path?.length || (pose.travel ?? 0) > 3) return false;
+  return Math.hypot(spot.x-pose.x, spot.y-pose.y) <= TELESCOPE_STOP;
+}
