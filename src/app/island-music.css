@@ -2,7 +2,7 @@
   box-sizing: border-box;
   position: fixed;
   z-index: 1;
-  top: max(84px, calc(env(safe-area-inset-top) + 68px));
+  top: max(16px, env(safe-area-inset-top));
   right: max(16px, env(safe-area-inset-right));
   display: flex;
   align-items: center;

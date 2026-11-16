@@ -32,18 +32,28 @@ export default function IslandMusic({island}) {
   }, []);
 
   useEffect(() => {
-    const live = host.current.parentElement.querySelector('.pixi-live');
-    if (!live || typeof ResizeObserver === 'undefined') return;
+    const page = host.current.parentElement;
+    const controls = [...page.querySelectorAll('.pixi-live,.pixi-profile-button,.pixi-karma-counter')];
+    if (!controls.length || typeof ResizeObserver === 'undefined') return;
     const element = host.current;
     function place() {
       element.style.marginTop = '';
-      const hud = live.getBoundingClientRect(), player = element.getBoundingClientRect();
-      if (hud.left < player.right && hud.right > player.left && hud.bottom > player.top) {
-        element.style.marginTop = `${hud.bottom-player.top+12}px`;
+      element.style.right = '';
+      const logoRight = page.querySelector('.pixi-ente-logo')?.getBoundingClientRect().right ?? 0;
+      const bounds = controls.map(control => control.getBoundingClientRect()).sort((a,b) => b.left-a.left);
+      for (const hud of bounds) {
+        const player = element.getBoundingClientRect();
+        if (hud.left >= player.right || hud.right <= player.left || hud.top >= player.bottom || hud.bottom <= player.top) continue;
+        if (hud.left-player.width-12 >= logoRight+12) {
+          element.style.right = `${window.innerWidth-hud.left+12}px`;
+        } else {
+          element.style.right = '';
+          element.style.marginTop = `${(parseFloat(element.style.marginTop)||0)+hud.bottom-player.top+12}px`;
+        }
       }
     }
     const observer = new ResizeObserver(place);
-    observer.observe(live);
+    controls.forEach(control => observer.observe(control));
     window.addEventListener('resize',place);
     return () => {observer.disconnect();window.removeEventListener('resize',place);};
   });
