@@ -169,26 +169,21 @@ test('d) 100 players walk about one themed island: the server tick stays far ins
   }
 });
 
-test('d) an island holds 100: a boat cannot land a 101st (it waits at the harbor mouth and is told), the next free place lets it in', async () => {
-  const {ISLAND_LIMIT} = await import('../worker/index.js');
-  assert.equal(ISLAND_LIMIT, 100);
+test('d) a sailor can reach an island that already has 100 players', async () => {
   const room = await makeRoom(), target = destinationsFor('home').find(d => d.destination !== 'home').destination, m = mapOf(target), nav = m.nav(), rnd = seeded(3);
   const crowd = [];
-  for (let n = 0; crowd.length < ISLAND_LIMIT && n < 20000; n++) {
+  for (let n = 0; crowd.length < 100 && n < 20000; n++) {
     const x = m.spawn.x + (rnd() * 2 - 1) * 1000, y = m.spawn.y + (rnd() * 2 - 1) * 700;
     if (nav.walkable(x, y)) crowd.push(addPlayer(room, crowd.length, {islandId: target, x, y}));
   }
+  assert.equal(crowd.length, 100);
   const d = destinationsFor('home').find(o => o.destination === target);
   const sailor = addPlayer(room, 500, {islandId: 'home', mode: 'sailing', x: d.dock.x, y: d.dock.y});
   const boat = room.boats.find(b => b.islandId === 'home' && !b.occupant);
   Object.assign(boat, {occupant: sailor.actor.id, x: d.dock.x, y: d.dock.y}); sailor.actor.boatId = boat.id;
   room.timer = 'manual';
   room.step();
-  assert.equal(sailor.actor.islandId, 'home', 'the full island turns the boat away');
-  assert.ok(sailor.socket.notes.some(n => n.type === 'travel-notice' && /full/.test(n.text)), 'and says why');
-  room.connections.delete(crowd[0].socket);
-  room.step();
-  assert.equal(sailor.actor.islandId, target, 'now it sails in');
+  assert.equal(sailor.actor.islandId, target);
   clearInterval(room.timer); room.timer = null;
 });
 
