@@ -5,7 +5,7 @@ import {geometry,inShape,shapeIndex} from '../../assets/world/island-geometry.mj
 
 // Re-rasterize source artwork, independently of the generated outline catalogue.
 // Unsimplified pixel-cell edges give a 256-square alpha-mask distance oracle.
-export async function homeClearanceOracle(props,world){
+export async function homeClearanceOracle(props,world,{houseCut=()=>null}={}){
   const rasters=new Map(),shapes=[];
   for(const p of props.filter(p=>p.outlineKind==='solid')){
     if(!rasters.has(p.src)){
@@ -16,12 +16,20 @@ export async function homeClearanceOracle(props,world){
     }
     const w=p.width*p.scale,h=p.height*p.scale;
     const rings=rasters.get(p.src).rings.map(r=>r.map(([u,v])=>[p.x+(p.flip?p.anchor.x-u:u-p.anchor.x)*w,p.y+(v-p.anchor.y)*h]));
-    shapes.push({prop:p.id,p,poly:rings[0],parts:rings.slice(1)});
+    const cut=houseCut(p);
+    const clip=ring=>ring.flatMap((a,i)=>{
+      const b=ring[(i+1)%ring.length],out=a[1]>=cut?[a]:[];
+      if((a[1]>=cut)!==(b[1]>=cut))out.push([a[0]+(b[0]-a[0])*(cut-a[1])/(b[1]-a[1]),cut]);
+      return out;
+    });
+    const feet=cut===null?rings:rings.map(clip).filter(r=>r.length>=3);
+    if(feet.length)shapes.push({prop:p.id,p,house:cut!==null,poly:feet[0],parts:feet.slice(1)});
   }
   const near=shapeIndex(shapes,30), bodyNear=shapeIndex(shapes,HOME_DUCK_BODY.height);
   // Independent summed-area raster query: intersects the actual world body
   // rectangle with occupied source-pixel cells. No generated blocker geometry.
-  const frontClear=(x,y,margin=0)=>!bodyNear(x,y).some(({p})=>{
+  const frontClear=(x,y,margin=0)=>!bodyNear(x,y).some(({p,house})=>{
+    if(house)return false;
     if(p.sortY<=y)return false;
     const w=p.width*p.scale,h=p.height*p.scale;
     const u=wx=>(p.anchor.x+(p.flip?-1:1)*(wx-p.x)/w)*256;
