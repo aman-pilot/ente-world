@@ -116,9 +116,10 @@ function parkedBoatPosition(boat,boats) {
 // A refused ticket must leave room to turn and sail away, outside the dock cove.
 export function refusedLandingPosition(actor,islandId,boats=[]) {
   const m=mapOf(islandId),h=harborOf(islandId);
-  // Keep a visitor in the main chart, so the polar current cannot send it
-  // straight back into the refused cove. Bog-frame sailors have a south apron.
-  const y=actor.islandId===islandId?m.origin.y+m.height+900:m.origin.y-900;
+  // Wait on the open-sea side of the island (north, toward the main chart). A
+  // south apron sits inside the polar current, which carries the boat back into
+  // the refused cove whichever way it steers.
+  const y=m.origin.y-900;
   const origin=placeRigid(actor.islandId,islandId,{x:h.water.x,y},actor);
   const others=otherBoatPositions(actor,boats), room=600;
   return nearestBoatSpace(origin,p=>canSail(p.x,p.y,actor.islandId,BOAT_RADIUS+room) &&
