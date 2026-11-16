@@ -1,9 +1,10 @@
 import {lazy, Suspense, useEffect, useRef, useState} from 'react';
 import GuestPanel from '../app/GuestPanel.jsx';
+import IslandConnecting from '../app/IslandConnecting.jsx';
 import './landing.css';
 import {imgExt} from './img-format.js';
 import {startHomeHeadStart,warmSignInCache,headStartJSON,settleHomeHeadStart} from '../app/home-head-start.js';
-import {arrivalPending} from '../app/arrival.js';
+import {arrivalPending,rememberSignedIn} from '../app/arrival.js';
 import {startupSession,startArrivalSocket} from '../app/arrival-start.js';
 
 // Signed-in returns start the game behind the existing cover while the session is checked.
@@ -18,10 +19,21 @@ export default function LandingGate() {
   const [mode, setMode] = useState(returning ? 'game' : 'checking');
   const [signInAvailable, setSignInAvailable] = useState(false);
   useEffect(() => {
-    initialSession
-      .then(s => {setSignInAvailable(!!s.signInAvailable); setMode(s.user || returning ? 'game' : 'landing');})
-      .catch(() => {if (!returning) setMode('landing');});
+    if (returning) return;
+    function showLanding() {
+      document.documentElement.classList.remove('ew-connecting');
+      setMode('landing');
+    }
+    initialSession.then(session => {
+      rememberSignedIn(!!session.user);
+      if (session.user) setMode('signed-in');
+      else {
+        setSignInAvailable(!!session.signInAvailable);
+        showLanding();
+      }
+    }, showLanding);
   }, []);
+  if (mode === 'signed-in') return <Suspense fallback={<IslandConnecting/>}><PixiPage signedInEntry/></Suspense>;
   if (mode === 'game') return <Suspense fallback={<div className="landing-boot"/>}><PixiPage/></Suspense>;
   // Watch as a guest: the GitHub-return cover closes in over the end screen, the game loads behind it, and it parts onto
   // Home the same way (PixiPage takes the cover over; no name tag for a guest)
@@ -179,7 +191,7 @@ function placeWhoosh(clouds, T) {
 const REST = [[-3, 0], [2, -.03], [-1, .02], [2, -.02], [-2, .02], [3, -.02]];
 
 // the globe code starts downloading the moment this file runs, not after React has drawn the page
-const globeModule = import('./globe-intro.js');
+let globeModule;
 // the end screen's Ducky is decoded while the intro plays, so the buttons arrive without a decode stall; it is fetched
 // only once Home's pictures are in, so on a slow line it never takes bandwidth from the globe or the island
 const warmDucky = () => ['body', 'beak', 'wings'].forEach(part => {const img = new Image(); img.src = `/guest/ducky-peek-${part}.webp`; img.decode?.().catch(() => {});});
@@ -199,7 +211,7 @@ export function Landing({signInAvailable, onWatch}) {
     let cancelled = false, globe = null, frame = 0, start = null, done = false, panelAt = Infinity, good = 0, lastNow = 0;
     whooshAt = Infinity;
     const later = (fn, ms) => timers.push(setTimeout(() => !cancelled && fn(), ms));
-    const globeReady = globeModule
+    const globeReady = (globeModule ??= import('./globe-intro.js'))
       .then(m => imgExt.then(x => m.createGlobeIntro(canvas.current, {ext:x, home:{ground:`/guest/home-ground.${x}`, props:`/guest/home-props.${x}`}})))
       .then(g => {if (cancelled) g.destroy(); else {globe = g; g.homeReady.then(warmDucky);} return g;}).catch(() => {warmDucky(); return null;});
     const whoosh = [...el.querySelectorAll('.ld-whoosh')], blastCv = document.querySelector('.ld-flurry'), blast = blastSprites();
