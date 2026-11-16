@@ -51,11 +51,13 @@ test('coast, islet and multiplayer images agree on both sides of the seam',()=>{
  for(const i of ISLETS){const p=placeIslet('home',i,[0,0],viewer),q=unplaceIslet('home',i,p);const globe=seaPoint('home',p);for(let k=0;k<3;k++)close(globe[k],i.center[k]);close(q.x,0);close(q.y,0);assert.ok(Math.abs(p.x-viewer.x)<=SEA_WIDTH/2);assert.equal(FLAT_ISLETS[i.id].home,i.home);}
  assert.equal(FLAT_ISLETS['sea-1-1'].home,'isle-249');
 });
+const nearPoleIsland=(id,p)=>['isle-55','isle-249'].some(pole=>{const q=seaPosition(id,p),c=FLAT_POSITIONS[pole],m=mapOf(pole);return Math.hypot(wrapSea(q.x-c.x),q.y-c.y)<Math.max(m.width,m.height)/2*1.6;});
 test('sea pin is direct longitude/latitude within one degree, with heading within three degrees',()=>{
  for(const i of WORLD_ISLANDS)for(const lon of [-179.99,-120,-20,0,67,140.8,179.99,540])for(const lat of [-89,-40,0,8,60,89]){
   const p=local(i.id,lon/360*SEA_WIDTH,-lat/360*SEA_WIDTH),f=seaFrame(i.id,p),point=seaPoint(i.id,p);
   close(wrapSea((f.lon*180/Math.PI-lon)/360*SEA_WIDTH),0,SEA_WIDTH/360);close(f.lat*180/Math.PI,lat,1);
-  close(Math.asin(point[1])*180/Math.PI,lat,1);
+  // Next to Iceland and Bog the pin follows the island's globe art instead (tested below).
+  if(!nearPoleIsland(i.id,p))close(Math.asin(point[1])*180/Math.PI,lat,1);
   for(const turn of [0,.4,Math.PI/2,Math.PI,5.3]){const d=seaHeading(i.id,p,turn),heading=Math.atan2(dot(d,f.east),-dot(d,f.north));const error=Math.atan2(Math.sin(heading-turn),Math.cos(heading-turn));assert.ok(Math.abs(error)*180/Math.PI<3);}
  }
 });
@@ -180,5 +182,14 @@ test('boats crossing the seam keep the full gap from moored and other player boa
   assert.ok(setSailDestination(actor,goal.x,goal.y,[peer]));
   for(let k=0;k<1000&&actor.sailTarget;k++){sailStep(actor,.05,{x:0,y:0},null,[peer]);assert.ok(gap()>=BOAT_GAP,`route gap ${gap()}`);}
   assert.equal(actor.sailTarget,null);close(wrapSea(actor.x-goal.x),0,1);close(actor.y,goal.y,1);
+ }
+});
+
+test('the globe pin does not jump when you dock or set sail, including at the pole islands',async()=>{
+ const {spherePoint}=await import('../src/world/sphere-coordinates.js');
+ for(const i of WORLD_ISLANDS){
+  const h=harborOf(i.id),sail=seaPoint(i.id,h.water),walk=spherePoint(i.id,h.land);
+  const deg=Math.acos(Math.max(-1,Math.min(1,dot(sail,walk))))*180/Math.PI;
+  assert.ok(deg<2,`${i.id}: the pin moves ${deg.toFixed(2)} degrees when docking`);
  }
 });

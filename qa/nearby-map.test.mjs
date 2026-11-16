@@ -20,3 +20,16 @@ test('minimap positions and headings stay fixed across island frame changes',()=
   assert.equal(nearbyHeading(to,p,1,0),90);assert.equal(nearbyHeading(to,p,0,-1),0);
  }
 });
+
+test('minimap shows the nearest islands the short way round the wrapping sea, before and after crossing the edge', async () => {
+  const {FLAT_POSITIONS, wrapSea} = await import('../src/world/flat-layout.js');
+  const {mapOf: map} = await import('../src/world/island-maps.js');
+  const h = map('home');
+  for (const dx of [0, 7500, -30000, -45000, -72000, 45000, 79000]) {
+    const p = {x: h.cx + dx, y: h.cy + 3000};
+    const truth = ['home', 'blossom', 'isle-251', 'sunset', 'isle-250', 'isle-55', 'isle-249']
+      .map(id => Math.hypot(wrapSea(FLAT_POSITIONS[id].x - dx), FLAT_POSITIONS[id].y - 3000)).sort((a, b) => a - b).slice(0, 3);
+    const shown = nearbyMapFrame('home', p, null).map(i => Math.hypot(i.x, i.y));
+    shown.forEach((d, k) => assert.ok(Math.abs(d - truth[k]) < 1, `x ${dx}: island ${k} at ${d.toFixed(0)}, nearest is ${truth[k].toFixed(0)}`));
+  }
+});
