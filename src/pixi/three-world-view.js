@@ -1,3 +1,4 @@
+import {BOG_ISLAND} from './bog-combat/entry.js';
 import {createFrameClock} from './frame-clock.js';
 import {createThreePirates} from './three-pirates.js';
 import {WebGLRenderer} from './globe-webgl.js';
@@ -11,7 +12,7 @@ import {ISLETS} from './islets.js';
 import {sphereFrame} from './sphere.js';
 import {heartPose} from './heart-motion.js';
 import {rotateGlobeFromScreen,zoomDistance} from './three-globe-math.js';
-import {createHeartLocations,heartArtContains,HEART_ACTIVITY_INTERVAL,HEART_ACTIVITY_CHANCE,HEART_ACTIVITY_LIMIT} from './heart-activity.js';
+import {createHeartLocations,heartArtContains,HEART_ACTIVITY_LIMIT} from './heart-activity.js';
 import {focusQuaternion, islandQuaternion, focusSurfaceQuaternion, surfacePoint, surfaceCoordinates, surfaceUnderPointer, lockSurfaceAnchor, atlasTransform, pickSurfacePatch, visiblePoint, EARTH_DISTANCE} from './three-globe-math.js';
 import {alignIslandNorth,approachProgress} from './three-island-approach.js';
 import {loadWorldAssets} from './three-asset-queue.js';
@@ -28,7 +29,7 @@ const out=x=>1-Math.pow(1-clamp(x,0,1),3);
 const HEART='<svg xmlns="http://www.w3.org/2000/svg" viewBox="2.5 4 19 17.3"><path d="M12 21.3c-.4 0-.8-.1-1.1-.4C6.6 17.2 2.5 13.9 2.5 9.4 2.5 6.4 4.8 4 7.7 4c1.8 0 3.3.9 4.3 2.3C13 4.9 14.5 4 16.3 4c2.9 0 5.2 2.4 5.2 5.4 0 4.5-4.1 7.8-8.4 11.5-.3.3-.7.4-1.1.4z" fill="#FF6F8E"/></svg>';
 
 // The globe owns the perspective camera. Pixi supplies the live island scene.
-export async function createThreeWorld(host, {onDetail=()=>{}, onFrame=()=>{}, onTap=()=>{}, onSelect=()=>{}, onReady=()=>{}, onInteract=()=>{},surfaceAtPointer=()=>null,pirateFleet=null,pirateProjection=()=>null,initialIsland='home',isletProjection=()=>null,isletCapture=()=>false}={}) {
+export async function createThreeWorld(host, {onDetail=()=>{}, onFrame=()=>{}, onTap=()=>{}, onSelect=()=>{}, onReady=()=>{}, onInteract=()=>{},surfaceAtPointer=()=>null,presence=()=>({}),pirateFleet=null,pirateProjection=()=>null,initialIsland='home',isletProjection=()=>null,isletCapture=()=>false}={}) {
   const renderer=new WebGLRenderer();
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
   renderer.domElement.setAttribute('aria-label','Rotating Ducky Land globe');
@@ -113,6 +114,7 @@ export async function createThreeWorld(host, {onDetail=()=>{}, onFrame=()=>{}, o
   host.append(overlay); const ctx=overlay.getContext('2d');
   overlay.style.zIndex='2';
   const heart=new Image(); heart.src=`data:image/svg+xml,${encodeURIComponent(HEART)}`; await heart.decode();
+  const skull=new Image();skull.src=`data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#fff1cd" stroke="#67566b" stroke-width="1.3" d="M5 16C-2 3 7 1 12 1s14 2 7 15l-3 1v5H8v-5z"/><g fill="#67566b"><ellipse cx="8" cy="10" rx="3" ry="3.5"/><ellipse cx="16" cy="10" rx="3" ry="3.5"/><path d="m12 13-2 4h4zM10 19h1v3h-1zm3 0h1v3h-1z"/></g></svg>')}`;await skull.decode();
   const glow=document.createElement('canvas'); glow.width=glow.height=64;
   const gc=glow.getContext('2d'), gradient=gc.createRadialGradient(32,32,0,32,32,32);
   gradient.addColorStop(0,'rgba(255,240,190,1)'); gradient.addColorStop(.35,'rgba(255,214,90,.55)'); gradient.addColorStop(1,'rgba(255,214,90,0)');
@@ -210,14 +212,17 @@ export async function createThreeWorld(host, {onDetail=()=>{}, onFrame=()=>{}, o
     // Surface anchors are occluded below; the rising heart itself is free to
     // cross the planet silhouette, without a circular cookie-cutter edge.
     ctx.clearRect(0,0,width,height);ctx.save();
+    const occupied=presence();
     const px=Math.min(1.5,Math.max(1,globeRadius()/240));
-    for(due-=dt;due<0;due+=HEART_ACTIVITY_INTERVAL*(.8+random()*.4)) {
+    for(due-=dt;due<0;due+=.35*(.8+random()*.4)) {
       if(events.length>=HEART_ACTIVITY_LIMIT)continue;
-      const {island,x,y}=heartLocation();
-      events.push({position:surfacePoint(island,x,y,WORLD_GEO.Rw),normal:surfacePoint(island,x,y,WORLD_GEO.Rw).normalize(),at:time,heart:random()<HEART_ACTIVITY_CHANCE,duration:2+random()*.8,seed:x});
+      const location=heartLocation(occupied);
+      if(!location)continue;
+      const {island,x,y}=location;
+      events.push({islandId:island.id,position:surfacePoint(island,x,y,WORLD_GEO.Rw),normal:surfacePoint(island,x,y,WORLD_GEO.Rw).normalize(),at:time,heart:true,duration:2+random()*.8,seed:x});
     }
     for(let i=events.length-1;i>=0;i--) {
-      const event=events[i],sec=time-event.at,age=sec/event.duration;if(age>=1){events.splice(i,1);continue;}
+      const event=events[i],sec=time-event.at,age=sec/event.duration;if(age>=1||!(occupied[event.islandId]>0)){events.splice(i,1);continue;}
       const p=event.position.clone().applyQuaternion(globe.quaternion),normal=event.normal.clone().applyQuaternion(globe.quaternion);
       const facing=normal.dot(camera.position.clone().sub(p).normalize());
       if(facing<.08||!visiblePoint(p,camera.position))continue;
@@ -225,9 +230,9 @@ export async function createThreeWorld(host, {onDetail=()=>{}, onFrame=()=>{}, o
       const fade=ease(age/.12)*(1-ease((age-.35)/.65)),gw=(.14+out(age)*.18)*px*64;
       ctx.globalAlpha=fade*.85*f;ctx.drawImage(glow,x-gw/2,y-gw*sq/2,gw,gw*sq);
       ctx.globalAlpha=(1-k)*.55*f;ctx.strokeStyle='#FFF3C4';ctx.lineWidth=1.1*px;ctx.beginPath();ctx.ellipse(x,y,rr,rr*sq,0,0,Math.PI*2);ctx.stroke();
-      if(event.heart&&!reduced){
-        const pose=heartPose(sec,event.seed),size=19*pose.scale*px;
-        ctx.save();ctx.globalAlpha=pose.alpha*f;ctx.translate(x+pose.x*px,y+pose.y*px);ctx.rotate(pose.rotation);ctx.drawImage(heart,-size/2,-size*17.3/38,size,size*17.3/19);ctx.restore();
+      if(event.heart){
+        const pose=reduced?{scale:1,alpha:1,x:0,y:-20,rotation:0,spark:0}:heartPose(sec,event.seed),size=19*pose.scale*px,icon=event.islandId===BOG_ISLAND?skull:heart;
+        ctx.save();ctx.globalAlpha=pose.alpha*f;ctx.translate(x+pose.x*px,y+pose.y*px);ctx.rotate(pose.rotation);ctx.drawImage(icon,-size/2,-size*17.3/38,size,size*17.3/19);ctx.restore();
         if(pose.spark>.01)for(let n=0;n<4;n++) {const a=n*1.571+.785,d=(7+out(sec/.45)*9)*px;ctx.globalAlpha=pose.spark*f;ctx.fillStyle='#FF8FA6';ctx.beginPath();ctx.arc(x+Math.cos(a)*d,y-8*px+Math.sin(a)*d,1.6*px,0,Math.PI*2);ctx.fill();}
       }
     }

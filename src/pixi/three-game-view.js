@@ -150,7 +150,7 @@ export async function createThreeGameView(game,host,{createWorld=createThreeWorl
     return{id:view.id,x:x-map.cx,y:y-map.cy};
   }
   try{
-    world=await createWorld(layer,{initialIsland:game.islandId,isletCapture:frame=>game.externalDetailVisible===true&&Boolean(game.isletView?.views?.find(v=>v.i.id===frame.id)?.root.visible),isletProjection:(frame,piece)=>{
+    world=await createWorld(layer,{presence:()=>game.room?.islandPresence??{},initialIsland:game.islandId,isletCapture:frame=>game.externalDetailVisible===true&&Boolean(game.isletView?.views?.find(v=>v.i.id===frame.id)?.root.visible),isletProjection:(frame,piece)=>{
       if(!view)return null;
       const native=game.isletView?.views?.find(v=>v.i.id===frame.id);if(!native?.root.visible)return null;
       const k=frame.width/1024,p=placeIslet(view.id,frame,[(piece.foot[0]-512)*k,(piece.foot[1]-512)*k]);
