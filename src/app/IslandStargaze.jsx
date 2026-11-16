@@ -1,6 +1,8 @@
 
 import {useEffect, useRef, useState} from 'react';
 import {createStargazeSky, skyCounts} from '../rendering/pixi/stargaze-sky.js';
+import {renderPolaroid} from '../rendering/shared/polaroid.js';
+import IslandCamera from './IslandCamera.jsx';
 
 const REFRESH_MS = 30_000;
 const OFFLINE_SKY = {total:30_088, me:{accountId:'1',login:'you',starred:true}, online:['1','2'], friends:['2','6'],
@@ -93,24 +95,35 @@ export default function IslandStargaze({island, playing, offline = false}) {
 
   useEffect(() => {if (open && sky) view.current?.setData(sky);}, [open, sky]);
   const counts = sky ? skyCounts(sky) : null;
+  const login = sky?.me?.login;
+
+  async function captureSkyPhoto() {
+    const frame = canvas.current;
+    return renderPolaroid(frame, [frame], '#102d34', {player:login});
+  }
+
   return <>
     {near && !open && <button className="pixi-travel-action" onClick={look} disabled={walking}>
       Look through the telescope <kbd>Enter</kbd>
     </button>}
-    {open && <dialog ref={dialog} className="pixi-stargaze" aria-labelledby="stargaze-title" onClose={() => setOpen(false)}>
+    {open && <dialog ref={dialog} className="pixi-stargaze" aria-labelledby="stargaze-title"
+      onClose={event => {if (event.target === event.currentTarget) setOpen(false);}}>
       <button className="pixi-stargaze-close" aria-label="Back to the island" onClick={() => setOpen(false)} autoFocus>
         <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="m5 5 14 14M19 5 5 19"/></svg>
       </button>
       <div className="pixi-stargaze-stage" ref={stage}>
         <div className="pixi-stargaze-lens" ref={lens}>
           <canvas ref={canvas} tabIndex={0} aria-label="Night sky. Drag or use arrow keys to explore. Scroll, pinch, or use plus and minus to zoom. Home finds your star. Tap a star, or press Enter for the nearest star, to see its name."/>
-          <button className="pixi-stargaze-tag" ref={tag} hidden title="Find your star">Your star</button>
+          <button className="pixi-stargaze-tag" ref={tag} hidden title="Find your star">
+            {login && `@${login}`}
+          </button>
           <div className="pixi-stargaze-tag pixi-stargaze-name" ref={nameTag} role="status" aria-live="polite" aria-atomic="true" hidden/>
           <header className="pixi-stargaze-counts">
             <h2 id="stargaze-title">{counts ? `${number(counts.total)} stars` : 'Counting the stars…'}</h2>
           </header>
         </div>
       </div>
+      <IslandCamera island={island} ready={Boolean(sky)} capture={captureSkyPhoto}/>
       {error && <p className="pixi-stargaze-news" role="alert">{sky ? 'The sky could not refresh. Trying again…' : error}</p>}
     </dialog>}
   </>;
