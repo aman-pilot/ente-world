@@ -1161,6 +1161,9 @@ export class PixiIsland {
     const id=WORLD_ISLANDS.find(i=>(i.theme??i.id)===mapId)?.id??mapId;
     const state=this.detailStates?.get(id);
     if(!state)return;
+    this.islandPrefetch??=createIslandPrefetch({getIndex:getIslandIndex,islands:WORLD_ISLANDS,limit:2,prepareData:prepareIslandMap,
+      distance:(a,b)=>{const p=offsetOf(a.id,b.id);return p.x*p.x+p.y*p.y;},
+      selectTier:(data,id)=>selectIslandTier(data,id,this.app.renderer.resolution,this.width,this.height)});
     if(state.live){
       if(!this.destinationArt&&!this.trip&&this.player?.mode!=='sailing'&&this.artShown===mapId)this.islandPrefetch?.resume(id);
       return;
@@ -1176,9 +1179,6 @@ export class PixiIsland {
       // Landing pins can go once all live frames hold their detail sheets.
       state.lease.releaseLanding?.();
       if(this.destinationArt&&this.destinationArt!==mapId)return;
-      this.islandPrefetch??=createIslandPrefetch({getIndex:getIslandIndex,islands:WORLD_ISLANDS,limit:2,prepareData:prepareIslandMap,
-        distance:(a,b)=>{const p=offsetOf(a.id,b.id);return p.x*p.x+p.y*p.y;},
-        selectTier:(data,id)=>selectIslandTier(data,id,this.app.renderer.resolution,this.width,this.height)});
       if(this.artShown===mapId&&!this.trip&&this.player?.mode!=='sailing')this.islandPrefetch.resume(id);
     }).catch(error=>{if(!cancelled())console.warn(`Island ${id}: keeping sharp landing art`,error);})
       .finally(()=>{if(!state.live&&this.detailStates?.get(id)===state){
