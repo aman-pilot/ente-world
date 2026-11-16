@@ -22,10 +22,15 @@ export default function IslandPresence({online, latestJoin}) {
     timers.current.clear();
   }, []);
 
+  const status = online === null ? 'Connecting…' : `${online} ${online === 1 ? 'user' : 'users'} online`;
+
   return <>
-    <div className="pixi-online" aria-label="Live users">
+    <div className="pixi-online" data-connecting={online === null ? '' : undefined}>
       <span className="pixi-online-dot" aria-hidden="true"/>
-      {online === null ? 'Connecting…' : `${online} ${online === 1 ? 'user' : 'users'} online`}
+      <span className="pixi-online-label">{status}</span>
+      <span className="pixi-online-count" aria-hidden="true">
+        {online ?? '…'}<span className="pixi-online-caption">Online</span>
+      </span>
     </div>
     <div className="pixi-join-toasts" role="status" aria-live="polite" aria-relevant="additions">
       {toasts.map(toast => <div className="pixi-join-toast" key={toast.id}>

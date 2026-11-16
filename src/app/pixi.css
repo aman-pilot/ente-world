@@ -140,6 +140,8 @@
   padding: 10px 14px;
 }
 .pixi-online-dot { width: 8px; height: 8px; flex-shrink: 0; border-radius: 50%; background: #409447; }
+.pixi-online[data-connecting] .pixi-online-dot { background: #8a7e68; }
+.pixi-online-count { display: none; }
 .pixi-camera {
   position: fixed;
   z-index: 6;
@@ -190,6 +192,7 @@
   box-shadow: 0 3px 0 #56453755;
 }
 .pixi-camera > button:disabled, .pixi-camera > button[aria-busy="true"] { opacity: .65; cursor: default; }
+.pixi-camera-label { display: none; }
 .pixi-camera :is(button, a):focus-visible { outline: 3px solid #367969; outline-offset: 3px; }
 .pixi-camera-error:not(:empty) {
   position: absolute;
@@ -424,13 +427,83 @@
 .pixi-travel button:disabled { opacity: .6; cursor: default; }
 .pixi-travel :is(button,select):focus-visible { outline: 3px solid #39472d; outline-offset: 2px; }
 .pixi-travel-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.pixi-steering { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 52px); display: flex; gap: 8px; touch-action: none; z-index: 5; }
+.pixi-steering {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 108px);
+  z-index: 5;
+  display: grid;
+  grid-template-areas: ". north ." "west compass east" ". south .";
+  grid-template-columns: repeat(3, 44px);
+  grid-template-rows: repeat(3, 44px);
+  gap: 2px;
+  padding: 6px;
+  border: 2px solid #203e3c;
+  border-radius: 50%;
+  background: #2b5b58ed;
+  box-shadow: 0 4px 0 #203e3c, inset 0 0 0 2px #b9e4cf52;
+  touch-action: none;
+  user-select: none;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+.pixi-steering button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #203e3c;
+  border-radius: 13px;
+  background: #fff9df;
+  color: #264b46;
+  box-shadow: inset 0 -3px 0 #e5d6a3;
+  cursor: pointer;
+  touch-action: none;
+}
+.pixi-steering button::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-top: 3px solid currentColor;
+  border-right: 3px solid currentColor;
+  border-radius: 2px;
+  transform: rotate(var(--steering-angle));
+}
+.pixi-steering [data-direction="north"] { grid-area: north; --steering-angle: -45deg; }
+.pixi-steering [data-direction="west"] { grid-area: west; --steering-angle: -135deg; }
+.pixi-steering [data-direction="east"] { grid-area: east; --steering-angle: 45deg; }
+.pixi-steering [data-direction="south"] { grid-area: south; --steering-angle: 135deg; }
+.pixi-steering button:active {
+  background: #ffda69;
+  box-shadow: inset 0 2px 0 #ba8f35;
+}
+.pixi-steering button:focus-visible { outline: 2px solid #ffda69; outline-offset: 2px; }
+.pixi-steering-compass {
+  grid-area: compass;
+  place-self: center;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #b9e4cf88;
+  border-radius: 50%;
+  background: #203e3c;
+}
+.pixi-steering-compass::before {
+  content: "";
+  width: 9px;
+  height: 17px;
+  background: linear-gradient(#ffda69 50%, #fff9df 50%);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  transform: rotate(30deg);
+}
+@media (max-width: 359px) {
+  .pixi-steering { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 164px); }
+}
 .pixi-travel-notice { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5; box-sizing: border-box; display: flex; align-items: center; gap: 12px; width: max-content; max-width: min(440px, calc(100vw - 32px)); margin: 0; padding: 12px 20px; border: 3px solid #332b23; border-radius: 20px; background: #fff9df; box-shadow: 0 5px 0 #332b23; color: #332b23; font: 700 16px/1.3 'Fredoka', system-ui, sans-serif; text-align: left; text-wrap: pretty; animation: pixi-travel-notice-in 320ms cubic-bezier(.23,1,.32,1) both; }
 .pixi-travel-notice[data-feather] { padding-left: 14px; }
 .pixi-travel-notice[data-feather]::before { content: ''; flex: none; width: 34px; height: 34px; background: url(/pixi-art/karma/golden-feather.svg) center / contain no-repeat; }
 @keyframes pixi-travel-notice-in { from { opacity: 0; transform: translate(-50%, calc(-50% - 8px)) scale(.96); } }
 @media (prefers-reduced-motion: reduce) { .pixi-travel-notice { animation: none; } }
-.pixi-steering button { min-width: 44px; font-size: 22px; touch-action: none; }
 @media (max-width: 600px) {
   .pixi-bottom-hud { position: fixed; left: max(16px, env(safe-area-inset-left)); right: max(16px, env(safe-area-inset-right)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 52px); display: flex; flex-direction: column; gap: 8px; max-height: calc(100svh - 240px); overflow-y: auto; pointer-events: none; }
   .pixi-travel { position: static; box-sizing: border-box; width: min(270px, 100%); pointer-events: auto; }
@@ -452,6 +525,7 @@
 .pixi-travel-action { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(28px, calc(env(safe-area-inset-bottom) + 20px)); z-index: 5; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 18px; border: 2px solid #564537; border-radius: 999px; background: #ffda69; color: #332b23; box-shadow: 0 3px 0 #564537; font: 700 16px/1 system-ui, sans-serif; cursor: pointer; animation: pixi-travel-pop .25s cubic-bezier(.34,1.56,.64,1); }
 .pixi-travel-action:active { transform: translateX(-50%) translateY(2px); box-shadow: 0 1px 0 #564537; }
 .pixi-travel-action kbd { padding: 2px 7px; border: 1px solid #56453799; border-radius: 6px; background: #fff9df; font: 600 12px/1.3 system-ui, sans-serif; }
+@media (pointer: coarse) { .pixi-travel-action kbd { display: none; } }
 @keyframes pixi-travel-pop { from { transform: translateX(-50%) scale(.85); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .pixi-travel-action { animation: none; } }
 
@@ -491,6 +565,10 @@
 .pixi-notifications { bottom: calc(var(--world-map-bottom) + var(--world-map-height)); }
 @media (max-width: 600px) {
   .pixi-page { --world-map-width: 148px; }
+  .pixi-page:has(.pixi-chat-dock) {
+    /* Reserve 148px for the three squares and 8px between them and the map. */
+    --world-map-width: min(148px, calc(100vw - max(16px, env(safe-area-inset-left)) - max(16px, env(safe-area-inset-right)) - 156px));
+  }
   .pixi-bottom-hud { bottom: calc(var(--world-map-bottom) + var(--world-map-height)); }
   .pixi-notifications { bottom: auto; }
 }
@@ -589,7 +667,48 @@ button.pixi-stargaze-tag { overflow: hidden; text-overflow: ellipsis; }
 .pixi-chat-dock > button { pointer-events: auto; display: flex; align-items: center; gap: 8px; padding: 10px 14px; color: #332b23; background: #fff9df; border: 1px solid #564537; border-radius: 12px; box-shadow: 0 3px 0 #56453755; font: 600 14px/1.4 system-ui, sans-serif; cursor: pointer; }
 .pixi-chat-dock > button:active { translate: 0 2px; box-shadow: 0 1px 0 #56453755; }
 .pixi-chat-dock kbd { padding: 1px 6px; border: 1px solid #56453780; border-radius: 5px; font: inherit; font-size: 12px; }
+.pixi-chat-icon { display: none; }
 .pixi-chat-dock .pixi-chat { pointer-events: auto; }
+@media (max-width: 600px), (pointer: coarse) {
+  .pixi-camera, .pixi-chat-dock, .pixi-online { bottom: var(--world-map-bottom); }
+  .pixi-chat-dock {
+    left: calc(max(16px, env(safe-area-inset-left)) + 52px);
+    right: auto;
+  }
+  .pixi-chat-dock > button, .pixi-camera > button {
+    box-sizing: border-box;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 2px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    font: 600 9px/1.1 system-ui, sans-serif;
+  }
+  .pixi-chat-dock kbd { display: none; }
+  .pixi-camera-label, .pixi-chat-icon { display: block; }
+  .pixi-camera > button svg, .pixi-chat-icon { width: 20px; height: 20px; }
+  .pixi-online {
+    box-sizing: border-box;
+    left: calc(max(16px, env(safe-area-inset-left)) + 52px);
+    width: 44px;
+    height: 44px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1;
+  }
+  .pixi-page:has(.pixi-chat-dock) .pixi-online {
+    left: calc(max(16px, env(safe-area-inset-left)) + 104px);
+  }
+  .pixi-online-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .pixi-online-count { display: grid; justify-items: center; gap: 2px; }
+  .pixi-online-caption { font-size: 9px; line-height: 1.1; }
+  .pixi-online-dot { width: 6px; height: 6px; }
+}
 .pixi-outfit-dialog .pixi-outfit-close:hover { background: #f3e9c2; }
 .pixi-outfit-content { display: grid; grid-template-columns: minmax(0, 1fr) 368px; align-items: stretch; gap: 32px; margin: 0; }
 .pixi-outfit-status { bottom: 16px; }
