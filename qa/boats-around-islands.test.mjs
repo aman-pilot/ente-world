@@ -41,3 +41,16 @@ test('a boat squeezed inside another boat\'s gap can still sail away from it', (
   for (let i=0;i<20;i++) sailStep(actor,.05,{x:0,y:1},null,[other]);
   assert.ok(other.y-actor.y>=Math.min(BOAT_GAP,d1)-1e-6,'and never back inside the gap');
 });
+
+test('a boat abandoned at sea by a disconnect is cleared after the wait; one a Ducky landed from stays', () => {
+  const boats=createBoats();
+  const sea={id:'home-0~gone',islandId:'home',x:3000,y:9000,occupant:null,parked:true};
+  const beach={id:'home-1~beach',islandId:'home',x:-2300,y:3500,occupant:null,parked:true,landing:{x:-2100,y:3500}};
+  boats.push(sea,beach);
+  fillMoorings(boats);
+  assert.ok(boats.includes(sea),'it waits first, in case its sailor comes straight back');
+  for (const b of [sea,beach]) b.parkedAt-=PARKED_LINGER;
+  fillMoorings(boats);
+  assert.ok(!boats.includes(sea),'then the empty sea boat goes');
+  assert.ok(boats.includes(beach),'a boat someone landed from stays for the way back');
+});

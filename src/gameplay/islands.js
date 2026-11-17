@@ -156,7 +156,8 @@ export function fillMoorings(boats) {
   leftBoats.sort((a,b)=>b.parkedAt-a.parkedAt);
   for (const boat of leftBoats) {
     const n=parkedKept.get(boat.islandId)??0;
-    if (now-boat.parkedAt>=PARKED_LINGER && (near(boat,harborOf(boat.islandId).water,PORT_CLEAR) || n>=PARKED_PER_ISLAND)) {dropped.add(boat);continue;}
+    // A boat left at sea with nobody landed from it (its sailor disconnected) is cleared too.
+    if (now-boat.parkedAt>=PARKED_LINGER && (near(boat,harborOf(boat.islandId).water,PORT_CLEAR) || n>=PARKED_PER_ISLAND || !boat.landing)) {dropped.add(boat);continue;}
     parkedKept.set(boat.islandId,n+1);
   }
   for (const boat of boats) {
