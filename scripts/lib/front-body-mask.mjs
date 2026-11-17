@@ -1,16 +1,18 @@
+import {propBaseCut} from '../../src/world/home/prop-outline-rules.js';
 import {alphaContours} from './alpha-contour.mjs';
 import {HOME_DUCK_BODY} from '../../src/world/home/duck-body.js';
 
 // Minkowski sum of alpha pixel cells with [-W/2,W/2] x [0,H].
 // The feet may only be hidden while ABOVE the exact render depth. Work in
 // source-pixel cells, round the radii outwards, and trace without simplification.
-export function frontBodyMask(rgba, p, sortY, n=256){
+export function frontBodyMask(rgba, p, sortY, n=256, body=HOME_DUCK_BODY){
   const w=p.width*(p.scale??1),h=p.height*(p.scale??1),dx=w/n,dy=h/n;
-  const rx=Math.ceil(HOME_DUCK_BODY.width/2/dx),ry=Math.ceil(HOME_DUCK_BODY.height/dy);
+  const rx=Math.ceil(body.width/2/dx),ry=Math.ceil(body.height/dy);
+  const baseCut=propBaseCut(p,sortY),topY=p.y-p.anchor.y*h;
   const size=n+rx*2, stride=n+1, sums=new Int32Array(stride*stride);
   for(let y=0;y<n;y++)for(let x=0;x<n;x++){
     const sx=p.flip?n-1-x:x;
-    sums[(y+1)*stride+x+1]=(rgba[(y*n+sx)*4+3]>32?1:0)+sums[y*stride+x+1]+sums[(y+1)*stride+x]-sums[y*stride+x];
+    sums[(y+1)*stride+x+1]=(rgba[(y*n+sx)*4+3]>32&&(baseCut===null||topY+(y+1)*dy>=baseCut)?1:0)+sums[y*stride+x+1]+sums[(y+1)*stride+x]-sums[y*stride+x];
   }
   const out=new Uint8Array(size*size*4);
   const top=p.y-p.anchor.y*h,left=(p.flip?p.anchor.x-1:-p.anchor.x)*w-rx*dx;

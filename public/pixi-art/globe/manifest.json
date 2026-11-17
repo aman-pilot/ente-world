@@ -3,7 +3,7 @@
     "sources": {
       "version": 1,
       "theme": "home",
-      "modelSha256": "ff2cbad19eea74d649afa274316a3b65c990d7d1d26a395ce878544fd7f2aca4",
+      "modelSha256": "eac133ec9dd3746d4d68935d0ef7c2e404627b0361925b54265f4635524aa53e",
       "files": [
         {
           "path": "assets/manifest.json",
@@ -1003,7 +1003,7 @@
         },
         {
           "path": "src/world/home/front-body-silhouettes.json",
-          "sha256": "06f14201bfea1db6ffe0a42e11db7b821544180b87be29bbca3bf6b2d2823f44"
+          "sha256": "925c3842b48f71c16b4f43a0d29e2cb3e782728f009210108c2b8dbec65614d5"
         },
         {
           "path": "src/world/home/home-expansion.json",
@@ -1035,7 +1035,7 @@
         },
         {
           "path": "src/world/home/prop-outline-rules.js",
-          "sha256": "9385b012a0d55723bad4321c5a62217b63b6637f8be620f95563ccb6b8a64217"
+          "sha256": "abddeec15736ebbb3a17144bdb8d2d4e2bcb47e69b9181a941ddf0cb6321209e"
         },
         {
           "path": "src/world/home/sleep-poses.json",
@@ -1055,7 +1055,7 @@
         },
         {
           "path": "src/world/prop-outlines/geometry.js",
-          "sha256": "06b5021461eca97c9279d70f40e94b53e934fce6614397ce3973f8de9f476d2f"
+          "sha256": "5c4f31a06f7b3cd008a628fb2c5dcf6773c571f05f7d770d972165776a2e0e08"
         },
         {
           "path": "src/world/prop-outlines/islands.js",
@@ -1066,7 +1066,7 @@
           "sha256": "939595f5fbd64d88d0b7b11d0695db67edb515664887aef8efc894b9140fcbaf"
         }
       ],
-      "sha256": "def44a2358f3fe502d1d7f1aa6a3e133f15f5b8f49368b1a536cb33e8f53100f"
+      "sha256": "5c9d00120f45e9189fb43309ad2bb50e7f1b26ff1e3e86446447b53b74a3d38b"
     },
     "groundSha256": "dddbf340591c9c37fbe7ffb512aa8561b0dd33aec741be13b64e96b528c9ab21",
     "src": "/pixi-art/globe/home.svg",
@@ -2175,7 +2175,7 @@
     "sources": {
       "version": 1,
       "theme": "pink",
-      "modelSha256": "3bede20be64b7430b99ffeb0e76e1320fcc12e60747d753092b54e2d2e972e0b",
+      "modelSha256": "ac7ea0bb9246381b4e171a122cd0f8f2cb8590aa14a6774d1d733ba9545f711e",
       "files": [
         {
           "path": "assets/world/island-geometry.mjs",
@@ -4950,7 +4950,7 @@
           "sha256": "939595f5fbd64d88d0b7b11d0695db67edb515664887aef8efc894b9140fcbaf"
         }
       ],
-      "sha256": "87d4462d70a9f23448558cc8a63a1774d2e99798024ed98f4d514d443e1e9b94"
+      "sha256": "da6e0f3bf9d21481986cfb17791c40d98e4fb703068bbe095690c3809410296c"
     },
     "groundSha256": "4a2bfe012c25cde81a98819c586f7730ce716f938aa26be92c03181cb0b11678",
     "src": "/pixi-art/globe/pink.svg",
@@ -4975,7 +4975,7 @@
     "sources": {
       "version": 1,
       "theme": "library",
-      "modelSha256": "6120cab73db761f7820ff4c5cfab464a10984efdb31d39d13f91f02e5bc36ef6",
+      "modelSha256": "beb6c0b950793d95818aea822a2140e01d5abe8d2fcece280ef3dfaffdac0917",
       "files": [
         {
           "path": "assets/world/island-geometry.mjs",
@@ -7434,7 +7434,7 @@
           "sha256": "939595f5fbd64d88d0b7b11d0695db67edb515664887aef8efc894b9140fcbaf"
         }
       ],
-      "sha256": "cb3fe9ac4e32c5f00d55745a1a1f6f528a720d2df16b24662bee9287528dce03"
+      "sha256": "bfd7006295c0952a6968f542331a22b25b497ca1b709901d03a012eacb9d5e63"
     },
     "groundSha256": "b1e2068757db08e88bed6f6678004f5f6c1a7c2f8e046b81134bf1f715a90105",
     "src": "/pixi-art/globe/library.svg",
@@ -7459,7 +7459,7 @@
     "sources": {
       "version": 1,
       "theme": "community",
-      "modelSha256": "f7cebf4a2f3cac64b4f8fb01cd28a054c20e5cd4f433ca0b9b9a41607467557c",
+      "modelSha256": "e9c8728f361d50bd8217b87cd454337198e3ed744f0b9588c094a313e92c4b48",
       "files": [
         {
           "path": "assets/world/island-geometry.mjs",
@@ -8458,7 +8458,7 @@
           "sha256": "939595f5fbd64d88d0b7b11d0695db67edb515664887aef8efc894b9140fcbaf"
         }
       ],
-      "sha256": "ad527185c30463869892ef791f2325580f5ead9abc67763c6dfc27f56264244b"
+      "sha256": "130e2f33a63fd60eb8c364a39c17fa3ea9dfff27aeaf7130354d5997bed1e038"
     },
     "groundSha256": "56ca5b43b287cbfbfb290f654f917a0311a042d4be767993605833f2ca3519d2",
     "src": "/pixi-art/globe/community.svg",

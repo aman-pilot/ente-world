@@ -59,7 +59,15 @@ for(const {id,theme,name} of WORLD_ISLANDS){
   }
   const baseline=geometry({...map.walk,obstacles:[...map.walk.obstacles.filter(o=>!houseIds.has(o.prop)),...map.world.props.filter(p=>houseIds.has(p.id)).flatMap(p=>[p.footprint,p.bodyFootprint].filter(Boolean))]});
   const point=gaps[id];
-  assert.equal(baseline.walkable(...point),false,'full roof used to close this gap');
+  // Narrower furniture padding means the old gap may already clear a full roof.
+  // Find an actual roof-only sample instead, while keeping the authored gap checks.
+  let roofOnly=false;
+  for(const h of changed){const f=map.world.props.find(p=>p.id===h.prop).footprint;
+   const ps=[f.poly,...(f.parts??[])].flat(),xs=ps.map(p=>p[0]),ys=ps.map(p=>p[1]);
+   for(let y=Math.min(...ys);y<islandHouseCut(f);y+=24)for(let x=Math.min(...xs);x<Math.max(...xs);x+=24)
+    if(map.nav().walkable(x,y)&&!baseline.walkable(x,y))roofOnly=true;
+  }
+  assert.ok(roofOnly,'full roofs still obstruct ground opened by the house-base rule');
   assert.equal(map.nav().walkable(...point),true,'house gap is open');
   assert.deepEqual(map.nav().route(map.spawn.x,map.spawn.y,...point).at(-1),point,'exact gap is connected');
  });

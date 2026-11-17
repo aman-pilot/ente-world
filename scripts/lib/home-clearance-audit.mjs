@@ -1,3 +1,4 @@
+import {propBodyPadding} from '../../src/world/home/prop-outline-rules.js';
 import {HOME_DUCK_BODY} from '../../src/world/home/duck-body.js';
 import sharp from 'sharp';
 import {alphaContours} from './alpha-contour.mjs';
@@ -5,7 +6,7 @@ import {geometry,inShape,shapeIndex} from '../../assets/world/island-geometry.mj
 
 // Re-rasterize source artwork, independently of the generated outline catalogue.
 // Unsimplified pixel-cell edges give a 256-square alpha-mask distance oracle.
-export async function homeClearanceOracle(props,world,{houseCut=()=>null}={}){
+export async function homeClearanceOracle(props,world,{houseCut=()=>null,depthAt=(x,y)=>y}={}){
   const rasters=new Map(),shapes=[];
   for(const p of props.filter(p=>p.outlineKind==='solid')){
     if(!rasters.has(p.src)){
@@ -30,7 +31,7 @@ export async function homeClearanceOracle(props,world,{houseCut=()=>null}={}){
   // rectangle with occupied source-pixel cells. No generated blocker geometry.
   const frontClear=(x,y,margin=0)=>!bodyNear(x,y).some(({p,house})=>{
     if(house)return false;
-    if(p.sortY<=y)return false;
+    if(p.sortY<=(propBodyPadding(p).width===160?y:depthAt(x,y)))return false;
     const w=p.width*p.scale,h=p.height*p.scale;
     const u=wx=>(p.anchor.x+(p.flip?-1:1)*(wx-p.x)/w)*256;
     const ux=[u(x-HOME_DUCK_BODY.width/2-margin),u(x+HOME_DUCK_BODY.width/2+margin)].sort((a,b)=>a-b);

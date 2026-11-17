@@ -10,3 +10,18 @@ export function propOutlineKind(prop) {
   // Trees, lamps and reeds block their entire drawing, including canopies.
   return 'solid';
 }
+
+// Furniture uses a feet clearance, not the full dressed duck silhouette.
+// Keep the full body mask for overhead foliage so its canopy cannot hide a duck.
+export function propBodyPadding(prop) {
+  const art = prop.src.split('/').at(-1).toLowerCase();
+  return /(?:^|[-_ ])(?:trees?|oak|birch|willow|pine|canopy|umbrella|parasol|bush|shrub|hedge)(?:[-_. ]|$)/.test(art)
+    ? {width:160, height:200} : {width:48, height:0};
+}
+
+// String-light poles stand on the ground; their suspended cable is not a wall.
+export function propBaseCut(prop, bottom) {
+  if((prop.src??'').split('/').at(-1)==='stage.svg')return bottom-Math.min(140,prop.height*(prop.scale??1)*.3);
+  return /^lights-(?:back|front|span)\.svg$/.test((prop.src??'').split('/').at(-1))
+    ? bottom-Math.min(36,prop.height*(prop.scale??1)*.12) : null;
+}

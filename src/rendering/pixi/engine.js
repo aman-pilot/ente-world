@@ -1,3 +1,4 @@
+import {furnitureDepth,usesFurnitureDepth} from './furniture-depth.js';
 import {nearestSeaX,wrapSea} from '../../world/flat-layout.js';
 import {installPixelRecovery} from './art/pixel-residency.js';
 import {createIslandPrefetch} from './art/island-prefetch.js';
@@ -1922,6 +1923,7 @@ export class PixiIsland {
       rig.root.position.set(deckX(x,y,this.arches), deckY(x, y, this.arches) - hop.lift - (duck.player ? this.arrivalLift(now) : 0));
       rig.root.zIndex = y;
       if (peer) {rig.root.position.set(peer.x,peer.y);rig.root.zIndex=peer.y;}
+      if(usesFurnitureDepth(this.artShown))rig.root.zIndex=furnitureDepth(this.artProps(this.artShown),peer?.x??x,peer?.y??y,rig.root.zIndex);
       rig.root.visible = (homeShown || duck.player) && visible(x, y, 200);
       if (duck.player) this.plantReactions?.track(duck,x,y,rig.root.visible && !(duck.jumpLeft>0));
       rig.trackSnow?.(t, (homeShown || duck.player) && !this.interior?.active ? this.artShown : null,
@@ -1933,7 +1935,7 @@ export class PixiIsland {
     });
     if (!homeShown) {
       for (const {duck, rig} of this.mapSleepers.get(this.artShown) ?? []) {
-        rig.root.position.set(duck.x, duck.y); rig.root.zIndex=duck.y;
+        rig.root.position.set(duck.x, duck.y); rig.root.zIndex=usesFurnitureDepth(this.artShown)?furnitureDepth(this.artProps(this.artShown),duck.x,duck.y):duck.y;
         rig.root.visible=visible(duck.x, duck.y, 200);
         rig.trackSnow?.(t, this.artShown, 7, 0, reduced, 0);
         if (flatVisible && rig.root.visible) rig.update(dt, {action: 7, speed: 0, turn: 0, time: t, reducedMotion: reduced, emoteVersion: 0, persistentSleep: true, jump: jumpPose(0, reduced, {turn: 0, moving: false})});
@@ -2239,6 +2241,7 @@ export class PixiIsland {
       if (look.deck && pose.mode !== 'sailing') this.dust?.track(entry, {x:deckX(look.x,look.y,this.arches), y:deckY(look.x,look.y,this.arches), z:look.z ?? look.y, jumpLeft:pose.jumpLeft, travel:look.speed, turn:look.turn, reduced:reducedMotion, dt});
       rig.root.zIndex = look.z ?? look.y;
       if (peer) {rig.root.position.set(peer.x,peer.y);rig.root.zIndex=peer.y;}
+      if(pose.mode!=='sailing'&&look.deck&&usesFurnitureDepth(this.artShown))rig.root.zIndex=furnitureDepth(scopeProps,peer?.x??x,peer?.y??y,rig.root.zIndex);
       rig.root.visible = visible(look.x,look.y,200);
       this.plantReactions?.track(entry,x,y,rig.root.visible && look.deck && pose.mode!=='sailing' && !(pose.jumpLeft>0));
       const snowMoved = entry.snowX !== undefined && (Math.abs(x - entry.snowX) > .01 || Math.abs(y - entry.snowY) > .01);

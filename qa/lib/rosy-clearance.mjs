@@ -1,3 +1,4 @@
+import {furnitureDepth} from '../../src/rendering/pixi/furniture-depth.js';
 import {islandHouseCut} from '../home-house-rule.mjs';
 import {blocks} from '../../src/world/walk-rule.js';
 import assert from 'node:assert/strict';
@@ -5,7 +6,7 @@ import {mapOf} from '../../src/world/island-maps.js';
 import {homeClearanceOracle} from '../../scripts/lib/home-clearance-audit.mjs';
 const map=mapOf('sunset');
 const props=map.world.props.map(p=>({...p,src:p.src.startsWith('/')?p.src:'/pixi-art/themes/pink/'+p.src}));
-export const rosyOracle=await homeClearanceOracle(props.filter(p=>blocks(p.footprint??{prop:p.id},p)),map.walk,{houseCut:islandHouseCut});
+export const rosyOracle=await homeClearanceOracle(props.filter(p=>blocks(p.footprint??{prop:p.id},p)),map.walk,{houseCut:islandHouseCut,depthAt:(x,y)=>furnitureDepth(props,x,y)});
 // Audit both directions against freshly rasterized source alpha. The band
 // between 22 and 30 includes Home's conservative one-source-pixel allowance.
 export function assertRosySample(nav,point,label){
