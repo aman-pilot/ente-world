@@ -50,7 +50,7 @@ import {createKarmaView} from './karma-view.js';
 import {createBoatBuildView} from './boat-build-view.js';
 import {isletUnder} from '../../gameplay/boat-build.js';
 import {HARBOR, harborOf, islandFor, near, seaBoundsFor, destinationsFor, offshoreProgress, boardingPoint, dockingSpot, canDock, islandOffset} from '../../gameplay/islands.js';
-import {isletWalks} from '../../world/islet-walk.js';
+import {isletWalks,isletAt} from '../../world/islet-walk.js';
 import {reframeIslet} from '../../world/islet-placement.js';
 import {ambientOf, artOf, mapFor, mapOf, prepareIslandMap, islandMapReady} from '../../world/island-maps.js';
 import {recoverArt, finalTextureSource, isArtPlaceholder, artPlaceholder, settleArtStep} from './art/art-recovery.js';
@@ -1747,8 +1747,10 @@ export class PixiIsland {
     };
     input.x=Math.sign(input.x); input.y=Math.sign(input.y);
     if(input.x||input.y||Math.abs(this.camera.zoom-this.target.zoom)>.0005||this.gestures.pointers.size||this.player?.travel>1&&this.player.mode!=='sailing')markArtActivity();
-    // islets are drawn with the world art: load it to sail, and for a duck that starts out standing on an islet
-    if(this.player&&!this.worldArtPending&&(this.player.mode==='sailing'||isletUnder(this.islandId,this.player)))this.ensureWorldArt();
+    // islets are drawn with the world art: load it to sail, to stand on an islet, and as soon as one comes
+    // into view from the shore (otherwise its feathers float on bare sea)
+    if(this.player&&!this.worldArtPending&&(this.player.mode==='sailing'||isletUnder(this.islandId,this.player)||
+      isletAt(this.islandId,this.camera.x,this.camera.y,Math.max(this.width,this.height)/Math.max(this.camera.zoom,.05))))this.ensureWorldArt();
     if (this.keys.has('shift') && ['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].some(k => this.keys.has(k)) && (input.x || input.y)) input.run=true;
     if (this.travelView?.fx.holding(this.room?.id)) input.x=input.y=0;
     const indoors = this.interior?.active;
