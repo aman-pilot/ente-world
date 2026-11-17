@@ -7459,7 +7459,7 @@
     "sources": {
       "version": 1,
       "theme": "community",
-      "modelSha256": "e9c8728f361d50bd8217b87cd454337198e3ed744f0b9588c094a313e92c4b48",
+      "modelSha256": "a1a92e4f308f73c6ac486b0b6359de7f3db3684944c35cc07a36c4bc0f5a5504",
       "files": [
         {
           "path": "assets/world/island-geometry.mjs",
@@ -8458,7 +8458,7 @@
           "sha256": "939595f5fbd64d88d0b7b11d0695db67edb515664887aef8efc894b9140fcbaf"
         }
       ],
-      "sha256": "130e2f33a63fd60eb8c364a39c17fa3ea9dfff27aeaf7130354d5997bed1e038"
+      "sha256": "3b64932c1f5549024708bb0fffb1e06ba7a7073c0ad1d9c4273f7ae57e6ce309"
     },
     "groundSha256": "56ca5b43b287cbfbfb290f654f917a0311a042d4be767993605833f2ca3519d2",
     "src": "/pixi-art/globe/community.svg",
