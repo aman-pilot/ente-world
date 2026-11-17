@@ -138,13 +138,15 @@ test('music shares the logo row when space permits and avoids profile controls o
   const root=createRoot(document.getElementById('root'));
   try {
     await act(async()=>root.render(React.createElement('main',null,
-      React.createElement('img',{className:'pixi-ente-logo'}),
+      React.createElement('div',{className:'pixi-top-left'},
+        React.createElement('img',{className:'pixi-ente-logo'}),
+        React.createElement('button',{className:'pixi-guide-button'})),
       React.createElement('button',{className:'pixi-profile-button'}),
       React.createElement('div',{className:'pixi-karma-counter'}),
       React.createElement(IslandMusic,{island:{current:null}}))));
     const player=document.querySelector('.pixi-music');
     const rect=(left,top,width,height)=>({left,top,width,height,right:left+width,bottom:top+height});
-    document.querySelector('.pixi-ente-logo').getBoundingClientRect=()=>rect(16,16,76,40);
+    document.querySelector('.pixi-top-left').getBoundingClientRect=()=>rect(16,16,128,40);
     document.querySelector('.pixi-profile-button').getBoundingClientRect=()=>rect(window.innerWidth-72,16,56,56);
     document.querySelector('.pixi-karma-counter').getBoundingClientRect=()=>rect(window.innerWidth-170,24,86,40);
     player.getBoundingClientRect=()=>rect(window.innerWidth-(parseFloat(player.style.right)||16)-120,
@@ -154,6 +156,11 @@ test('music shares the logo row when space permits and avoids profile controls o
     let bounds=player.getBoundingClientRect();
     assert.equal(bounds.top,16);
     assert.ok(bounds.right<document.querySelector('.pixi-karma-counter').getBoundingClientRect().left);
+    window.innerWidth=440;
+    place();
+    bounds=player.getBoundingClientRect();
+    const leftDock=document.querySelector('.pixi-top-left').getBoundingClientRect();
+    assert.ok(bounds.left>=leftDock.right+12 || bounds.top>=leftDock.bottom+12);
     window.innerWidth=320;
     place();
     bounds=player.getBoundingClientRect();

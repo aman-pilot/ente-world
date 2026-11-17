@@ -11,6 +11,7 @@ import IslandTravel from './IslandTravel.jsx';
 import IslandStargaze from './IslandStargaze.jsx';
 import IslandProfile from './IslandProfile.jsx';
 import IslandCamera from './IslandCamera.jsx';
+import IslandGuide from './IslandGuide.jsx';
 import IslandMusic from './IslandMusic.jsx';
 import WorldMap from './WorldMap.jsx';
 import BogEntry from '../features/bog-combat/BogEntry.jsx';
@@ -191,7 +192,10 @@ export default function PixiPage({signedInEntry = false}) {
   {connecting && !arriving && <IslandConnecting/>}
   <main ref={page} inert={connecting} className={`pixi-page${watchOnly ? ' pixi-page--watch' : ''}`}>
     <div className="pixi-host" ref={host}/>
-    <img className="pixi-ente-logo" src="/ente-wordmark-white.svg" alt="Ente" width="844" height="264"/>
+    <div className="pixi-top-left">
+      <img className="pixi-ente-logo" src="/ente-wordmark-white.svg" alt="Ente" width="844" height="264"/>
+      {!error && <IslandGuide island={island}/>}
+    </div>
     {!error && <IslandMusic island={island}/>}
     <div className="pixi-chat-layer">
       <div ref={nameLayer}/>
@@ -225,10 +229,11 @@ export default function PixiPage({signedInEntry = false}) {
       <IslandTravel travel={travel} playing={status==='playing' || offline} room={room} island={island} notice={travelNotice}/>
       <IslandStargaze island={island} playing={status==='playing' || offline} offline={offline}/>
       <div className="pixi-notifications" ref={setNotificationHost}>
-        <IslandPresence online={online} latestJoin={latestJoin}/>
+        <IslandPresence online={online} latestJoin={latestJoin}>
+          <IslandCamera island={island} ready={cameraReady} player={session?.user?.login}/>
+        </IslandPresence>
       </div>
     </div>}
-    {!error && <IslandCamera island={island} ready={cameraReady} player={session?.user?.login}/>}
     {!error && <WorldMap island={island} globeOpen={globeOpen} indoors={indoors}/>}
     {!error && <BogEntry engine={island} travel={travel} status={status} {...BOG_COMBAT}
       accountId={session?.user?.accountId}
