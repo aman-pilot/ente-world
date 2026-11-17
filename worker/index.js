@@ -539,6 +539,11 @@ export class IslandRoom {
       const group = groups.get(islandId);
       group.guests.push(pose); group.named.push({...pose, login:info.login, accountId:info.account});
     }
+    const globePlayers = named => [...this.connections.values()].filter(info => info.actor).map(info => {
+      const {id, islandId, x, y, mode} = wirePose(info.actor);
+      return {id, islandId, x, y, mode, ...(named && info.login ? {login:info.login} : {})};
+    });
+    const globe = {named:globePlayers(true), guests:globePlayers(false)};
     const shared = new Map(), empty = {guests:[], named:[]};
     const text = (islandId, named, info) => {
       const combatSelf=!!info.actor&&combatAccounts.has(info.account);
@@ -558,7 +563,7 @@ export class IslandRoom {
         } else if(localViewer)poses=poses.map(p=>seaViewPose(localViewer,p));
         const visibleBoats=chartViewer?this.boats.map(b=>seaViewPose(info.actor,b,b.islandId===islandId?Infinity:8000)).filter(Boolean):this.boats.filter(b=>b.islandId===islandId).map(b=>localViewer?seaViewPose(localViewer,b):b);
         const players=combatSelf?[...poses,{...wirePose(info.actor),...(named?{login:info.login,accountId:info.account}:{})}]:poses;
-        shared.set(key, `{"type":"snapshot","epoch":${JSON.stringify(this.epoch)},"tick":${tick},"online":${online},"islandId":${JSON.stringify(islandId)},"boats":${JSON.stringify(visibleBoats.map(wireBoat))},"players":${JSON.stringify(players)},"self":`);
+        shared.set(key, `{"type":"snapshot","epoch":${JSON.stringify(this.epoch)},"tick":${tick},"online":${online},"islandId":${JSON.stringify(islandId)},"boats":${JSON.stringify(visibleBoats.map(wireBoat))},"players":${JSON.stringify(players)},"globePlayers":${JSON.stringify(named ? globe.named : globe.guests)},"self":`);
       }
       return shared.get(key);
     };
@@ -601,7 +606,7 @@ export class IslandRoom {
         patch = {players: diff(base.group.players, group.players), boats: diff(base.group.boats, group.boats)};
         group.patches.set(base.group, patch);
       }
-      this.sendText(socket, JSON.stringify({type: 'delta', epoch: this.epoch, tick, baseTick: base.group.tick, islandId, online, ...patch, self: JSON.parse(self)}));
+      this.sendText(socket, JSON.stringify({type: 'delta', epoch: this.epoch, tick, baseTick: base.group.tick, islandId, online, globePlayers:named ? globe.named : globe.guests, ...patch, self: JSON.parse(self)}));
       info.snapshotBase = {key, group, fullTick: base.fullTick};
     }
   }

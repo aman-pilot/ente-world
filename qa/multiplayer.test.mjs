@@ -1140,3 +1140,19 @@ test('wrapping sea: two real sockets see seam neighbours, currents keep Bog tick
     assert.equal(b.duck().mode,'sailing');b.send({type:'disembark'});await eventually(()=>b.duck().mode==='walking');
   }finally{a.close();b.close();}
 });
+
+test('globe pins include unrelated players across islands and hide names from guests', async () => {
+  const first=await signIn(9701), second=await signIn(9702);
+  const a=await socket(first.session), b=await socket(second.session), guest=await socket();
+  try {
+    await eventually(()=>a.duck() && b.duck());
+    await position(b,{islandId:'sunset',...mapOf('sunset').spawn,path:[]});
+    const pin=await eventually(()=>a.snapshot?.globePlayers?.find(p=>p.id===b.welcome.id && p.islandId==='sunset'));
+    assert.ok(pin.login);
+    assert.ok(!a.snapshot.players.some(p=>p.id===b.welcome.id),'walking snapshots remain local');
+    await eventually(()=>guest.snapshot?.globePlayers?.some(p=>p.id===b.welcome.id));
+    assert.ok(guest.snapshot.globePlayers.every(p=>!('login' in p)));
+    b.close();
+    await eventually(()=>!a.snapshot.globePlayers.some(p=>p.id===b.welcome.id));
+  } finally {a.close(); b.close(); guest.close();}
+});

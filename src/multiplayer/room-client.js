@@ -185,8 +185,9 @@ export class RoomClient {
     }
   }
 
-  snapshot({epoch,tick,players,self,online,islandId='home',boats=[]}) {
+  snapshot({epoch,tick,players,self,online,islandId='home',boats=[],globePlayers=[]}) {
     if (epoch === this.epoch && tick <= this.tick) return;
+    this.globePlayers = globePlayers;
     this.snapshotPlayers = new Map(players.map(p => [p.id, p]));
     this.snapshotBoats = new Map(boats.map(b => [b.id, b]));
     const own=players.find(pose => pose.id === this.id);
