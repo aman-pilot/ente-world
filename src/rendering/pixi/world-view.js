@@ -1,3 +1,4 @@
+import {visiblePlayerMarkers} from '../shared/player-markers.js';
 import {horizonRatio,pixelChart,lensAngle} from '../../world/sphere-projection.js';
 import {spherePoint,localPoint,viewFrame,seaPoint,seaHeading} from '../../world/sphere-coordinates.js';
 import {WORLD_GEO,worldIsland,WORLD_ISLANDS} from '../../world/world-map.js';
@@ -519,15 +520,20 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
       // show (your own tag always does). Hover-free and cheap: a few boxes per frame.
       const fits=(x,y,w)=>{const box={l:x-w/2-4,r:x+w/2+4,t:y-80,b:y-52};if(placed.some(o=>box.l<o.r&&box.r>o.l&&box.t<o.b&&box.b>o.t))return false;placed.push(box);return true;};
       if (pin.visible) fits(pin.x,pin.y,pin.tagWidth*pin.scale.x);
+      const candidates=[];
       for (const player of this.players ?? []) {
         let point;
         try {point=player.mode==='sailing'?seaPoint(player.islandId,player):spherePoint(player.islandId,player);} catch {continue;}
         if (!point) continue;
-        const fp=playerPin(player),p=project(0,0,point);
+        const p=project(0,0,point);
+        candidates.push({player,p,alpha:this.tagsOut*ease(p.face/.25)});
+      }
+      for (const {player,p,alpha} of visiblePlayerMarkers(candidates,{width:w,height:h,ownVisible:pin.visible})) {
+        const fp=playerPin(player);
         shown.add(player.id);
         fp.mask=pin.mask;
         fp.position.set(p.x,p.y);
-        fp.alpha=this.tagsOut*ease(p.face/.25);
+        fp.alpha=alpha;
         fp.visible=fp.alpha>.01;
         fp.body.y=-Math.abs(Math.sin(time*3+(Number(player.id)%7||0)))*6;
         fp.scale.set(.7+.2*Math.max(0,p.face));
