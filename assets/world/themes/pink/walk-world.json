@@ -6014,7 +6014,7 @@
    "name": "hamlet-ribbonwick-heart-lamp-nw"
   },
   {
-   "x": 951.55,
+   "x": 983.55,
    "y": -100.73000000000002,
    "rx": 32.17,
    "ry": 12.87,
@@ -6064,7 +6064,7 @@
   },
   {
    "x": 657.1,
-   "y": 207.7,
+   "y": 287.7,
    "rx": 198.9,
    "ry": 28,
    "name": "hamlet-ribbonwick-ribbon-maypole"
@@ -6232,7 +6232,7 @@
   },
   {
    "x": 5879,
-   "y": -218.842,
+   "y": -282.842,
    "rx": 29.4,
    "ry": 11.758,
    "name": "hamlet-chirrup-birdhouse-west"
@@ -6266,7 +6266,7 @@
    "name": "hamlet-chirrup-cottage-west"
   },
   {
-   "x": 6545.4,
+   "x": 6577.4,
    "y": -29.559999999999995,
    "rx": 23.1,
    "ry": 9.24,
@@ -6406,8 +6406,8 @@
    "name": "hamlet-petalpatch-buttercream-rose-cottage"
   },
   {
-   "x": -973.9,
-   "y": 2517.39,
+   "x": -1037.9,
+   "y": 2485.39,
    "rx": 30.22,
    "ry": 12.09,
    "name": "hamlet-petalpatch-heart-lamp-nw"
@@ -33772,7 +33772,7 @@
    "id": "hamlet-ribbonwick-heart-lamp-ne",
    "name": "heart-lamp-ne",
    "src": "hamlets/ribbonwick/heart-lamp-ne.svg",
-   "x": 951.55,
+   "x": 983.55,
    "y": -92.15,
    "width": 107.25,
    "height": 266.4,
@@ -33787,7 +33787,7 @@
    "order": 475,
    "wind": false,
    "footprint": {
-    "x": 1143.55,
+    "x": 1175.55,
     "y": -148.73000000000002,
     "rx": 32.17,
     "ry": 12.87
@@ -34123,7 +34123,7 @@
    "name": "ribbon-maypole",
    "src": "hamlets/ribbonwick/ribbon-maypole.svg",
    "x": 657.1,
-   "y": 225.7,
+   "y": 305.7,
    "width": 663,
    "height": 585,
    "scale": 1,
@@ -34138,11 +34138,11 @@
    "wind": false,
    "footprint": {
     "x": 657.1,
-    "y": 207.7,
+    "y": 287.7,
     "rx": 198.9,
     "ry": 28
    },
-   "z": 225.7,
+   "z": 305.7,
    "shadow": true,
    "shadowSize": [
     249.29,
@@ -35468,7 +35468,7 @@
    "name": "birdhouse-west",
    "src": "hamlets/chirrup/birdhouse-west.svg",
    "x": 5879,
-   "y": -211,
+   "y": -275,
    "width": 98,
    "height": 145.6,
    "scale": 1,
@@ -35483,11 +35483,11 @@
    "wind": false,
    "footprint": {
     "x": 5879,
-    "y": -218.842,
+    "y": -282.842,
     "rx": 29.4,
     "ry": 11.758
    },
-   "z": -211,
+   "z": -275,
    "redrawn": true,
    "baseSpot": [
     5879,
@@ -35685,7 +35685,7 @@
    "id": "hamlet-chirrup-lamp-ne",
    "name": "lamp-ne",
    "src": "hamlets/chirrup/lamp-ne.svg",
-   "x": 6545.4,
+   "x": 6577.4,
    "y": -23.4,
    "width": 77,
    "height": 186.29,
@@ -35700,7 +35700,7 @@
    "order": 531,
    "wind": false,
    "footprint": {
-    "x": 6577.4,
+    "x": 6609.4,
     "y": -77.56,
     "rx": 23.1,
     "ry": 9.24
@@ -37042,8 +37042,8 @@
    "id": "hamlet-petalpatch-heart-lamp-nw",
    "name": "heart-lamp-nw",
    "src": "hamlets/petalpatch/heart-lamp-nw.svg",
-   "x": -973.9,
-   "y": 2525.45,
+   "x": -1037.9,
+   "y": 2493.45,
    "width": 100.75,
    "height": 240.25,
    "scale": 1,
@@ -37057,12 +37057,12 @@
    "order": 489,
    "wind": false,
    "footprint": {
-    "x": -973.9,
-    "y": 2517.39,
+    "x": -1037.9,
+    "y": 2485.39,
     "rx": 30.22,
     "ry": 12.09
    },
-   "z": 2605.45,
+   "z": 2573.45,
    "shadow": true,
    "shadowSize": [
     22.16,

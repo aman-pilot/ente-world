@@ -56,20 +56,21 @@ test('Campfire stair landing joins a 104-unit path and preserves all stage signs
  assert.deepEqual(checked.problems,[]);assert.equal(checked.sleepers.length,100);
 });
 
-test('Campfire client and authority block the whole retained stage drawing and share clear ground approaches',()=>{
+test('Campfire client and authority block the stage base and share clear rear and front approaches',()=>{
  assert.deepEqual(world.obstacles,walk.obstacles);
  const nav=map.nav();assert.equal(map.baseWalk.navigationCellSize,16);
- for(const p of [[4000,1080],[4000,1175],[4000,1220],[3850,1200],[4150,1200]])assert.equal(nav.walkable(...p),false,'stage drawing excludes Ducky '+p);
+ for(const p of [[4000,1175],[4000,1220],[3850,1200],[4150,1200]])assert.equal(nav.walkable(...p),false,'stage base excludes Ducky '+p);
+ const rear=[4000,1080];assert(nav.walkable(...rear),'ground behind the base stays open');assert.deepEqual(nav.route(map.spawn.x,map.spawn.y,...rear).at(-1),rear);
  const approach=[4000,1336];assert(nav.walkable(...approach));assert.deepEqual(nav.route(map.spawn.x,map.spawn.y,...approach).at(-1),approach);
  for(const p of map.world.props.filter(p=>['events-stage','stage-cabinet-w','stage-cabinet-e'].includes(p.id)))assert(p.footprint&&p.bodyFootprint,p.id+' has identical shared contour obstacles');
 });
 
-test('Campfire Duckies stop outside the stage drawing and reach the uncovered stair approach at client and authority ticks',()=>{
+test('Campfire Duckies stop outside the stage base and reach the uncovered stair approach at client and authority ticks',()=>{
  const nav=map.nav();
  for(const dt of [1/60,.05]){
   const duck={x:4000,y:1450,previousX:4000,previousY:1450,turn:0,path:[],until:0,action:0,travel:0,emoteVersion:0};
-  setWalkDestination(duck,nav,4000,1080);
-  for(let t=0;t<12;t+=dt){walkStep(duck,nav,dt,t,{x:0,y:0});assert(nav.walkable(duck.x,duck.y));assert(duck.y>1305,'cannot enter retained stage art');}
+  setWalkDestination(duck,nav,4000,1250);
+  for(let t=0;t<12;t+=dt){walkStep(duck,nav,dt,t,{x:0,y:0});assert(nav.walkable(duck.x,duck.y));assert(duck.y>1305,'cannot enter retained stage base');}
   setWalkDestination(duck,nav,4000,1336);
   for(let t=12;t<24;t+=dt){walkStep(duck,nav,dt,t,{x:0,y:0});assert(nav.walkable(duck.x,duck.y));}
   assert(Math.hypot(duck.x-4000,duck.y-1336)<8,'reached uncovered approach');

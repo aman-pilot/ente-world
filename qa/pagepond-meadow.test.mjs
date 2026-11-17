@@ -52,7 +52,11 @@ test('Pagepond pool blocks walking in client, authority and runtime while its st
     const {walkable} = geometry({...data,obstacles:map.walk.obstacles,indexPropContours:true});
     for (const p of [[1800,3990],[2370,4140],[2070,4093]]) assert(!walkable(...p), 'water or lighthouse '+p);
     assert(walkable(2028,4395),'dry rim');
-    for(const p of [[1890,4060],[2059,3960],[2230,4070],[1930,4090],[1590,4320]])assert(!walkable(...p),'retained prop drawing blocks old sample '+p);
+    assert(!walkable(2059,3960),'retained visible solid still blocks');
+    for(const p of [[1890,4060],[2230,4070],[1930,4090],[1590,4320]]){
+      assert(walkable(...p),'ground freed by narrower body padding '+p);
+      assert.deepEqual(map.nav().route(map.spawn.x,map.spawn.y,...p).at(-1),p,'freed ground connects to spawn');
+    }
     // The old bank point and lighthouse loop ran under retained prop art.
     const bank=[1608,4256],access=map.nav().route(...bank,...placement.walkable.routeWorld[0]);
     assert.deepEqual(access.at(-1),placement.walkable.routeWorld[0],'uncovered bank reaches first tread');

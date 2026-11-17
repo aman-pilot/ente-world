@@ -1,7 +1,7 @@
 import {islandHouseCut} from './home-house-rule.mjs';
 import {blocks} from '../src/world/walk-rule.js';
 import {boardingPoint} from '../src/gameplay/islands.js';
-const walkMoves={"lib-339":{"x":2818.74,"y":705.07},"lib-340":{"x":3412.9,"y":690.9},"lib-54":{"x":1037.1,"y":2666.7},"hamlet-paperboat-mooring-post-midwest":{"x":8095.15,"y":6758.82},"hamlet-paperboat-mooring-post-mideast":{"x":8897.5,"y":6821.25},"lib-166":{"x":3247.8,"y":1060.3},"lib-10":{"x":3552.7,"y":1912.13},"lib-128":{"x":3343.44,"y":1163.47}};
+const walkMoves={"lib-139":{"x":1500,"y":3856},"lib-339":{"x":2818.74,"y":705.07},"lib-340":{"x":3412.9,"y":690.9},"lib-54":{"x":1037.1,"y":2666.7},"hamlet-paperboat-mooring-post-midwest":{"x":8095.15,"y":6758.82},"hamlet-paperboat-mooring-post-mideast":{"x":8897.5,"y":6821.25},"lib-166":{"x":3247.8,"y":1060.3},"lib-10":{"x":3552.7,"y":1912.13},"lib-128":{"x":3343.44,"y":1163.47}};
 import {changedIds} from '../scripts/pagepond-benches/geometry.mjs';
 import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
 import {makeMap} from '../src/world/island-maps.js';import {geometry,inPoly,inShape} from '../assets/world/island-geometry.mjs';import {checkTheme} from '../scripts/theme-index.mjs';

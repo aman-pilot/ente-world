@@ -1,3 +1,4 @@
+import {furnitureDepth,usesFurnitureDepth} from './furniture-depth.js';
 import {nearestSeaX,wrapSea} from '../../world/flat-layout.js';
 import {installPixelRecovery} from './art/pixel-residency.js';
 import {createIslandPrefetch} from './art/island-prefetch.js';
@@ -1468,6 +1469,8 @@ export class PixiIsland {
     const sleepers=this.sleeperRigs().map(r => [r.root, r.root.visible]);
     const floats=(this.floating ?? []).map(f => [f.sprite, f.sprite.visible]);
     const naps=sets.flatMap(id => this.mapSleepers.get(id) ?? []).map(({rig}) => [rig.root, rig.root.visible]);
+    const covers = [...(this.bridgeOver ?? []), ...[...(this.arts?.values() ?? [])].flatMap(a => a.bridgeOver ?? [])];
+    const coverVisibility = covers.map(b => b.sprite.visible);
     const sceneVisible=this.scene.visible; this.scene.visible=true;
     const z=this.camera.zoom;
     const span=cameraSpan(this.camera,this.width,this.height),hw=span.width/(2*z), hh=span.height/(2*z*TILT);
@@ -1482,7 +1485,14 @@ export class PixiIsland {
       const mine=visitors.filter(v => v.copy === island).map(v => v.o);
       withRigidVisitors(this.islandId,island.id,mine,()=>{
         this.showArt(island.map);cull(island.map,island.id);
-        drawLiveIsland(this.app.renderer,this.islandId,island.id,this.scene,this.camera,this.width,this.height,TILT,target);
+        // Covers use this copy's local frame, even while the sailor belongs to
+        // the departure island. Restore them before rendering the main scene.
+        try {
+          this.updateBridgeOver((this.bridgeSailers ?? []).map(p => unplaceRigid(this.islandId,island.id,p)), island.map);
+          drawLiveIsland(this.app.renderer,this.islandId,island.id,this.scene,this.camera,this.width,this.height,TILT,target);
+        } finally {
+          covers.forEach((b,i) => {b.sprite.visible=coverVisibility[i];});
+        }
       });
     }
     this.scene.visible=sceneVisible;
@@ -1913,6 +1923,7 @@ export class PixiIsland {
       rig.root.position.set(deckX(x,y,this.arches), deckY(x, y, this.arches) - hop.lift - (duck.player ? this.arrivalLift(now) : 0));
       rig.root.zIndex = y;
       if (peer) {rig.root.position.set(peer.x,peer.y);rig.root.zIndex=peer.y;}
+      if(usesFurnitureDepth(this.artShown))rig.root.zIndex=furnitureDepth(this.artProps(this.artShown),peer?.x??x,peer?.y??y,rig.root.zIndex);
       rig.root.visible = (homeShown || duck.player) && visible(x, y, 200);
       if (duck.player) this.plantReactions?.track(duck,x,y,rig.root.visible && !(duck.jumpLeft>0));
       rig.trackSnow?.(t, (homeShown || duck.player) && !this.interior?.active ? this.artShown : null,
@@ -1924,7 +1935,7 @@ export class PixiIsland {
     });
     if (!homeShown) {
       for (const {duck, rig} of this.mapSleepers.get(this.artShown) ?? []) {
-        rig.root.position.set(duck.x, duck.y); rig.root.zIndex=duck.y;
+        rig.root.position.set(duck.x, duck.y); rig.root.zIndex=usesFurnitureDepth(this.artShown)?furnitureDepth(this.artProps(this.artShown),duck.x,duck.y):duck.y;
         rig.root.visible=visible(duck.x, duck.y, 200);
         rig.trackSnow?.(t, this.artShown, 7, 0, reduced, 0);
         if (flatVisible && rig.root.visible) rig.update(dt, {action: 7, speed: 0, turn: 0, time: t, reducedMotion: reduced, emoteVersion: 0, persistentSleep: true, jump: jumpPose(0, reduced, {turn: 0, moving: false})});
@@ -2230,6 +2241,7 @@ export class PixiIsland {
       if (look.deck && pose.mode !== 'sailing') this.dust?.track(entry, {x:deckX(look.x,look.y,this.arches), y:deckY(look.x,look.y,this.arches), z:look.z ?? look.y, jumpLeft:pose.jumpLeft, travel:look.speed, turn:look.turn, reduced:reducedMotion, dt});
       rig.root.zIndex = look.z ?? look.y;
       if (peer) {rig.root.position.set(peer.x,peer.y);rig.root.zIndex=peer.y;}
+      if(pose.mode!=='sailing'&&look.deck&&usesFurnitureDepth(this.artShown))rig.root.zIndex=furnitureDepth(scopeProps,peer?.x??x,peer?.y??y,rig.root.zIndex);
       rig.root.visible = visible(look.x,look.y,200);
       this.plantReactions?.track(entry,x,y,rig.root.visible && look.deck && pose.mode!=='sailing' && !(pose.jumpLeft>0));
       const snowMoved = entry.snowX !== undefined && (Math.abs(x - entry.snowX) > .01 || Math.abs(y - entry.snowY) > .01);
@@ -2240,11 +2252,12 @@ export class PixiIsland {
       this.rinkTrails?.track(entry,x,y,travel,rig.root.visible&&look.deck&&pose.mode!=='sailing'&&!(pose.jumpLeft>0));
       if (pose.mode === 'sailing') sailers.push(look);
     }
+    this.bridgeSailers = sailers;
     this.updateBridgeOver(sailers);
   }
-  updateBridgeOver(sailers) {
-    for (const b of this.bridgeOver ?? []) b.sprite.visible = this.artShown === 'home' && sailers.some(p => p.x > b.x0 && p.x < b.x1 && p.y > b.y0 && p.y < b.y1);
-    for (const [id, art] of this.arts ?? []) for (const b of art.bridgeOver ?? []) b.sprite.visible = id === this.artShown && sailers.some(p => p.x > b.x0 && p.x < b.x1 && p.y > b.y0 && p.y < b.y1);
+  updateBridgeOver(sailers, mapId = this.artShown) {
+    for (const b of this.bridgeOver ?? []) b.sprite.visible = mapId === 'home' && sailers.some(p => p.x > b.x0 && p.x < b.x1 && p.y > b.y0 && p.y < b.y1);
+    for (const [id, art] of this.arts ?? []) for (const b of art.bridgeOver ?? []) b.sprite.visible = id === mapId && sailers.some(p => p.x > b.x0 && p.x < b.x1 && p.y > b.y0 && p.y < b.y1);
   }
 
   dispose() {

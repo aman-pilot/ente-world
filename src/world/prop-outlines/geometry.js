@@ -1,5 +1,5 @@
 import {compactContours} from '../../../assets/world/island-geometry.mjs';
-import {propOutlineKind} from '../home/prop-outline-rules.js';
+import {propOutlineKind,propBaseCut} from '../home/prop-outline-rules.js';
 export const bodyMaskKey = p => JSON.stringify([p.src,p.width*(p.scale??1),p.height*(p.scale??1),Boolean(p.flip)]);
 // Factories live outside the rule closure so a projected prop cannot retain
 // the decoded silhouettes/body-mask dictionary through its lexical parent.
@@ -27,6 +27,13 @@ function buildingFootprint(prop) {
     prop.x + (prop.flip ? prop.anchor.x - u : u - prop.anchor.x) * w,
     prop.y + (v - prop.anchor.y) * h,
   ]));
+  const cut=propBaseCut(prop,Math.max(...rings.flat().map(p=>p[1])));
+  if(cut!==null){
+    const clipped=rings.map(r=>r.flatMap((a,i)=>{const b=r[(i+1)%r.length],out=a[1]>=cut?[a]:[];
+      if((a[1]>=cut)!==(b[1]>=cut))out.push([a[0]+(b[0]-a[0])*(cut-a[1])/(b[1]-a[1]),cut]);return out;})).filter(r=>r.length>=3);
+    return compactContours({prop:prop.id,...(pixelMasks?{name:prop.id}:{}),building:true,propBase:true,clearance:22+Math.max(w,h)/256,
+      poly:clipped[0],...(clipped.length>1?{parts:clipped.slice(1)}:{})});
+  }
   const {x,y,flip,anchor:{x:ax,y:ay}}=prop;
   return compactContours({prop: prop.id, ...(pixelMasks?{name:prop.id}:{}), building: true, clearance: 22 + Math.max(w,h) / 256,
     poly: rings[0], ...(rings.length > 1 ? {parts: rings.slice(1)} : {})},contours,

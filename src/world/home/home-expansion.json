@@ -7499,7 +7499,7 @@
       "asset": "rowing-boat-cradle",
       "src": "/pixi-art/home-hamlets/reedwhistle/rowing-boat-cradle.svg",
       "x": 4255,
-      "y": 5190,
+      "y": 5030,
       "width": 329.6,
       "height": 168.8,
       "scale": 1,
@@ -7521,7 +7521,7 @@
         "ry": 24
       },
       "communityRole": "workplace",
-      "z": 5190,
+      "z": 5030,
       "shadowOffset": [
         8,
         -16
@@ -52570,7 +52570,7 @@
       "y": -306.3
     },
     "hamlet-lanternleaf-lamp-east": {
-      "x": 3148.5,
+      "x": 3244.5,
       "y": -270.3
     },
     "hamlet-clovercrust-lamp-southwest": {
@@ -52622,7 +52622,7 @@
       "y": -400
     },
     "plaza-lamp-0": {
-      "x": 2374.1262823152483,
+      "x": 2194.1262823152483,
       "y": 2242.7363164737785
     },
     "tree-9": {
@@ -52843,7 +52843,8 @@
     },
     "hamlet-butterbill-north-east-lamp": {
       "x": -634.2,
-      "y": 410.7
+      "y": 442.7,
+      "z": 442.7
     },
     "hamlet-lanternleaf-oak-east": {
       "x": 3717.7,
@@ -52979,7 +52980,8 @@
     },
     "hamlet-butterbill-cafe-east-front-chair": {
       "x": -1174.2,
-      "y": 595.6
+      "y": 691.6,
+      "z": 691.6
     },
     "hamlet-butterbill-west-lane-pot": {
       "x": -850,
@@ -52987,7 +52989,8 @@
     },
     "hamlet-butterbill-bread-cart": {
       "x": -1347,
-      "y": 772.5
+      "y": 868.5,
+      "z": 868.5
     },
     "hamlet-clovercrust-cart": {
       "x": 5113.2,
@@ -53384,6 +53387,15 @@
     "p2-garden-northwest-6": {
       "x": -1204,
       "y": -360
+    },
+    "seat-plaza--132": {
+      "x": 2665.626884116562,
+      "y": 2129.7769488747813
+    },
+    "hamlet-lanternleaf-lamp-southeast": {
+      "x": 3140.8,
+      "y": -104.1,
+      "z": -104.1
     }
   },
   "polishMicrotexture": true,

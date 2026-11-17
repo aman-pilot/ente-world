@@ -1,3 +1,4 @@
+import {furnitureDepth} from '../src/rendering/pixi/furniture-depth.js';
 import {homeHouseCut} from './home-house-rule.mjs';
 import {blocks} from '../src/world/walk-rule.js';
 import test from 'node:test';
@@ -17,7 +18,7 @@ const oracle=await homeClearanceOracle(props,world);
 // Houses retain feet blockers, but their roofs may overlap the standing body.
 // Keep the actual bases as ground barriers and audit foreground pixels for all other solids.
 const solidOracle=await homeClearanceOracle(props.filter(p=>blocks(p.footprint??{prop:p.id},p)&&homeHouseCut(p)===null),
-  {...world,obstacles:world.obstacles.map(o=>o.homeHouseBase?{...o,building:false}:o)});
+  {...world,obstacles:world.obstacles.map(o=>o.homeHouseBase?{...o,building:false}:o)}, {depthAt:(x,y)=>furnitureDepth(props,x,y)});
 
 test('connected Home grass/sand/path clearing alpha pixels by 30 and non-house front props by the body box is walkable on client and worker',()=>{
   const result=auditHomeClearance(world,[HOME_MAP.spawn.x,HOME_MAP.spawn.y],solidOracle,[client,worker.walkable]);

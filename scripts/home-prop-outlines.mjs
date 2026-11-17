@@ -3,7 +3,7 @@
 import {readFileSync, writeFileSync} from 'node:fs';
 import {build} from 'esbuild';
 import sharp from 'sharp';
-import {propOutlineKind} from '../src/world/home/prop-outline-rules.js';
+import {propOutlineKind,propBodyPadding} from '../src/world/home/prop-outline-rules.js';
 import {frontBodyMask} from './lib/front-body-mask.mjs';
 import {alphaContours} from './lib/alpha-contour.mjs';
 const SIZE = 256;
@@ -28,7 +28,7 @@ if(process.argv.includes('--outlines-only'))process.exit(0);
 const Q=await placements(), world=JSON.parse(readFileSync('assets/world/world.json'));
 const {geometry}=await import('../assets/world/island-geometry.mjs');
 const ps=Q.createPlacements(), masks={};
-for(const p of ps.filter(p=>p.outlineKind==='solid'))masks[p.id]=frontBodyMask(rasters.get(p.src),p,p.sortY);
+for(const p of ps.filter(p=>p.outlineKind==='solid'))masks[p.id]=frontBodyMask(rasters.get(p.src),p,p.sortY,256,propBodyPadding(p));
 writeFileSync('src/world/home/front-body-silhouettes.json',JSON.stringify(masks)+'\n');
 const R=await placements(), finalProps=R.createPlacements();
 const local=R.harborWorld(R.walkWorld(R.trimWorld(world),finalProps));

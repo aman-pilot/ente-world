@@ -10,6 +10,12 @@ import {homeHouseCut} from './home-house-rule.mjs';
 const bundle=await build({stdin:{resolveDir:process.cwd(),contents:`export {computeHomeScene} from './src/world/home/startup-scene.js';`},bundle:true,platform:'node',format:'esm',write:false});
 const P=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 const scene=P.computeHomeScene(true), client=geometry(scene.walk).walkable, worker=HOME_MAP.nav();
+// The outline rebuild now bakes the house bases. Reconstruct full silhouettes
+// for the independent before/after check instead of clipping a baked base twice.
+const silhouettes=new Map(scene.props.filter(p=>p.footprint).map(p=>[p.id,p.footprint]));
+const bakedHouses=new Set(raw.obstacles.filter(o=>o.homeHouseBase).map(o=>o.prop));
+const fullRaw={...raw,obstacles:[...raw.obstacles.map(o=>o.homeHouseBase ? silhouettes.get(o.prop) : o),
+  ...scene.props.filter(p=>bakedHouses.has(p.id)&&p.bodyFootprint).map(p=>p.bodyFootprint)]};
 
 test('client and worker agree on every 16-unit Home sample and both cottage gaps are reachable',t=>{
   assert.deepEqual(scene.walk.obstacles,HOME_MAP.walk.obstacles);
@@ -19,7 +25,7 @@ test('client and worker agree on every 16-unit Home sample and both cottage gaps
   }
   t.diagnostic(`${samples} Home samples agree`);
   for(const point of [[-349,612],[4458,-68]]){
-    assert.ok(!geometry(raw).walkable(...point),'gap was blocked by the full house');
+    assert.ok(!geometry(fullRaw).walkable(...point),'gap was blocked by the full house');
     assert.ok(client(...point),'client gap is open');
     assert.ok(worker.walkable(...point),'worker gap is open');
     assert.deepEqual(worker.route(HOME_MAP.spawn.x,HOME_MAP.spawn.y,...point).at(-1),point);
@@ -27,8 +33,8 @@ test('client and worker agree on every 16-unit Home sample and both cottage gaps
 });
 
 test('only Home house feet change, with body masks dropped and render depth retained',()=>{
-  const changed=homeHouseBases(raw.obstacles);
-  for(const o of raw.obstacles){
+  const changed=homeHouseBases(fullRaw.obstacles);
+  for(const o of fullRaw.obstacles){
     const cut=homeHouseCut(o);
     if(cut===null){assert.ok(changed.includes(o),'non-house obstacle retained verbatim');continue;}
     if(o.bodyBlock){assert.ok(!changed.includes(o),'house body mask removed');continue;}
