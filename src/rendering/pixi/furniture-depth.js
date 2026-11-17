@@ -14,7 +14,9 @@ export function furnitureDepth(props,x,y,depth=y){
   const shapes=[];
   for(const p of props){
    if(!p.src||!p.footprint||propBodyPadding(p).width!==48)continue;
-   const rings=[p.footprint.poly,...(p.footprint.parts??[])],points=rings.flat();
+   // Some footprints are ellipses or part lists without a poly: only use real [x,y] points, skip the rest.
+   const rings=[p.footprint.poly,...(p.footprint.parts??[]).map(r=>Array.isArray(r)?r:r?.poly)].filter(Array.isArray),points=rings.flat().filter(q=>Array.isArray(q)&&Number.isFinite(q[0])&&Number.isFinite(q[1]));
+   if(!points.length&&!p.footprint.propBase)continue;
    if(p.footprint.propBase){const w=p.width*(p.scale??1),h=p.height*(p.scale??1),a=p.anchor??{x:.5,y:1};
     points.push([p.x-a.x*w,p.y-a.y*h],[p.x+(1-a.x)*w,p.y+(1-a.y)*h]);}
    const xs=points.map(q=>q[0]),ys=points.map(q=>q[1]);
