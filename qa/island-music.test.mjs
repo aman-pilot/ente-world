@@ -11,7 +11,7 @@ const code = ['react','react/jsx-runtime'].reduce((text,name) =>
   text.replaceAll(JSON.stringify(name),JSON.stringify(import.meta.resolve(name))),bundle.text);
 const {default:IslandMusic} = await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
 
-test('music autoplays, cancels pending playback, advances and releases audio',async () => {
+test('music autoplays Get Better on loop, advances other tracks and releases audio',async () => {
   const dom = new JSDOM('<div id="root"></div>');
   const keys = ['window','document','AudioContext','requestAnimationFrame','cancelAnimationFrame','IS_REACT_ACT_ENVIRONMENT'];
   const previous = Object.fromEntries(keys.map(key => [key,globalThis[key]]));
@@ -37,7 +37,9 @@ test('music autoplays, cancels pending playback, advances and releases audio',as
     await act(async()=>root.render(React.createElement(React.StrictMode,null,
       React.createElement(IslandMusic,{island:{current:{stopInput(){stops++;}}}}))));
     const player=document.querySelector('audio');
-    assert.match(player.src,/\/then.mp3$/);
+    assert.match(player.src,/\/get-better\.mp3$/);
+    assert.equal(player.loop,true);
+    assert.match(document.querySelector('.pixi-music-list [aria-current="true"]').textContent,/Get Better/);
     assert.equal(player.volume,.35);
     assert.equal(played,0);
     await act(async()=>resume());
@@ -67,12 +69,15 @@ test('music autoplays, cancels pending playback, advances and releases audio',as
     assert.equal(played,1);
     frames.values().next().value(100);
     assert.match(document.querySelector('.pixi-music-spectrum span').style.transform,/0\.50/);
+    await act(async()=>player.dispatchEvent(new window.Event('ended')));
+    assert.match(player.src,/\/get-better\.mp3$/);
     await click('Next song');
     await act(async()=>resume());
-    assert.match(player.src,/\/sublime.mp3$/);
+    assert.match(player.src,/\/discovery\.mp3$/);
+    assert.equal(player.loop,false);
     await act(async()=>player.dispatchEvent(new window.Event('ended')));
     await act(async()=>resume());
-    assert.match(player.src,/\/love.mp3$/);
+    assert.match(player.src,/\/then\.mp3$/);
     await act(async()=>player.dispatchEvent(new window.Event('error')));
     assert.match(document.querySelector('[role="status"]').textContent,/retry/);
     assert.equal(frames.size,0);

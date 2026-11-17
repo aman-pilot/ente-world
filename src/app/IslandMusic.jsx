@@ -7,19 +7,20 @@ const tracks = [
   ['home','Home','aspizu'], ['sunday','Sunday','Vishnu'],
   ['get-better','Get Better','Luke Iggy'], ['discovery','Discovery','Vinay Krishnan'],
 ];
+const defaultTrack = tracks.findIndex(([id]) => id === 'get-better');
 const trackUrl = index => `https://music.ente.com/tracks/${tracks[index][0]}.mp3`;
 
 export default function IslandMusic({island}) {
   const host = useRef(null), audio = useRef(null), spectrum = useRef(null);
   const graph = useRef(null), request = useRef(0);
-  const [track,setTrack] = useState(0);
+  const [track,setTrack] = useState(defaultTrack);
   const [state,setState] = useState('idle');
   const [volume,setVolume] = useState(.35);
   const active = state === 'playing' || state === 'loading';
 
   useEffect(() => {
     const player = audio.current;
-    player.src = trackUrl(0);
+    player.src = trackUrl(defaultTrack);
     player.volume = .35;
     return () => {
       request.current++;
@@ -205,8 +206,8 @@ export default function IslandMusic({island}) {
       </div>
     </details>
     <span className="pixi-music-status" role="status">{state === 'error' ? 'Could not load music. Press Play to retry.' : state === 'loading' ? 'Loading music…' : ''}</span>
-    <audio ref={audio} src={trackUrl(0)} crossOrigin="anonymous" preload="none"
-      onEnded={() => choose(track+1)} onError={() => {request.current++;setState('error');}}
+    <audio ref={audio} src={trackUrl(defaultTrack)} loop={track === defaultTrack} crossOrigin="anonymous" preload="none"
+      onEnded={track === defaultTrack ? undefined : () => choose(track+1)} onError={() => {request.current++;setState('error');}}
       onWaiting={() => {if(!audio.current.paused)setState('loading');}}
       onPlaying={() => setState('playing')}/>
   </section>;
