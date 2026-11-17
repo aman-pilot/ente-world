@@ -7,34 +7,88 @@
   right: max(16px, env(safe-area-inset-right));
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px;
+  gap: 2px;
+  height: 40px;
+  padding: 0 4px;
   color: #332b23;
   background: #fff9df;
   border: 1px solid #564537;
-  border-radius: 24px;
-  font: 500 12px/1.35 system-ui, sans-serif;
+  border-radius: 12px;
+  box-shadow: 0 3px 0 #56453755;
+  font: 500 13px/1.35 system-ui, sans-serif;
 }
-.pixi-music :is(button,summary) { box-sizing: border-box; display: grid; place-items: center; min-width: 32px; min-height: 32px; padding: 4px; color: inherit; border: 0; border-radius: 50%; background: transparent; font: inherit; cursor: pointer; }
-.pixi-music :is(button,summary):hover { background: #ffda6940; }
-.pixi-music-spectrum { display: flex; align-items: center; gap: 2px; width: 40px; height: 16px; }
+.pixi-music svg { width: 18px; height: 18px; fill: currentColor; }
+.pixi-music :is(button,summary) { box-sizing: border-box; display: grid; place-items: center; min-width: 32px; min-height: 32px; padding: 0; color: inherit; border: 0; border-radius: 8px; background: transparent; font: inherit; cursor: pointer; transition: background-color 160ms ease, scale 120ms ease; }
+.pixi-music :is(button,summary):active { scale: .94; }
+@media (hover: hover) and (pointer: fine) { .pixi-music :is(button,summary):hover { background: #ffda6955; } }
+.pixi-music-play svg { width: 16px; height: 16px; }
+.pixi-music-spectrum { display: flex; align-items: center; gap: 2px; width: 40px; height: 16px; margin: 0 4px; }
 .pixi-music-spectrum span { flex: 1; height: 100%; border-radius: 2px; background: #9b7430; transform: scaleY(.04); }
-.pixi-music-options summary { list-style: none; font-size: 20px; }
+.pixi-music:has(.pixi-music-options[open]) { z-index: 5; }   /* the open panel sits over the mini-map (z 4) */
+.pixi-music-options summary { list-style: none; }
 .pixi-music-options summary::-webkit-details-marker { display: none; }
+.pixi-music-options summary svg { width: 16px; height: 16px; }
+.pixi-music-options[open] summary { background: #ffda6955; }
 .pixi-music-options:not([open]) .pixi-music-menu { display: none; }
-.pixi-music-menu { box-sizing: border-box; position: absolute; top: calc(100% + 8px); right: 0; display: grid; gap: 12px; width: min(248px, calc(100vw - 32px)); padding: 14px; border: 1px solid #564537; border-radius: 14px; background: #fff9df; box-shadow: 0 4px 16px #332b231a; }
-.pixi-music-menu select { width: 100%; min-height: 36px; padding: 6px; color: inherit; background: transparent; border: 1px solid #56453740; border-radius: 6px; font: inherit; }
-.pixi-music-skip { display: flex; justify-content: space-between; }
-.pixi-music-skip button { border-radius: 6px; }
-.pixi-music-menu label { display: flex; align-items: center; gap: 12px; }
-.pixi-music-menu input { flex: 1; min-width: 0; margin: 0; accent-color: #9b7430; }
-.pixi-music-menu a { color: #735c37; text-underline-offset: 3px; }
+
+.pixi-music-menu {
+  box-sizing: border-box; position: absolute; top: calc(100% + 12px); right: 0;
+  display: grid; gap: 16px; width: min(280px, calc(100vw - 32px)); max-height: calc(100svh - 96px); overflow-y: auto;
+  padding: 16px; border: 2px solid #564537; border-radius: 24px; background: #fff9df;
+  box-shadow: 0 4px 0 #56453755, 0 16px 40px #332b2333;
+  transform-origin: top right; animation: pixi-music-in 200ms cubic-bezier(.23, 1, .32, 1);
+}
+@keyframes pixi-music-in { from { opacity: 0; scale: .96; translate: 0 -4px; } }
+
+.pixi-music-now { display: flex; align-items: center; gap: 12px; }
+.pixi-music-cover { flex: none; display: flex; align-items: flex-end; justify-content: center; gap: 3px; width: 48px; height: 48px; padding: 12px; box-sizing: border-box; border: 2px solid #564537; border-radius: 12px; background: #ffd75e; }
+.pixi-music-cover i { width: 4px; height: 40%; border-radius: 2px; background: #332b23; }
+.pixi-music-cover i:nth-child(2) { height: 80%; }
+.pixi-music-cover i:nth-child(3) { height: 60%; }
+.pixi-music-cover[data-on] i { animation: pixi-music-eq 900ms ease-in-out infinite alternate; }
+.pixi-music-cover[data-on] i:nth-child(2) { animation-delay: -300ms; }
+.pixi-music-cover[data-on] i:nth-child(3) { animation-delay: -600ms; }
+@keyframes pixi-music-eq { from { scale: 1 .35; } to { scale: 1 1; } }
+.pixi-music-cover i { transform-origin: bottom; }
+.pixi-music-title { display: grid; min-width: 0; }
+.pixi-music-title strong { overflow: hidden; font: 700 20px/1.2 'Fredoka', system-ui, sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+.pixi-music-title span { color: #735c37; font-size: 13px; }
+.pixi-music-title span[data-tone="error"] { color: #b4432b; }
+
+.pixi-music-controls { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.pixi-music .pixi-music-skip { width: 40px; height: 40px; border-radius: 50%; }
+.pixi-music .pixi-music-big { width: 48px; height: 48px; border-radius: 50%; color: #fff9df; background: #332b23; box-shadow: 0 3px 0 #56453755; }
+.pixi-music .pixi-music-big svg { width: 20px; height: 20px; }
+@media (hover: hover) and (pointer: fine) { .pixi-music .pixi-music-big:hover { background: #4a3e33; } }
+
+.pixi-music-volume { display: flex; align-items: center; gap: 12px; color: #564537; }
+.pixi-music-volume svg { flex: none; }
+.pixi-music-volume .pixi-music-wave { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.pixi-music-volume input { flex: 1; min-width: 0; height: 24px; margin: 0; background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.pixi-music-volume input::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, #9b7430 var(--v), #ece2c4 var(--v)); }
+.pixi-music-volume input::-moz-range-track { height: 8px; border-radius: 4px; background: #ece2c4; }
+.pixi-music-volume input::-moz-range-progress { height: 8px; border-radius: 4px; background: #9b7430; }
+.pixi-music-volume input::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -6px; border: 2px solid #564537; border-radius: 50%; background: #ffd75e; }
+.pixi-music-volume input::-moz-range-thumb { box-sizing: border-box; width: 20px; height: 20px; border: 2px solid #564537; border-radius: 50%; background: #ffd75e; }
+
+.pixi-music-list { display: grid; gap: 2px; margin: 0; padding: 12px 0 0; list-style: none; border-top: 1px solid #56453726; }
+.pixi-music .pixi-music-list button { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; min-height: 40px; padding: 0 12px; border-radius: 12px; text-align: left; }
+.pixi-music-row-title { font-weight: 600; }
+.pixi-music-row-artist { color: #735c37; font-size: 12px; white-space: nowrap; }
+.pixi-music .pixi-music-list button[aria-current] { background: #ffda69; }
+.pixi-music .pixi-music-list button[aria-current] .pixi-music-row-artist { color: #564537; }
+
+.pixi-music-menu a { justify-self: start; color: #735c37; font-size: 13px; text-decoration: none; }
+.pixi-music-menu a:hover { color: #332b23; text-decoration: underline; text-underline-offset: 3px; }
+
 .pixi-music-status:empty { display: none; }
-.pixi-music-status { position: absolute; top: calc(100% + 8px); right: 0; width: 230px; padding: 8px 10px; background: #fff9df; border-radius: 8px; pointer-events: none; }
-.pixi-music-options[open] ~ .pixi-music-status { top: calc(100% + 220px); }
-.pixi-music :is(button,summary,select,input,a):focus-visible { outline: 2px solid #564537; outline-offset: 3px; }
+.pixi-music-status { position: absolute; top: calc(100% + 12px); right: 0; width: 230px; padding: 8px 12px; background: #fff9df; border: 1px solid #564537; border-radius: 12px; pointer-events: none; }
+.pixi-music-options[open] ~ .pixi-music-status { display: none; }
+.pixi-music :is(button,summary,input,a):focus-visible { outline: 2px solid #564537; outline-offset: 3px; }
 @media (pointer: coarse) {
-  .pixi-music :is(button,summary) { min-width: 44px; min-height: 44px; }
-  .pixi-music-menu select { min-height: 44px; font-size: 16px; }
-  .pixi-music-menu input { min-height: 32px; }
+  .pixi-music :is(button,summary) { min-width: 40px; min-height: 40px; }
+  .pixi-music .pixi-music-list button { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pixi-music-menu, .pixi-music-cover[data-on] i { animation: none; }
 }
