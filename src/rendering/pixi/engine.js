@@ -1468,6 +1468,8 @@ export class PixiIsland {
     const sleepers=this.sleeperRigs().map(r => [r.root, r.root.visible]);
     const floats=(this.floating ?? []).map(f => [f.sprite, f.sprite.visible]);
     const naps=sets.flatMap(id => this.mapSleepers.get(id) ?? []).map(({rig}) => [rig.root, rig.root.visible]);
+    const covers = [...(this.bridgeOver ?? []), ...[...(this.arts?.values() ?? [])].flatMap(a => a.bridgeOver ?? [])];
+    const coverVisibility = covers.map(b => b.sprite.visible);
     const sceneVisible=this.scene.visible; this.scene.visible=true;
     const z=this.camera.zoom;
     const span=cameraSpan(this.camera,this.width,this.height),hw=span.width/(2*z), hh=span.height/(2*z*TILT);
@@ -1482,7 +1484,14 @@ export class PixiIsland {
       const mine=visitors.filter(v => v.copy === island).map(v => v.o);
       withRigidVisitors(this.islandId,island.id,mine,()=>{
         this.showArt(island.map);cull(island.map,island.id);
-        drawLiveIsland(this.app.renderer,this.islandId,island.id,this.scene,this.camera,this.width,this.height,TILT,target);
+        // Covers use this copy's local frame, even while the sailor belongs to
+        // the departure island. Restore them before rendering the main scene.
+        try {
+          this.updateBridgeOver((this.bridgeSailers ?? []).map(p => unplaceRigid(this.islandId,island.id,p)), island.map);
+          drawLiveIsland(this.app.renderer,this.islandId,island.id,this.scene,this.camera,this.width,this.height,TILT,target);
+        } finally {
+          covers.forEach((b,i) => {b.sprite.visible=coverVisibility[i];});
+        }
       });
     }
     this.scene.visible=sceneVisible;
@@ -2240,11 +2249,12 @@ export class PixiIsland {
       this.rinkTrails?.track(entry,x,y,travel,rig.root.visible&&look.deck&&pose.mode!=='sailing'&&!(pose.jumpLeft>0));
       if (pose.mode === 'sailing') sailers.push(look);
     }
+    this.bridgeSailers = sailers;
     this.updateBridgeOver(sailers);
   }
-  updateBridgeOver(sailers) {
-    for (const b of this.bridgeOver ?? []) b.sprite.visible = this.artShown === 'home' && sailers.some(p => p.x > b.x0 && p.x < b.x1 && p.y > b.y0 && p.y < b.y1);
-    for (const [id, art] of this.arts ?? []) for (const b of art.bridgeOver ?? []) b.sprite.visible = id === this.artShown && sailers.some(p => p.x > b.x0 && p.x < b.x1 && p.y > b.y0 && p.y < b.y1);
+  updateBridgeOver(sailers, mapId = this.artShown) {
+    for (const b of this.bridgeOver ?? []) b.sprite.visible = mapId === 'home' && sailers.some(p => p.x > b.x0 && p.x < b.x1 && p.y > b.y0 && p.y < b.y1);
+    for (const [id, art] of this.arts ?? []) for (const b of art.bridgeOver ?? []) b.sprite.visible = id === mapId && sailers.some(p => p.x > b.x0 && p.x < b.x1 && p.y > b.y0 && p.y < b.y1);
   }
 
   dispose() {

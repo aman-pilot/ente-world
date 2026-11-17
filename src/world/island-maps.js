@@ -113,7 +113,12 @@ else if (harbor.boats?.length) moorings = harbor.boats.map(({x, y}) => ({x, y}))
     buildWalking();
     return NAV ??= createNavigation(walkMap, {cellSize: walking.navigationCellSize ?? 32});
   };
-  const shoreFor = (x, y, reach = 280) => {const p = nav().nearest(x, y, reach); return p ? {x: Math.round(p[0]), y: Math.round(p[1])} : null;};
+  const shoreFor = (x, y, reach = 280) => {
+    const n = nav(), p = n.nearest(x, y, reach);
+    if (!p) return null;
+    const rounded = {x: Math.round(p[0]), y: Math.round(p[1])};
+    return n.walkable(rounded.x, rounded.y) ? rounded : {x:p[0], y:p[1]};
+  };
   const localWet = (x, y) => !landAt(x, y) && Array.from({length: 16}, (_, i) => i * Math.PI / 8).every(a => !landAt(x + Math.cos(a) * BOAT_RADIUS, y + Math.sin(a) * BOAT_RADIUS));
   // Use the authored collision shapes, before deferred walking preparation changes
   // them, so server and browser pick identical slots even during island prefetch.
