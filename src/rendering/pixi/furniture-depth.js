@@ -7,6 +7,8 @@ const indexes=new WeakMap();
 // Trees keep their original canopy mask and depth. Island packs and Home
 // both carry the original footprints, so this also works for remote Duckies.
 export function furnitureDepth(props,x,y,depth=y){
+ // An island's props arrive with its art; until then there is nothing to sort against.
+ if(!Array.isArray(props)||!props.length)return depth;
  let near=indexes.get(props);
  if(!near){
   const shapes=[];
