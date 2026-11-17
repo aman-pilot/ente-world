@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 
-export default function IslandPresence({online, latestJoin}) {
+export default function IslandPresence({online, latestJoin, children}) {
   const [toasts, setToasts] = useState([]);
   const timers = useRef(new Map());
 
@@ -25,12 +25,15 @@ export default function IslandPresence({online, latestJoin}) {
   const status = online === null ? 'Connecting…' : `${online} ${online === 1 ? 'user' : 'users'} online`;
 
   return <>
-    <div className="pixi-online" data-connecting={online === null ? '' : undefined}>
-      <span className="pixi-online-dot" aria-hidden="true"/>
-      <span className="pixi-online-label">{status}</span>
-      <span className="pixi-online-count" aria-hidden="true">
-        {online ?? '…'}<span className="pixi-online-caption">Online</span>
-      </span>
+    <div className="pixi-presence-dock">
+      <div className="pixi-online" data-connecting={online === null ? '' : undefined}>
+        <span className="pixi-online-dot" aria-hidden="true"/>
+        <span className="pixi-online-label">{status}</span>
+        <span className="pixi-online-count" aria-hidden="true">
+          {online ?? '…'}<span className="pixi-online-caption">Online</span>
+        </span>
+      </div>
+      {children}
     </div>
     <div className="pixi-join-toasts" role="status" aria-live="polite" aria-relevant="additions">
       {toasts.map(toast => <div className="pixi-join-toast" key={toast.id}>

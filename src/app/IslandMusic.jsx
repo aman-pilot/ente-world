@@ -49,18 +49,18 @@ export default function IslandMusic({island}) {
 
   useEffect(() => {
     const page = host.current.parentElement;
-    const controls = [...page.querySelectorAll('.pixi-live,.pixi-profile-button,.pixi-karma-counter')];
+    const controls = [...page.querySelectorAll('.pixi-top-left,.pixi-live,.pixi-profile-button,.pixi-karma-counter')];
     if (!controls.length || typeof ResizeObserver === 'undefined') return;
     const element = host.current;
     function place() {
       element.style.marginTop = '';
       element.style.right = '';
-      const logoRight = page.querySelector('.pixi-ente-logo')?.getBoundingClientRect().right ?? 0;
+      const leftDockRight = page.querySelector('.pixi-top-left')?.getBoundingClientRect().right ?? 0;
       const bounds = controls.map(control => control.getBoundingClientRect()).sort((a,b) => b.left-a.left);
       for (const hud of bounds) {
         const player = element.getBoundingClientRect();
         if (hud.left >= player.right || hud.right <= player.left || hud.top >= player.bottom || hud.bottom <= player.top) continue;
-        if (hud.left-player.width-12 >= logoRight+12) {
+        if (hud.left-player.width-12 >= leftDockRight+12) {
           element.style.right = `${window.innerWidth-hud.left+12}px`;
         } else {
           element.style.right = '';
