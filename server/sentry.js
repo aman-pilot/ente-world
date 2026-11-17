@@ -4,6 +4,9 @@ const errorTypes = new Set([
   'Error', 'TypeError', 'RangeError', 'ReferenceError', 'SyntaxError', 'PagesResponseError',
 ]);
 const spanAttributes = ['sentry.op', 'sentry.origin', 'http.request.method', 'http.response.status_code', 'app.route'];
+const logMessages = new Set(['Pages request completed', 'Pages request failed', 'Room request completed', 'Room request failed', 'Room socket closed', 'Room socket error']);
+const logNumbers = ['status', 'duration_ms', 'connections', 'players', 'watchers', 'close_code'];
+const logMetadata = ['sentry.sdk.name', 'sentry.sdk.version', 'sentry.trace.parent_span_id'];
 
 function scrubException({type, mechanism, stacktrace}) {
   return {
@@ -89,6 +92,20 @@ export function sentryOptions(env, service, routes) {
         },
       };
     },
-    beforeSendLog: () => null,
+    beforeSendLog(log) {
+      if (!logMessages.has(log.message)) return null;
+      const attributes = log.attributes ?? {};
+      return {
+        ...log,
+        attributes: {
+          ...Object.fromEntries(logMetadata.filter(key => typeof attributes[key] === 'string').map(key => [key, attributes[key]])),
+          service,
+          ...(environment && {'sentry.environment': environment}),
+          ...(release && {'sentry.release': release}),
+          ...(routes.has(attributes.route) && {route: attributes.route}),
+          ...Object.fromEntries(logNumbers.filter(key => Number.isFinite(attributes[key])).map(key => [key, attributes[key]])),
+        },
+      };
+    },
   };
 }
