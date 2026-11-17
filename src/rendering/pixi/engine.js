@@ -643,6 +643,8 @@ export class PixiIsland {
         this.spin=null; this.globeAim=null;
         const span=ps=>Math.max(1,Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y));
         if (this.zoomPastLimit(span(movement.after)/span(movement.before))) return;
+        // While the camera follows your Ducky, a pinch only zooms: it stays on the Ducky.
+        if (this.follow && this.player) {this.target.zoom=clamp(this.target.zoom*span(movement.after)/span(movement.before),this.zoomFloor(),this.zoomCeiling()); this.constrain(this.target); return;}
         movePinch(this.target, movement.before, movement.after, this.zoomFloor(), this.zoomCeiling(), this.width, this.height);
       } else if (movement.drag) {
         const at=movement.after[0], grab=this.birdEye && this.worldView?.grab({x:at.x-movement.dx, y:at.y-movement.dy}, at, this.target, this.globeAim);
@@ -693,6 +695,8 @@ export class PixiIsland {
       }
       this.zoomAnchor.at=stamp;
       const focus=this.zoomAnchor.focus,prev=this.target.zoom;
+      // Following: zoom on the Ducky and keep following. F is the only switch for follow.
+      if (this.follow && this.player && !focus) {this.target.zoom=next; this.fitMode=false; this.constrain(this.target); return;}
       if (focus) zoomToWorldPoint(this.target,next,{x:focus[0],y:focus[1]});
       else if (next>prev) this.zoomTowardPlayer(prev,next);
       else zoomAt(this.target, next, p.x, this.height / 2 + (p.y - this.height / 2) / TILT, this.width, this.height);
@@ -717,12 +721,13 @@ export class PixiIsland {
       if (key === 'e') this.triggerEmote(3);
       if (/^[1-7]$/.test(key)) this.triggerEmote(key === '1' ? 2 : Number(key) + 2);
       if (key === 'm') this.audio.toggle();
-      if (key === 'f' && this.player) {this.follow=true;this.fitMode=false;this.target.zoom=Math.max(.65,this.target.zoom);}
+      // F switches follow camera on and off; it never changes your zoom.
+      if (key === 'f' && this.player) {this.follow=!this.follow;this.fitMode=false;}
       if (key === 'home') {if (this.player) this.flyHome(); else this.fit();}
       if (key === '0') this.fit();
       if (['+','=','-'].includes(key)) {
         if (this.zoomPastLimit(key === '-' ? .8 : 1.25)) return;
-        this.fly=null; {const prev=this.target.zoom,next=clamp(prev * (key === '-' ? .8 : 1.25), this.zoomFloor(), this.zoomCeiling()); if(next>prev)this.zoomTowardPlayer(prev,next); else this.target.zoom=next;}this.fitMode=false;this.follow=false;this.constrain(this.target);
+        this.fly=null; {const prev=this.target.zoom,next=clamp(prev * (key === '-' ? .8 : 1.25), this.zoomFloor(), this.zoomCeiling()); if(this.follow&&this.player)this.target.zoom=next; else {if(next>prev)this.zoomTowardPlayer(prev,next); else this.target.zoom=next; this.follow=false;}}this.fitMode=false;this.constrain(this.target);
       }
     });
     this.listen(window, 'keyup', event => this.keys.delete(event.key.toLowerCase()));
