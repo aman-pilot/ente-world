@@ -97,9 +97,7 @@ export class IslandRoom {
       CREATE TABLE IF NOT EXISTS sessions (
       digest TEXT PRIMARY KEY, account TEXT NOT NULL, login TEXT NOT NULL, expires INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS resumes (
-      account TEXT PRIMARY KEY, pose TEXT NOT NULL, expires INTEGER NOT NULL);
-      CREATE TABLE IF NOT EXISTS last_locations (
-      account TEXT PRIMARY KEY, pose TEXT NOT NULL);`);
+      account TEXT PRIMARY KEY, pose TEXT NOT NULL, expires INTEGER NOT NULL);`);
     if (!this.sql.exec('PRAGMA table_info(sessions)').toArray().some(column => column.name === 'can_play')) {
       this.sql.exec('ALTER TABLE sessions ADD COLUMN can_play INTEGER NOT NULL DEFAULT 0');
       this.sql.exec('DELETE FROM resumes');
@@ -428,38 +426,14 @@ export class IslandRoom {
     return reply(this.friendState(user.account));
   }
 
-  saveLocation(account, actor) {
-    const {islandId, x, y, turn, mode} = actor;
-    this.sql.exec('INSERT OR REPLACE INTO last_locations VALUES(?,?)',
-      account, JSON.stringify({islandId, x, y, turn, mode,seaVersion:SEA_VERSION}));
-  }
-
   standable({islandId = 'home', x, y}) {
     return Number.isFinite(x) && Number.isFinite(y) && canWalkTo(islandId, x, y) && this.navFor(islandId).walkable(x, y);
   }
 
-  savedLocation(account) {
-    const row = this.sql.exec('SELECT pose FROM last_locations WHERE account=?',account).toArray()[0];
-    if (!row) return null;
-    const {islandId, x, y, turn, mode} = recoverIsland(JSON.parse(row.pose));
-    if (islandId === BOG_ISLAND && !this.karma.bogEntry(account) &&
-        bogLandingNotice(islandId,this.karma.balance(account))) return null;
-
-    const nav = this.navFor(islandId);
-    if (mode === 'sailing') {
-      // The short reservation releases the shared boat. Return on foot at the harbor.
-      const dock = harborOf(islandId).land;
-      const point = nav.nearest(dock.x,dock.y,180);
-      return point ? {islandId, x:point[0], y:point[1], turn:0} : null;
-    }
-    if (!this.standable({islandId, x, y})) return null;
-    return {islandId, x, y, turn};
-  }
-
-  pickSpawn(account, occupied) {
-    return pickWorldSpawn({
-      karma:this.karma.balance(account), boats:this.boats, occupied,
-    });
+  pickSpawn(_account, occupied) {
+    const home = mapOf('home');
+    return pickWorldSpawn({occupied, hasRoom:id => id === 'home'}) ??
+      {islandId:'home', ...home.spawn, name:islandFor('home').name};
   }
 
   join(request, now) {
@@ -469,20 +443,24 @@ export class IslandRoom {
     const params = new URL(request.url).searchParams;
     const wantsPlayer = params.get('play') === '1';
     const globeFeed = params.get('globeFeed') === '1';
+    const resumeId = params.get('resume');
     const canPlay = user?.canPlay && wantsPlayer;
     const previous = canPlay ? [...this.connections].find(([,info]) => info.actor && info.account === user.account) : undefined;
     const resume = canPlay && this.sql.exec('SELECT pose FROM resumes WHERE account=? AND expires>?', user.account, now).toArray()[0];
-    // A walking pose kept across a deploy can stand on ground that has since changed (islets returned to 1x): drop it.
+    // A transport reconnect sends its previous player ID.
+    // Revalidate walking poses in case the map changed while the room was offline.
     const resumed = resume ? JSON.parse(resume.pose) : null;
-    const from = previous?.[1].actor ?? (resumed && (resumed.mode !== 'walking' || !islandFor(resumed.islandId) || this.standable(resumed)) ? resumed : null);
-    const saved = canPlay && !from ? this.savedLocation(user.account) : null;
+    const live = previous?.[1].actor;
+    const resumable = resumeId && resumed?.id === resumeId &&
+      (resumed.mode !== 'walking' || !islandFor(resumed.islandId) || this.standable(resumed));
+    const from = (live?.id === resumeId ? live : null) ?? (resumable ? resumed : null);
     let spawn = null;
-    if (canPlay && !from && !saved) {
+    if (canPlay && !from) {
       const actors = [...this.connections.values()].flatMap(info => info.actor ? [info.actor] : []);
       const held = this.sql.exec('SELECT pose FROM resumes WHERE expires>?', now).toArray().map(row => JSON.parse(row.pose));
       spawn = this.pickSpawn(user.account, [...actors, ...held]);
     }
-    const playing = Boolean(canPlay && (from || saved || spawn));
+    const playing = Boolean(canPlay && (from || spawn));
     const [client, socket] = Object.values(new WebSocketPair());
     const info = {actor:null, digest:user ? digest : null, account:user?.account, expires:user?.expires, login:user?.login, globeFeed,
       input:ZERO, inputExpires:0, tokens:30, tokenTime:now, ack:0, lastDestination:-Infinity, lastEmote:-Infinity};
@@ -491,7 +469,7 @@ export class IslandRoom {
       const savedOutfit = this.sql.exec('SELECT outfit FROM outfits WHERE account=?',user.account).toArray()[0];
       const outfit = savedOutfit ? JSON.parse(savedOutfit.outfit) : validOutfit(from?.outfit) ? from.outfit : randomOutfit();
       if (!savedOutfit) this.sql.exec('INSERT INTO outfits (account,outfit) VALUES(?,?)',user.account,JSON.stringify(outfit));
-      const pose = from ?? saved ?? {islandId:spawn.islandId, x:spawn.x, y:spawn.y};
+      const pose = from ?? {islandId:spawn.islandId, x:spawn.x, y:spawn.y};
       info.actor = {id:crypto.randomUUID(), turn:0, emoteVersion:0,
         islandId:'home',mode:'walking',boatId:null,...pose,outfit, action:0,travel:0,until:0,path:[],jumpLeft:0};
       recoverIsland(info.actor);
@@ -500,6 +478,8 @@ export class IslandRoom {
       info.actor.karma=this.karma.balance(user.account);
       if (mapOf(info.actor.islandId).home && info.actor.mode === 'walking' && atMuseumDoor(info.actor.x,info.actor.y)) Object.assign(info.actor,{x,y,turn:0});
       this.sql.exec('DELETE FROM resumes WHERE account=?', user.account);
+      if (live && live.id !== from?.id) this.releaseBoat(live.id);
+      if (resumed && resumed.id !== from?.id) this.releaseBoat(resumed.id);
       if (previous) this.demote(previous[0], previous[1], 'taken-over');
     }
     this.ctx.acceptWebSocket(socket);
@@ -680,10 +660,7 @@ export class IslandRoom {
   }
 
   demote(socket, info, reason) {
-    if (info.actor && reason !== 'taken-over') {
-      this.saveLocation(info.account,info.actor);
-      this.releaseBoat(info.actor.id);
-    }
+    if (info.actor && reason !== 'taken-over') this.releaseBoat(info.actor.id);
     info.islandId = info.actor?.islandId ?? info.islandId ?? 'home';
     info.actor = null;
     info.input = ZERO;
@@ -988,7 +965,6 @@ export class IslandRoom {
     this.connections.delete(socket);
     if (this.globeSubscribers.delete(socket)) this.updateGlobeTimer();
     if (info.actor) {
-      this.saveLocation(info.account,info.actor);
       const now = Date.now();
       if (this.session(info.digest,now)) {
         this.sql.exec('INSERT OR REPLACE INTO resumes VALUES(?,?,?)',

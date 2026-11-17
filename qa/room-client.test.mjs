@@ -21,6 +21,33 @@ const packet=(tick,islandId='home',mode='walking')=>({epoch:'epoch',tick,islandI
   self:{ack:0,path:[],emoteLeft:0},
 });
 
+test('only an existing page reconnect sends its previous player ID', t => {
+  const originalSocket = globalThis.WebSocket;
+  const originalLocation = Object.getOwnPropertyDescriptor(globalThis,'location');
+  const room = new RoomClient(() => {});
+  globalThis.WebSocket = class {
+    constructor(url) { this.url = url; }
+    send() {}
+    close() {}
+  };
+  globalThis.location = {href:'https://island.example/'};
+  t.after(() => {
+    room.dispose();
+    globalThis.WebSocket = originalSocket;
+    if (originalLocation) Object.defineProperty(globalThis,'location',originalLocation);
+    else delete globalThis.location;
+  });
+
+  room.connect();
+  assert.equal(room.socket.url.searchParams.has('resume'),false);
+  room.socket.onmessage({data:JSON.stringify({type:'welcome',id:'player'})});
+  room.socket.onclose({code:1006});
+  room.connect(true,true);
+  assert.equal(room.socket.url.searchParams.get('resume'),'player');
+  room.connect();
+  assert.equal(room.socket.url.searchParams.has('resume'),false);
+});
+
 test('ice reduced-motion input changes preserve corrected interpolation and resend without steering changes',()=>{
   const {room,sent}=setup();
   room.snapshot(packet(1));

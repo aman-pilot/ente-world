@@ -51,8 +51,7 @@ export class RoomClient {
     this.reset();
   }
 
-  // The constructor's Home value is only a placeholder. The first snapshot
-  // carries the authoritative saved/random arrival island, including for guests.
+  // The first snapshot identifies the island the server is showing.
   waitForIsland() {
     if (this.tick >= 0) return Promise.resolve(this.islandId);
     return this.initialIsland ??= new Promise(resolve => {this.resolveInitialIsland = resolve;});
@@ -94,6 +93,7 @@ export class RoomClient {
 
   connect(play = true, reconnecting = false) {
     this.wantsPlay = play;
+    if (!reconnecting) this.resumeId = null;
     clearTimeout(this.retryTimer);
     clearInterval(this.heartbeat);
     const old = this.socket;
@@ -105,6 +105,7 @@ export class RoomClient {
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     url.searchParams.set('play', play ? '1' : '0');
     url.searchParams.set('globeFeed', '1');
+    if (play && this.resumeId) url.searchParams.set('resume', this.resumeId);
     const held = play && !reconnecting ? takeArrivalSocket() : null;
     const socket = this.socket = held?.socket ?? new WebSocket(url);
     let full = false;
@@ -174,7 +175,7 @@ export class RoomClient {
         }
         if (['expired', 'signed-out'].includes(message.reason)) this.clearGlobePlayers();
         this.failures = 0;
-        this.id = message.id;
+        this.id = this.resumeId = message.id;
         this.arrival = message.arrival ?? null;
         if (!this.id) this.player = null;
         this.updateNearby();

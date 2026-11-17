@@ -212,6 +212,8 @@ export async function connect({request,env}, fetchGitHub = fetch) {
   }
   const roomUrl = new URL('https://island.internal/room');
   roomUrl.searchParams.set('play', play);
+  const resumeId = url.searchParams.get('resume');
+  if (play === '1' && resumeId) roomUrl.searchParams.set('resume', resumeId);
   if (url.searchParams.get('globeFeed') === '1') roomUrl.searchParams.set('globeFeed', '1');
   return room(env).fetch(new Request(roomUrl,{headers}));
 }

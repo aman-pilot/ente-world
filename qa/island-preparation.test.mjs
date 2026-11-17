@@ -253,13 +253,13 @@ test('prepared island groups, props and sleepers share one 250ms reveal; sea and
   scene.destroy({children:true});
 });
 
-test('startup keeps rendering before the authoritative saved island arrives and never prepares placeholder Home',async()=>{
+test('startup keeps rendering before the authoritative room island arrives and never prepares placeholder Home',async()=>{
   const room=new RoomClient(()=>{}),prepared=[];
   let selected=false;
   const start=room.waitForIsland().then(id=>{selected=true;prepared.push(artOf(id));return id;});
   await flush();assert.equal(selected,false);assert.deepEqual(prepared,[]);
-  room.id='saved-player';
-  room.snapshot({epoch:'saved',tick:1,islandId:'sunset',players:[],boats:[]});
+  room.id='player';
+  room.snapshot({epoch:'room',tick:1,islandId:'sunset',players:[],boats:[]});
   assert.equal(await start,'sunset');assert.deepEqual(prepared,['pink']);
   assert.equal(await room.waitForIsland(),'sunset');
   // Mount must use that snapshot before it chooses or acquires Home artwork.

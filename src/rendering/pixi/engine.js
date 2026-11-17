@@ -236,8 +236,8 @@ export class PixiIsland {
       globalThis.__duckySleepers = beds.map(b => ({pose: b.pose, flip: b.flip, x: Math.round(b.x), y: Math.round(b.y), tree: b.tree}));
       globalThis.__duckySleepersDropped = beds.bad;
       this.room?.configure(this.sim.nav, walk);
-      this.initialSpawn=this.randomArrival&&!this.room?await pickWorldSpawn({homeNav:this.sim.nav,prepareIsland:prepareIslandMap}):null;
-      const startingIsland=this.room ? await this.room.waitForIsland() : this.initialSpawn?.islandId ?? 'home';
+      this.initialSpawn=this.randomArrival&&!this.room?await pickWorldSpawn({hasRoom:id=>id==='home',homeNav:this.sim.nav,prepareIsland:prepareIslandMap}):null;
+      const startingIsland=this.room ? await this.room.waitForIsland() : 'home';
       if(this.disposed||!startingIsland)return;
       // Fetch the island's layout alongside its sheets, not after them.
       await Promise.all([recoverArt(()=>this.prepareIsland(startingIsland),{label:'Spawn sheets'}),prepareIslandMap(startingIsland)]);
@@ -396,7 +396,6 @@ export class PixiIsland {
         if (spawn) {
           const {x,y,islandId,name} = spawn;
           Object.assign(this.sim.player,{x,y,previousX:x,previousY:y});
-          if (islandId !== 'home') this.sim.setPlayerNav(mapOf(islandId).nav());
           this.switchIsland(islandId);
           this.offlineArrival = name;
         }
