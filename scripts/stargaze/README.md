@@ -2,11 +2,11 @@
 
 A circular eyepiece, playful online stars, and an endless faint background. The interface shows the total star count, online count, and your star, plus a close button.
 
-The production dialog still reads `/api/stars` every 30 seconds. The preview uses an offline fixture (30,088 stars and 2 online); these are not live counts. GitHub account star positions are unchanged. Anonymous stars are spaced over a larger region. Background stars are deterministic tiles generated wherever you pan; they are decorative and are never counted or connected.
+The production dialog reads `/api/stars` every 30 seconds. The preview uses an offline fixture with 30,088 stars and 2 online players. The counter shows the repository total, and the sky places stars for known player accounts. Faint decorative dots follow a deterministic pattern wherever you pan.
 
 Online stars form a minimum spanning tree at their actual coordinates. Pan with drag or arrow keys, zoom with the wheel, pinch, or plus/minus, and select **Your star** (or press Home while the canvas has focus) to return. Escape or the close button returns to the island. Reduced motion keeps the sky still.
 
-Tap a named star (online or offline) to show its GitHub username; tap empty sky to dismiss. Enter selects the named star nearest the centre. Labels follow their stars and stay inside the round lens. GitHub provides only an aggregate count for anonymous stars, so they do not receive invented names.
+Tap a named star (online or offline) to show its GitHub username. Tap empty sky to dismiss. Enter selects the named star nearest the centre. Labels follow their stars and stay inside the round lens.
 
 ## Review
 
