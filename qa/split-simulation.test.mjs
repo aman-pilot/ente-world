@@ -6,8 +6,18 @@ import test from 'node:test';
 import {setTimeout as delay} from 'node:timers/promises';
 import {build} from 'esbuild';
 import {Miniflare, convertV4MiniflareOptions} from 'miniflare';
-import {boardingPoint, canSail, harborOf, navOf} from '../src/gameplay/islands.js';
+import {ISLANDS, boatSpots, boardingPoint, canSail, harborOf, navOf} from '../src/gameplay/islands.js';
 import {mapOf} from '../src/world/island-maps.js';
+
+import fleetMoorings from '../worker/fleet-moorings.json' with {type:'json'};
+
+test('fleet migration moorings match the world layout', () => {
+  const liveMoorings = Object.fromEntries(ISLANDS.map(({id}) => [
+    id, boatSpots(id).map(({x,y,turn}) => [x,y,turn]),
+  ]));
+  assert.deepEqual(fleetMoorings, liveMoorings);
+});
+
 
 test(
   'split world migrates, routes spawns and sailors, and returns unattended boats after restart',

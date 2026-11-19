@@ -1,6 +1,7 @@
-import {ISLANDS, boatHome, boatSlot, boatSpots, createBoats, islandFor, placeFleetBoatHome} from '../src/gameplay/islands.js';
+import {ISLANDS, boatHome, boatSlot, placeFleetBoatHome} from '../src/gameplay/islands.js';
 import {BOG_ISLAND} from '../src/features/bog-combat/entry.js';
 import {simulationStub, internalPost} from '../server/simulation-routing.js';
+import fleetMoorings from './fleet-moorings.json' with {type:'json'};
 
 const owners = [...ISLANDS.map((i) => i.id), 'sea'];
 const day = 86400000;
@@ -120,12 +121,22 @@ export function replaceGameplay(room, data) {
   room.karma.bogEntries.clear();
 }
 
+// These are the authored boatSpots() results. Generating all seven layouts in
+// the coordinator builds seven walking navigation grids in one Worker isolate.
+const fleetSpots = Object.fromEntries(Object.entries(fleetMoorings).map(([island, spots]) => [
+  island, spots.map(([x,y,turn]) => ({x,y,turn})),
+]));
+const fleetSpot = boat => {
+  const spots = fleetSpots[boatHome(boat)];
+  return Array.isArray(spots) ? spots[boatSlot(boat)] ?? spots[0] : null;
+};
+
 function repairFleet(boats) {
   const groups = new Map();
   const keep = [];
   for (const boat of boats) {
     const home = boatHome(boat), slot = boatSlot(boat);
-    if (boat.owner || !islandFor(home) || !boatSpots(home)[slot]) {
+    if (boat.owner || !Object.hasOwn(fleetSpots, home) || !fleetSpots[home][slot]) {
       keep.push(boat);
       continue;
     }
@@ -144,10 +155,13 @@ function repairFleet(boats) {
   }
   // The export includes boats visiting other islands, out at sea and in
   // pending returns, so it also accounts for berths whose boats are away.
-  for (const boat of createBoats()) {
-    if (groups.has(boat.id)) continue;
-    const restored = placeFleetBoatHome(boat, keep);
-    if (restored) keep.push(restored);
+  for (const [islandId, spots] of Object.entries(fleetSpots)) {
+    for (const [slot, spot] of spots.entries()) {
+      const id = `${islandId}-${slot}`;
+      if (groups.has(id)) continue;
+      const restored = placeFleetBoatHome({id}, keep, spot);
+      if (restored) keep.push(restored);
+    }
   }
   return keep;
 }
@@ -160,7 +174,12 @@ export async function migrateWorld(room, {id, world, target, fleetRepair = false
     room.env.ISLAND.idFromName(world).toString() !== room.ctx.id.toString()
   )
     return rejected('Invalid migration');
-  return room.ctx.blockConcurrencyWhile(async () => {
+  return room.ctx.blockConcurrencyWhile(() => applyMigration().catch((error) => {
+    console.error('World migration failed', {target, message: error?.message ?? String(error)});
+    throw error;
+  }));
+
+  async function applyMigration() {
     const kv = room.ctx.storage.kv;
     room.sql.exec(
       'CREATE TABLE IF NOT EXISTS finished_migrations (id TEXT PRIMARY KEY,target TEXT NOT NULL)'
@@ -271,7 +290,7 @@ export async function migrateWorld(room, {id, world, target, fleetRepair = false
       const present = new Set(data.boats.map((boat) => boat.id));
       for (const boat of pendingReturns.sort((a,b) => b.ownershipVersion - a.ownershipVersion)) {
         if (present.has(boat.id)) continue;
-        data.boats.push(placeFleetBoatHome(boat,data.boats) ?? boat);
+        data.boats.push(placeFleetBoatHome(boat, data.boats, fleetRepair ? fleetSpot(boat) : undefined) ?? boat);
         present.add(boat.id);
       }
       // The global visit proves payment. Combat progress belongs to Bog and
@@ -337,7 +356,7 @@ export async function migrateWorld(room, {id, world, target, fleetRepair = false
     });
     room.ctx.waitUntil(room.scheduleExpiry());
     return Response.json({...migration, done: true});
-  });
+  }
 }
 
 export async function localMigration(room, path, {id, data, committed = [], relinquished = []}) {
