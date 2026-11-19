@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {nearbyMapFrame,nearbyHeading,nearbyTeleporterBearing} from '../src/app/nearby-map.js';
+import {nearbyMapFrame,nearbyHeading,nearbyTeleporterBearing,teleporterRimPosition} from '../src/app/nearby-map.js';
 import {mapPoint} from '../src/world/sphere-coordinates.js';
 import {mapOf} from '../src/world/island-maps.js';
 const m=mapOf('home'),centre={x:m.cx,y:m.cy};
@@ -56,5 +56,22 @@ test('the minimap arrow points to the current harbor when the teleporter is unlo
     assert.equal(nearbyTeleporterBearing(id, machine, true), null);
     assert.equal(nearbyTeleporterBearing(id, east, true), -90);
     assert.equal(nearbyTeleporterBearing(id, westAcrossSeam, true), 90);
+  }
+});
+
+test('the harbor arrow stays on the rim and clears the Bog badge on either side', () => {
+  for (const radius of [72, 108]) {
+    const badge = {x: 0, y: -radius, clearance: 33};
+    const east = teleporterRimPosition(90, radius, badge);
+    assert.ok(Math.abs(east.x - radius) < 1e-8 && Math.abs(east.y) < 1e-8);
+    assert.deepEqual(teleporterRimPosition(0, radius, null), {x: 0, y: -radius});
+    for (const y of [-radius, -radius + 12]) {
+      for (const bearing of [-5, 0, 5]) {
+        const arrow = teleporterRimPosition(bearing, radius, {...badge, y});
+        assert.ok(Math.abs(Math.hypot(arrow.x, arrow.y) - radius) < 1e-8);
+        assert.ok(Math.abs(Math.hypot(arrow.x, arrow.y - y) - badge.clearance) < 1e-8);
+        if (bearing !== 0) assert.equal(Math.sign(arrow.x), Math.sign(bearing));
+      }
+    }
   }
 });

@@ -39,3 +39,18 @@ export function nearbyTeleporterBearing(islandId, player, unlocked) {
   const dx = image.x - player.x, dy = image.y - player.y;
   return dx === 0 && dy === 0 ? null : Math.round(nearbyHeading(islandId, player, dx, dy));
 }
+
+export function teleporterRimPosition(bearing, radius, bogBadge) {
+  const angle = bearing * Math.PI / 180;
+  const x = radius * Math.sin(angle), y = -radius * Math.cos(angle);
+  if (!bogBadge || Math.hypot(x - bogBadge.x, y - bogBadge.y) >= bogBadge.clearance) return {x, y};
+
+  // Where the badge overlaps the rim, use the nearest clear spot. The arrow still points at the harbor.
+  const distance = Math.hypot(bogBadge.x, bogBadge.y);
+  if (!distance) return {x, y};
+  const badgeAngle = Math.atan2(bogBadge.x, -bogBadge.y);
+  const cosine = (radius ** 2 + distance ** 2 - bogBadge.clearance ** 2) / (2 * radius * distance);
+  const offset = Math.acos(Math.max(-1, Math.min(1, cosine)));
+  const clearAngle = badgeAngle + (Math.sin(angle - badgeAngle) < 0 ? -offset : offset);
+  return {x: radius * Math.sin(clearAngle), y: -radius * Math.cos(clearAngle)};
+}

@@ -45,7 +45,7 @@ test('out-of-range Bog stays centred on the outline in its projected direction, 
 test('minimap uses the border centre for the badge and clips terrain independently', () => {
   const source = readFileSync(new URL('../src/app/WorldMap.jsx',import.meta.url),'utf8');
   const css = readFileSync(new URL('../src/app/pixi.css',import.meta.url),'utf8');
-  assert.match(source,/const outlineRadius = width \/ 2 \+ 2 \* iconSize \/ BOG_RADAR_SIZE_PX/);
+  assert.match(source,/const outlineRadius = width \/ 2 \+ 2 \* mapUnitsPerPixel/);
   assert.match(source,/outlineRadius \/ scale/);
   assert.match(source,/<g clipPath="url\(#pixi-world-map-terrain-clip\)">/);
   assert.ok(source.indexOf('</g>\n      {frame.bogVisible') > source.indexOf('<g clipPath='));

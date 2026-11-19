@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import {worldIsland} from '../world/world-map.js';
-import {nearbyMapFrame, nearbyHeading, nearbyFriends, nearbyTeleporterBearing, NEARBY_MAP_WIDTH, NEARBY_MAP_HEIGHT} from './nearby-map.js';
+import {nearbyMapFrame, nearbyHeading, nearbyFriends, nearbyTeleporterBearing, teleporterRimPosition, NEARBY_MAP_WIDTH, NEARBY_MAP_HEIGHT} from './nearby-map.js';
 import {BOG_RADAR_ICON, BOG_RADAR_SIZE_PX} from '../features/bog-combat/bog-radar.js';
 import {mapOf} from '../world/island-maps.js';
 import {unplaceRigid} from '../world/rigid.js';
@@ -47,6 +47,8 @@ export default function WorldMap({island, globeOpen = false, indoors = false}) {
   if (!radar.current) radar.current = {x: 0, y: 0, visible: false};
   const [iconSize, setIconSize] = useState(125);
   const [frame, setFrame] = useState({islands: [], playing: false, heading: 0, bogX: 0, bogY: 0, bogVisible: false, here: '', boats: '', friends: [], teleporterUnlocked: false, teleporterBearing: null});
+  const mapUnitsPerPixel = iconSize / BOG_RADAR_SIZE_PX;
+  const outlineRadius = width / 2 + 2 * mapUnitsPerPixel; // centre of the 4px border
   useEffect(() => {
     if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(([entry]) => {
@@ -68,7 +70,6 @@ export default function WorldMap({island, globeOpen = false, indoors = false}) {
         if (Math.hypot(dx, dy) > 1) heading = nearbyHeading(engine.islandId,player,dx,dy);
       }
       movement.current = player ? {x: player.x, y: player.y, islandId: engine.islandId, heading} : null;
-      const outlineRadius = width / 2 + 2 * iconSize / BOG_RADAR_SIZE_PX;
       const islands = nearbyMapFrame(engine.islandId, engine.player ?? engine.camera, radar.current,
         outlineRadius / scale).map(item => ({
         ...item, x: Math.round(item.x * scale * 4) / 4, y: Math.round(item.y * scale * 4) / 4,
@@ -95,7 +96,7 @@ export default function WorldMap({island, globeOpen = false, indoors = false}) {
     update();
     const timer = setInterval(update, 80);
     return () => clearInterval(timer);
-  }, [island, iconSize]);
+  }, [island, outlineRadius]);
 
   // Click the minimap to open the world view (the globe); on the globe it steps aside for a Back button.
   useEffect(() => {
@@ -104,10 +105,12 @@ export default function WorldMap({island, globeOpen = false, indoors = false}) {
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, [globeOpen, island]);
-  const mapUnitsPerPixel = iconSize / BOG_RADAR_SIZE_PX;
   const teleporterSize = 21 * mapUnitsPerPixel;
-  const showTeleporterArrow = !indoors && !globeOpen && frame.teleporterBearing !== null;
-  const teleporterGuide = showTeleporterArrow ? 'Blue arrow points toward this island’s harbor teleporter.'
+  // Allow for the Bog badge's outer ring and the arrowhead when their bearings coincide.
+  const bogBadge = frame.bogVisible ? {x: frame.bogX, y: frame.bogY, clearance: iconSize * .63 + 9 * mapUnitsPerPixel} : null;
+  const arrow = !indoors && !globeOpen && frame.teleporterBearing !== null
+    ? teleporterRimPosition(frame.teleporterBearing, outlineRadius, bogBadge) : null;
+  const teleporterGuide = arrow ? 'Blue arrow on the rim points toward this island’s harbor teleporter.'
     : frame.playing && !frame.teleporterUnlocked ? `Collect ${TELEPORT_COST} golden feathers to reveal the arrow to your harbor teleporter.` : '';
   return <>
   {globeOpen && <button type="button" className="pixi-world-back" onClick={() => island.current?.closeGlobe()}>
@@ -180,8 +183,8 @@ export default function WorldMap({island, globeOpen = false, indoors = false}) {
           transform={`rotate(${f.bearing})`}/>}
         <circle r={f.rim ? 18 : 24} fill={FRIEND} stroke="#20272a" strokeWidth="7"/>
       </g>)}
-      {showTeleporterArrow && <path d="M0,-7 L5,0 H2 V6 H-2 V0 H-5Z" fill="#1674dd" stroke="#fff9df" strokeWidth="1.5"
-        strokeLinejoin="round" transform={`translate(${width / 2} ${height / 2}) rotate(${frame.teleporterBearing}) scale(${mapUnitsPerPixel}) translate(0 -19)`}>
+      {arrow && <path d="M0,-7 L5,0 H2 V6 H-2 V0 H-5Z" fill="#1674dd" stroke="#fff9df" strokeWidth="1.5"
+        strokeLinejoin="round" transform={`translate(${width / 2 + arrow.x} ${height / 2 + arrow.y}) rotate(${frame.teleporterBearing}) scale(${mapUnitsPerPixel})`}>
         <title>Direction to harbor teleporter</title>
       </path>}
       {frame.playing
