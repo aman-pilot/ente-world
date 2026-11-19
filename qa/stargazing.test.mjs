@@ -6,7 +6,7 @@ import {telescopeLandmarks} from '../src/world/telescope-landmarks.js';
 import {WORLD_ISLANDS} from '../src/world/world-map.js';
 import {mapOf} from '../src/world/island-maps.js';
 import {telescopeSpot, telescopeNear, telescopePeerAt} from '../src/rendering/pixi/telescope.js';
-import {starPlace, anonymousStars, backgroundTile, SKY_TILE, onlineConstellation, readSky, skyCounts} from '../src/rendering/pixi/stargaze-sky.js';
+import {starPlace, backgroundTile, SKY_TILE, onlineConstellation, readSky, skyCounts} from '../src/rendering/pixi/stargaze-sky.js';
 import {makeRoom, addPlayer} from './room-harness.mjs';
 import {stars} from '../server/pages-auth.js';
 
@@ -56,12 +56,6 @@ test('every star keeps its place', () => {
     const {x, y} = starPlace(account);
     assert.ok(Math.hypot(x, y) < 2000, 'inside the star field');
   }
-  const few = anonymousStars(400), many = anonymousStars(30_000);
-  assert.equal(many.count, 30_000);
-  for (const i of [0, 14, 15, 200, 399]) {
-    assert.equal(few.x[i], many.x[i]); assert.equal(few.y[i], many.y[i]);
-  }
-  assert.equal(anonymousStars(-5).count, 0);
 });
 
 test('the faint sky continues indefinitely and regenerates the same tiles', () => {

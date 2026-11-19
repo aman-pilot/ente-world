@@ -49,6 +49,8 @@ test('refresh preserves the camera, and reduced motion produces a still frame', 
   try {
     h.send('keydown',{key:'ArrowRight'});
     const left=h.tag.style.left,top=h.tag.style.top,before=Buffer.from(h.pixels());
+    h.view.setData({...fixture,total:fixture.total+1000});h.tick();
+    assert.deepEqual(Buffer.from(h.pixels()),before,'changing the GitHub total adds no markers');
     h.view.setData({...fixture,online:['1']});h.tick();
     assert.equal(h.tag.style.left,left);assert.equal(h.tag.style.top,top);
     assert.notDeepEqual(Buffer.from(h.pixels()),before,'the departing star loses its online glow and connection');

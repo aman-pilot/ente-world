@@ -1,6 +1,5 @@
 const R = 2000;
 const INK = '#39472d', NIGHT = '#102d34', GOLD = '#ffc65c', PALE = '#ffe4a0';
-const COLORS = ['#ffc65c','#f4d68d','#ffe6b0','#deac58'];
 const CLUSTERS = [[-1150,-620],[980,-940],[1240,560],[-380,1180],[420,330]];
 const BAND = -.46, BAND_COS = Math.cos(BAND), BAND_SIN = Math.sin(BAND);
 const TAU = Math.PI * 2;
@@ -33,19 +32,6 @@ export function starPlace(account) {
   const [x,y] = scatter(mulberry(hashAccount(account)));
   return {x,y};
 }
-export function anonymousStars(count) {
-  const rnd = mulberry(20261111), n = Math.max(0, count|0);
-  const x = new Float32Array(n), y = new Float32Array(n), size = new Float32Array(n), phase = new Float32Array(n), hue = new Uint8Array(n);
-  for (let i = 0; i < n; i++) {
-    const point = scatter(rnd);
-    x[i] = point[0]*3; y[i] = point[1]*3;
-    const m = rnd();
-    size[i] = m < .80 ? .55+rnd()*.5 : m < .972 ? 1.1+rnd()*.7 : 1.9+rnd()*1.1;
-    phase[i] = rnd()*TAU; hue[i] = rnd()*4|0;
-  }
-  return {count:n, x, y, size, phase, hue};
-}
-
 export const SKY_TILE = 512;
 export function backgroundTile(tx, ty) {
   const rnd = mulberry(hashAccount(`sky:${tx}:${ty}`));
@@ -129,7 +115,7 @@ export function createStargazeSky({stage, lens, canvas, tag, nameTag}) {
   const backdrop = document.createElement('canvas'), bg = backdrop.getContext('2d');
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   let reduced = motion.matches;
-  let sky = readSky(null), anon = anonymousStars(0), edges = [], presence = new Map();
+  let sky = readSky(null), edges = [], presence = new Map();
   let cam = {x:0, y:0, z:.6}, size = 400, dpr = 1, raf = 0, running = false, loaded = false, fly = null, dirty = true;
   let selectedId = null, lastDraw = 0, presenceKey = '';
   const tiles = new Map(), cleanups = [], pointers = new Map();
@@ -195,16 +181,6 @@ export function createStargazeSky({stage, lens, canvas, tag, nameTag}) {
       }
     }
     for (const key of tiles.keys()) if (!used.has(key)) tiles.delete(key);
-    const scale = .65+.55*Math.sqrt(cam.z);
-    for (let i = 0; i < anon.count; i++) {
-      const x = sx(anon.x[i]), y = sy(anon.y[i]);
-      if (!visible(x,y,4)) continue;
-      const r = anon.size[i]*scale;
-      bg.globalAlpha = anon.size[i] < 1.1 ? .48 : .78;
-      bg.fillStyle = COLORS[anon.hue[i]];
-      if (anon.size[i] > 2.8) inkStar(bg,x,y,Math.max(3.3,r*1.9),anon.phase[i]*.06);
-      else {bg.beginPath(); bg.arc(x,y,Math.max(.4,r*.6),0,TAU); bg.fill();}
-    }
     bg.globalAlpha = .85;
     for (const star of sky.named) if (!star.online && visible(sx(star.x),sy(star.y))) {
       inkStar(bg,sx(star.x),sy(star.y),4.2+Math.sqrt(cam.z)*2,star.phase*.04);
@@ -385,8 +361,6 @@ export function createStargazeSky({stage, lens, canvas, tag, nameTag}) {
     setData(data) {
       sky = readSky(data);
       if (selectedId !== null) selectStar(sky.named.find(star => star.accountId === selectedId) ?? null);
-      const count = sky.total-sky.named.length;
-      if (count !== anon.count) anon = anonymousStars(count);
       const key = sky.named.filter(s => s.online).map(s => s.accountId).sort().join(',');
       const now = performance.now();
       if (key !== presenceKey) {
