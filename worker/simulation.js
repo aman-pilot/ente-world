@@ -709,7 +709,7 @@ class LocalSimulation extends IslandRoom {
 
   async fetch(request) {
     const url = new URL(request.url);
-    if (['/migration/export', '/migration/import', '/migration/pending'].includes(url.pathname))
+    if (['/migration/export', '/migration/import', '/migration/pending', '/migration/fleet-status'].includes(url.pathname))
       return localMigration(this, url.pathname, await request.json());
     if (this.ctx.storage.kv.get('frozen')) return fail(503);
     if (url.pathname === '/return-boat') return this.acceptReturnedBoat(await request.json());

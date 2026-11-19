@@ -1,5 +1,5 @@
 import {IslandRoom as LegacyRoom} from './index.js';
-import {migrateWorld} from './simulation-migration.js';
+import {migrateWorld, reportFleetRepair} from './simulation-migration.js';
 import {OwnershipDirectory} from './ownership.js';
 import {presenceStub, simulationStub, internalPost} from '../server/simulation-routing.js';
 import {islandFor, near} from '../src/gameplay/islands.js';
@@ -168,6 +168,16 @@ export class WorldService extends LegacyRoom {
       if (data.id && data.target && ((this.settings?.mode ?? 'legacy') !== data.target || fleetRepairPending)) {
         const result = await migrateWorld(this, data);
         if (!result.ok) return result;
+      }
+      if (data.fleetRepair && this.reportedFleetRepair !== data.id) {
+        const repair = this.ctx.storage.kv.get('migration');
+        if (repair?.id === data.id && repair.done && repair.fleetRepair) {
+          this.reportedFleetRepair = data.id;
+          this.ctx.waitUntil(reportFleetRepair(this, data).catch(error => {
+            this.reportedFleetRepair = undefined;
+            console.error('Public fleet repair status failed', {message: error?.message ?? String(error)});
+          }));
+        }
       }
       return Response.json({mode: this.settings?.mode ?? 'legacy'});
     }

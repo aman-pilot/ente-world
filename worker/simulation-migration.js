@@ -166,6 +166,38 @@ function repairFleet(boats) {
   return keep;
 }
 
+function summarizeFleet(boats) {
+  const berths = new Set();
+  let built = 0, occupied = 0, parked = 0;
+  for (const boat of boats) {
+    if (boat.owner) built++;
+    else if (fleetSpots[boatHome(boat)]?.[boatSlot(boat)]) berths.add(`${boatHome(boat)}-${boatSlot(boat)}`);
+    if (boat.occupant) occupied++;
+    if (boat.parked) parked++;
+  }
+  return {total: boats.length, built, occupied, parked, berths: [...berths]};
+}
+
+export async function reportFleetRepair(room, {id, world}) {
+  const source = room.sql.exec(
+    "SELECT record FROM migration_records WHERE name='migration-source' AND kind='boats' ORDER BY ordinal"
+  ).toArray().map(({record}) => JSON.parse(record));
+  const planned = summarizeFleet(repairFleet(source));
+  const simulations = {};
+  const persistedBerths = new Set();
+  for (const owner of owners) {
+    const response = await internalPost(simulationStub(room.env, world, owner), '/migration/fleet-status', {id});
+    if (!response.ok) throw Error('Fleet status failed for ' + owner);
+    const {berths, ...summary} = await response.json();
+    simulations[owner] = {...summary, berths: berths.length};
+    for (const berth of berths) persistedBerths.add(berth);
+  }
+  console.info('Public fleet repair status', {
+    source: source.length, planned: planned.total, planned_berths: planned.berths.length,
+    persisted_berths: persistedBerths.size, simulations: JSON.stringify(simulations),
+  });
+}
+
 export async function migrateWorld(room, {id, world, target, fleetRepair = false}) {
   if (
     !id ||
@@ -361,6 +393,10 @@ export async function migrateWorld(room, {id, world, target, fleetRepair = false
 
 export async function localMigration(room, path, {id, data, committed = [], relinquished = []}) {
   const kv = room.ctx.storage.kv;
+  if (path === '/migration/fleet-status') {
+    const stored = room.sql.exec('SELECT state FROM boat_states').toArray().map(({state}) => JSON.parse(state));
+    return Response.json({...summarizeFleet(stored), imported: kv.get('last-import') === id, inMemory: room.boats.length});
+  }
   if (path === '/migration/pending')
     return Response.json(
       Boolean(
