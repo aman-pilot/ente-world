@@ -80,7 +80,7 @@ export class SailRouteQueue {
         job.mapsVersion = mapsVersion();
         job.origin = {x: actor.x, y: actor.y, islandId, boatId};
         job.work = {};
-        job.steps = plan(job, room.boats.map((boat) => ({...boat})));
+        job.steps = plan(job, (room.boatObstacles?.() ?? room.boats).map((boat) => ({...boat})));
         job.nextCost = 1;
         health.routeQueueWait = Math.max(health.routeQueueWait, now - job.requestedAt);
         health.work[job.reason === 'reroute' ? 'route_reroute' : 'route_plan']++;
@@ -117,7 +117,7 @@ export class SailRouteQueue {
     health.routeFineVisits += work.fineVisits ?? 0;
     health.routeAlternatives += work.alternatives ?? 0;
     health.routeLatency = Math.max(health.routeLatency, now - job.requestedAt);
-    if (route && !canStartSailPlan(actor, route, room.boats)) {
+    if (route && !canStartSailPlan(actor, route, room.boatObstacles?.() ?? room.boats)) {
       // Boats and the requester may have moved since planning started.
       if (!job.retried) {
         const retry = {...job, steps: null, retried: true};

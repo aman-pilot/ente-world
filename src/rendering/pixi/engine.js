@@ -848,8 +848,8 @@ export class PixiIsland {
     const nav=this.room.navHere?.() ?? this.sim.nav;
     if (!this.globeBusy() && !this.interior?.active && atTeleporter(me,nav)) return {teleport:true};
     let best=null;
-    for (const boat of this.room.boatPoses()) {
-      if (boat.occupant || (boat.built && !this.room.ownBoats?.has(boat.id))) continue;
+    for (const boat of this.room.boats ?? this.room.boatPoses()) {
+      if (boat.islandId !== this.islandId || boat.occupant || (boat.built && !this.room.ownBoats?.has(boat.id))) continue;
       const deck=boardingPoint(boat, nav), d=Math.hypot(deck.x-me.x, deck.y-me.y);
       if (d < 260 && (!best || d < best.d)) best={id:boat.id, d};
     }
@@ -1766,7 +1766,7 @@ export class PixiIsland {
       if (!player) { this.keys.clear(); this.follow = false; this.markerUntil = 0; }
     }
     if(this.pirateFleet){
-      const occupied=(this.room?.boats??[]).filter(b=>b.occupant).map(b=>pirateBoatPoint({...b,islandId:this.islandId},this.islandId));
+      const occupied=(this.room?.boats??[]).filter(b=>b.occupant).map(b=>pirateBoatPoint(b,this.islandId));
       if(player?.mode==='sailing')occupied.push(pirateBoatPoint({...player,islandId:this.islandId},this.islandId));
       this.pirateFleet.update(dt,occupied);
     }

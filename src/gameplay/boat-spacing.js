@@ -1,6 +1,7 @@
-// Alpha bounds across all 48 seat-pinned views have a 326-unit diameter. Hulls never touch at
-// this gap; at a few angles the tips of two sails may just meet (boss: 350 left too much empty water).
+// Keep authored home moorings stable when tuning live sailing contact.
 export const BOAT_GAP = 260;
+// Shared by client prediction and the server; half the previous live clearance.
+export const MOVING_BOAT_GAP = 130;
 export const boatSeparated = (a,b,gap=BOAT_GAP) => Math.hypot(a.x-b.x,a.y-b.y) >= gap;
 
 // Deterministic nearest-first water search, shared by map creation and live placement.
