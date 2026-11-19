@@ -183,7 +183,7 @@ test('refused Bog landing leaves a 600-unit escape apron and preserves boat gaps
     assert(Math.hypot(a.x-p.actor.x,a.y-p.actor.y)>500);assert(boatRoom(a,room.boats));assert(canSail(a.x,a.y,from));
    }
   }
-  assert.equal(BOAT_GAP,260);
+  assert.equal(BOAT_GAP,130);
  }finally{clearInterval(room.timer);room.bog?.dispose();}
 });
 
@@ -210,8 +210,9 @@ test('Home ground culling returns to authored tile coordinates after repeated la
 test('a blocked dock search shares the fine-work budget across alternatives and keeps the current route', () => {
  const islandId = 'home';
  const destination = {x:4000,y:9500};
- const boats = Array.from({length:26},(_,index) => {
-  const angle = index * 2 * Math.PI / 26;
+ const count=Math.ceil(2*Math.PI*1600/BOAT_GAP);
+ const boats = Array.from({length:count},(_,index) => {
+  const angle = index * 2 * Math.PI / count;
   return {id:`home-0~dock-fixture-${index}`,islandId,
    x:destination.x + 1600 * Math.cos(angle),y:destination.y + 1600 * Math.sin(angle)};
  });

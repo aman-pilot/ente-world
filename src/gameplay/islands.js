@@ -1,6 +1,6 @@
 import {finishWork} from './work-steps.js';
-import {BOAT_GAP,boatSeparated,nearestBoatSpace,boatSpaceCandidates} from './boat-spacing.js';
-export {BOAT_GAP} from './boat-spacing.js';
+import {MOVING_BOAT_GAP as BOAT_GAP,boatSeparated,nearestBoatSpace,boatSpaceCandidates} from './boat-spacing.js';
+export {MOVING_BOAT_GAP as BOAT_GAP} from './boat-spacing.js';
 import {SEA_WIDTH,SEA_HEIGHT,SEA_VERSION,FLAT_RADIUS,FLAT_RING,FLAT_POSITIONS,FLAT_ISLETS,GLOBE_ISLET_OFFSETS,nearestSeaX,nearestSeaY,nearestSeaImage,seaImages,wrapSea} from '../world/flat-layout.js';
 import {placeRigid,unplaceRigid,flatRigid,seaCentreY} from '../world/rigid.js';
 import {SAIL_EMOTES} from './player-motion.js';
@@ -114,24 +114,64 @@ export function harborApproachClear(actor) {
     return seaBoatSeparated(actor,water,BOAT_GAP+24);
   });
 }
-function parkedBoatPosition(boat,boats,reach) {
+export const PARKING_GAP=BOAT_GAP+30, BOARDING_REACH=240;
+const PARKING_CANDIDATES=768;
+export function parkedBoatPosition(boat,boats,reach=1040,landing=boat.landing) {
   const others=otherBoatPositions(boat,boats);
-  return nearestBoatSpace(boat,p=>harborApproachClear({...boat,...p}) &&
-    others.every(q=>seaBoatSeparated(p,q,BOAT_GAP+1)) && canSail(p.x,p.y,boat.islandId),reach);
+  const nav=navOf(boat.islandId);
+  // Saved landings may predate a shore edit. Recover their current boarding
+  // point without discarding the fixed-fleet boat.
+  const shore=landing&&nav.walkable(landing.x,landing.y)?landing:boardingPoint({...boat,landing:null},nav);
+  const boardable=shore && nav.walkable(shore.x,shore.y);
+  if(landing&&!boardable)return null;
+  const clear=(p,gap,radius=BOAT_GAP/2)=>others.every(q=>seaBoatSeparated(p,q,gap)) &&
+    harborApproachClear({...boat,...p}) && canSail(p.x,p.y,boat.islandId,radius);
+  if(boardable){
+    let checked=0;
+    if(near(boat,shore,180)&&clear(boat,PARKING_GAP,BOAT_RADIUS))return {x:boat.x,y:boat.y};
+    // A bounded shore-side search: keep the boat an easy hop from the same
+    // landing point, and leave more room between parked hulls than moving ones.
+    function* anchors(){
+      yield shore;
+      if(!landing)return;
+      for(const r of [80,160,240,320])for(let k=0;k<8;k++){
+        const a=k*Math.PI/4,p=nav.nearest(shore.x+Math.cos(a)*r,shore.y+Math.sin(a)*r,48);
+        if(p&&nav.clearLine([shore.x,shore.y],p))yield {x:p[0],y:p[1]};
+      }
+    }
+    for(const anchor of anchors()){
+      const angle=Math.atan2(boat.y-anchor.y,boat.x-anchor.x);
+      for(const radius of [160,180,200,220,BOARDING_REACH])for(const offset of [0,.25,-.25,.5,-.5,.8,-.8,1.1,-1.1,1.5,-1.5,Math.PI]){
+        if(++checked>PARKING_CANDIDATES)return null;
+        const p={x:Math.round(anchor.x+Math.cos(angle+offset)*radius),y:Math.round(anchor.y+Math.sin(angle+offset)*radius)};
+        if(near(p,anchor,BOARDING_REACH)&&clear(p,PARKING_GAP))
+          return {...p,...(anchor!==shore||shore!==landing?{landing:anchor}:{})};
+      }
+    }
+    if(landing)return null;
+  }
+  // Boats left at sea may have no walkable shore nearby. Keep their safe
+  // position rather than pulling an abandoned vessel onto land.
+  return nearestBoatSpace(boat,p=>clear(p,PARKING_GAP),reach);
 }
 
-export function parkFleetBoat(boat, boats, now, landing) {
-  Object.assign(boat,{occupant:null, parked:true, parkedAt:now, landing:landing ? {x:landing.x,y:landing.y} : null});
+export function parkFleetBoat(boat, boats, now, landing, planned=null) {
+  const position=planned ?? parkedBoatPosition(boat,boats,1040,landing);
+  if(!position)return false;
+  const shore=position.landing ?? landing;
+  Object.assign(boat,{occupant:null, parked:true, parkedAt:now, landing:shore ? {x:shore.x,y:shore.y} : null});
   delete boat.unattendedAt;
   delete boat.returnRetryAt;
-  Object.assign(boat,parkedBoatPosition(boat,boats));
+  Object.assign(boat,position);
+  return true;
 }
 
 export function placeFleetBoatHome(boat, boats, spot = boatSpot(boat)) {
   const islandId=boatHome(boat);
   if (!islandFor(islandId) || !spot) return null;
   const home={...boat,...spot,islandId,departure:islandId,occupant:null,parked:false,landing:null};
-  const position=parkedBoatPosition(home,boats,4160);
+  const position=harborApproachClear(home)&&boatRoom(home,boats)&&canSail(home.x,home.y,islandId)
+    ? spot : parkedBoatPosition(home,boats,4160);
   if (!position) return null;
   delete home.parkedAt;
   delete home.unattendedAt;
@@ -211,7 +251,7 @@ export function retireBoat(boats,boat,landing=null,islandId=null) {
   else if (boat.landing) boat.landing=null;
   if (!landing && !boat.owner && boatRoom({...boat,...spot},boats) && boat.islandId === home && near(boat,spot,MOORING_CLEAR) && !boats.some(other => other !== boat && !other.occupant && boatHome(other) === home && boatSlot(other) === boatSlot(boat) && atMooring(other,spot)))
     Object.assign(boat,{x:spot.x,y:spot.y,turn:spot.turn,departure:home,parked:false});
-  const at=parkedBoatPosition(boat,boats);
+  const at=boat.parked?parkedBoatPosition(boat,boats):spot;
   if (at) Object.assign(boat,at);
   if (!at) {
     const index=boats.indexOf(boat);

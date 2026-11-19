@@ -1,4 +1,4 @@
-import {placeRigid} from '../world/rigid.js';
+import {placeRigid,unplaceRigid} from '../world/rigid.js';
 import {authenticateTestSocket} from '../app/test-session.js';
 import {nearestSeaX} from '../world/flat-layout.js';
 import {nearbyCell} from './nearby.js';
@@ -431,7 +431,12 @@ export class RoomClient {
       boatTracks.set(boat.id,{from:periodicFrom(last,boat,now),to:boat,start:now});
     }
     this.boatTracks=boatTracks;
-    this.boats=boats;
+    // Wire poses are already projected into this viewer's chart. Render those
+    // directly, but collision helpers expect each boat in its own island frame.
+    this.boats=boats.map(boat=>{
+      const home=boat.islandId??islandId;
+      return {...boat,islandId:home,...unplaceRigid(islandId,home,boat)};
+    });
     const tracks = new Map();
     for (const pose of players) {
       if (pose.id === this.id && self) {
@@ -581,7 +586,7 @@ export class RoomClient {
 
   returnToBoat() {
     if(!this.player||this.player.mode!=='walking')return false;
-    const available=this.usableBoats();
+    const available=this.usableBoats().filter(boat=>boat.islandId===this.player.islandId);
     const boat=available.find(b=>b.id===this.arrivalBoatId)??available.sort((a,b)=>
       Math.hypot(a.x-this.player.x,a.y-this.player.y)-Math.hypot(b.x-this.player.x,b.y-this.player.y))[0];
     return boat?this.board(boat.id):false;

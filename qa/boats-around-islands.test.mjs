@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {boatSpots,harborOf,canSail,boardingPoint,createBoats,fillMoorings,retireBoat,sailStep,PARKED_LINGER,navOf} from '../src/gameplay/islands.js';
 import {PORT_BOATS,PORT_CLEAR} from '../src/world/island-maps.js';
-import {BOAT_GAP} from '../src/gameplay/boat-spacing.js';
+import {MOVING_BOAT_GAP as BOAT_GAP} from '../src/gameplay/boat-spacing.js';
 import {WORLD_ISLANDS} from '../src/world/world-map.js';
 
 test('every island keeps 3 boats at its port and the rest spread around its coast, all boardable', () => {

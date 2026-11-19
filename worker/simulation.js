@@ -474,16 +474,6 @@ class LocalSimulation extends IslandRoom {
     if (allowed && island === BOG_ISLAND) info.chargeBog = true;
     return allowed;
   }
-  parkBoat(boat, landing, now = Date.now()) {
-    if (this.simulation.owner !== 'sea') return super.parkBoat(boat, landing, now);
-    boat.occupant = null;
-    boat.parked = true;
-    boat.parkedAt = now;
-    boat.landing = landing ? {x:landing.x,y:landing.y} : null;
-    delete boat.unattendedAt;
-    delete boat.returnRetryAt;
-  }
-
   placeReturnedBoat(boat, now) {
     const home = boatHome(boat);
     if (home === this.simulation.owner || !islandFor(home)) return super.placeReturnedBoat(boat, now);
@@ -593,7 +583,13 @@ class LocalSimulation extends IslandRoom {
     if (state.state === 'prepared') {
       const target = simulationStub(this.env, this.simulation.world, data.destination);
       const staged = await internalPost(target, '/stage', data);
-      if (!staged.ok) return;
+      if (!staged.ok) {
+        if(staged.status===409){
+          const aborted=await this.control('abort',{id:data.id});
+          if(aborted.ok&&(await aborted.json())?.state==='aborted')this.restoreDeparture(data);
+        }
+        return;
+      }
       const committed = await this.control('commit', {id: data.id, digest: data.digest});
       if (!committed.ok) {
         if ([403, 409].includes(committed.status)) {
@@ -656,7 +652,12 @@ class LocalSimulation extends IslandRoom {
     this.ctx.storage.transactionSync(() => {
       if (data.boat) {
         if (data.boat.occupant) data.boat.unattendedAt ??= Date.now();
-        else parkFleetBoat(data.boat,this.boats,data.boat.parkedAt ?? Date.now(),data.boat.landing);
+        // New arrivals reserved water before ownership committed. Preserve that exact
+        // position; searching again could steal another in-flight arrival's berth.
+        else if(!data.parkingReserved)
+          parkFleetBoat(data.boat,this.boatObstacles(),data.boat.parkedAt ?? Date.now(),data.boat.landing);
+        if(data.actor.mode==='walking'&&data.boat.landing)
+          Object.assign(data.actor,{x:data.boat.landing.x,y:data.boat.landing.y});
         this.boats = [...this.boats.filter((b) => b.id !== data.boat.id), data.boat];
       }
       this.sql.exec(
@@ -675,6 +676,7 @@ class LocalSimulation extends IslandRoom {
       this.sql.exec('DELETE FROM incoming WHERE id=?', row.id);
       this.saveBoats();
     });
+    this.parkingReservations.delete(row.id);
     this.ctx.waitUntil(this.scheduleExpiry());
   }
 
@@ -727,7 +729,34 @@ class LocalSimulation extends IslandRoom {
     if (url.pathname === '/stage') {
       const data = await request.json();
       if (data.destination !== this.simulation.owner) return fail();
+      // Aborted transfers cannot keep a berth reserved indefinitely. This work runs
+      // only on arrival, never in the movement or snapshot loop.
+      const checks=[];
+      for(const id of this.parkingReservations.keys()){
+        checks.push(id);
+        if(checks.length===4)break;
+      }
+      for(const id of checks){
+        const boat=this.parkingReservations.get(id);
+        if(!boat)continue;
+        const response=await this.control('transfer-state',{id});
+        if(this.parkingReservations.get(id)!==boat)continue;
+        if(response.ok&&(await response.json())?.state==='aborted'){
+          this.sql.exec('DELETE FROM incoming WHERE id=?',id);
+          this.parkingReservations.delete(id);
+        }else{
+          this.parkingReservations.delete(id);
+          this.parkingReservations.set(id,boat);
+        }
+      }
       if (this.sql.exec('SELECT 1 FROM consumed_transfers WHERE id=?', data.id).toArray().length) return ok();
+      if(this.sql.exec('SELECT 1 FROM incoming WHERE id=?',data.id).toArray().length)return ok();
+      if(data.boat&&!data.boat.occupant){
+        if(!parkFleetBoat(data.boat,this.boatObstacles(),data.boat.parkedAt??Date.now(),data.boat.landing))return fail();
+        data.parkingReserved=true;
+        if(data.actor.mode==='walking'&&data.boat.landing)
+          Object.assign(data.actor,{x:data.boat.landing.x,y:data.boat.landing.y});
+      }
       this.sql.exec(
         'INSERT OR IGNORE INTO incoming VALUES(?,?,?,?)',
         data.id,
@@ -735,6 +764,7 @@ class LocalSimulation extends IslandRoom {
         data.generation + 1,
         JSON.stringify(data)
       );
+      if(data.parkingReserved)this.parkingReservations.set(data.id,data.boat);
       return ok();
     }
     if (url.pathname === '/retire-built') {

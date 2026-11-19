@@ -11,7 +11,7 @@ import {LiveBogRoom} from './bog-room.js';
 import {DURATIONS, playEmote, playSailEmote, SAIL_EMOTES, startJump, separateActors, setWalkDestination, walkStep, atMuseumDoor} from '../src/gameplay/player-motion.js';
 import {chatText} from '../src/multiplayer/chat.js';
 import {FRIEND_RADIUS} from '../src/multiplayer/friends.js';
-import {migrateSeaPosition, islandFor, harborOf, boatSpots, boatRoom, freeBoatPosition, refusedLandingPosition, createBoats, near, canSail, setSailDestination, sailStep, crossIsland, boardingPoint, dockingSpot, HARBOR_ONLY, landingApproach, parkFleetBoat, placeFleetBoatHome, navOf, canWalkTo} from '../src/gameplay/islands.js';
+import {migrateSeaPosition, islandFor, harborOf, boatSpots, boatRoom, freeBoatPosition, refusedLandingPosition, createBoats, near, canSail, setSailDestination, sailStep, crossIsland, boardingPoint, dockingSpot, HARBOR_ONLY, landingApproach, parkedBoatPosition, parkFleetBoat, placeFleetBoatHome, navOf, canWalkTo} from '../src/gameplay/islands.js';
 import {randomOutfit, validOutfit} from '../src/gameplay/outfits.js';
 import {pickSpawnIsland,pickWorldSpawn} from '../src/gameplay/world-spawn.js';
 import {RoomKarma} from './karma.js';
@@ -191,6 +191,14 @@ export class IslandRoom {
       boat.seaVersion=SEA_VERSION;
     }
     this.boats = boats;
+    // Restore pending water reservations before recovering or returning any boats.
+    // Fresh and legacy rooms do not have the split simulation's incoming table.
+    this.parkingReservations=new Map();
+    if(simulation&&this.sql.exec("SELECT 1 FROM sqlite_master WHERE type='table' AND name='incoming'").toArray().length)
+      for(const row of this.sql.exec('SELECT id,payload FROM incoming').toArray()){
+        const data=JSON.parse(row.payload);
+        if(data.parkingReserved)this.parkingReservations.set(row.id,data.boat);
+      }
     this.savedBoatRows = new Map(saved ? [] : rows.map(row => [row.id, row.state]));
     this.sql.exec('CREATE TABLE IF NOT EXISTS room_checkpoints (account TEXT PRIMARY KEY, digest TEXT NOT NULL, pose TEXT NOT NULL)');
     this.savedCheckpointRows = new Map(this.sql.exec('SELECT account,digest,pose FROM room_checkpoints').toArray()
@@ -286,9 +294,19 @@ export class IslandRoom {
     return true;
   }
 
-  parkBoat(boat,landing=null,now=Date.now()) {
-    parkFleetBoat(boat,this.boats,now,landing);
+  boatObstacles() {
+    if(!this.remoteBoats?.length&&!this.parkingReservations?.size)return this.boats;
+    return [...this.boats,...(this.remoteBoats??[]),...(this.parkingReservations?.values()??[])];
+  }
+
+  boatParking(boat,landing) {
+    return parkedBoatPosition(boat,this.boatObstacles(),1040,landing);
+  }
+
+  parkBoat(boat,landing=null,now=Date.now(),planned=null) {
+    if(!parkFleetBoat(boat,this.boatObstacles(),now,landing,planned))return false;
     this.boatsDirty = true;
+    return true;
   }
 
   boatReturnAt(boat) {
@@ -297,7 +315,7 @@ export class IslandRoom {
   }
 
   placeReturnedBoat(boat, now) {
-    const home = placeFleetBoatHome(boat,this.boats);
+    const home = placeFleetBoatHome(boat,this.boatObstacles());
     if (!home) {
       boat.returnRetryAt = now + BOAT_RETURN_RETRY_MS;
       return;
@@ -340,18 +358,26 @@ export class IslandRoom {
       else if (boat.occupant) boat.unattendedAt ??= now;
       else if (boat.parked) boat.parkedAt ??= now;
     }
+    // Reposition only free parked shore boats during restoration, never active sailors.
+    // Keep IDs and the fixed fleet; surplus-fleet repair remains a separate migration.
+    for(const boat of this.boats){
+      if(boat.occupant||boat.owner||!boat.parked||!boat.landing)continue;
+      if(near(boat,boat.landing,240)&&boatRoom(boat,this.boatObstacles()))continue;
+      const at=parkedBoatPosition(boat,this.boatObstacles(),0);
+      if(at&&(at.x!==boat.x||at.y!==boat.y)){Object.assign(boat,at);this.boatsDirty=true;}
+    }
     this.saveBoats(now);
   }
 
-  recoverSailingPosition(actor) {
+  recoverSailingPosition(actor,obstacles=this.boatObstacles()) {
     if (actor?.mode !== 'sailing') return false;
     const boat = this.boats.find(boat => boat.id === actor.boatId && boat.occupant === actor.id);
     if(!boat)return false;
-    if(canSail(actor.x,actor.y,actor.islandId) && boatRoom(actor,this.boats)) {
+    if(canSail(actor.x,actor.y,actor.islandId) && boatRoom(actor,obstacles)) {
       if(boat.x!==actor.x||boat.y!==actor.y||boat.islandId!==actor.islandId){Object.assign(boat,{x:actor.x,y:actor.y,islandId:actor.islandId,seaVersion:SEA_VERSION});return true;}
       return false;
     }
-    const reserved=[...this.boats,...boatSpots(actor.islandId).map((p,i)=>({...p,islandId:actor.islandId,id:`reserved-${i}`}))];
+    const reserved=[...obstacles,...boatSpots(actor.islandId).map((p,i)=>({...p,islandId:actor.islandId,id:`reserved-${i}`}))];
     const position=freeBoatPosition(actor,reserved,520) ??
       freeBoatPosition({...actor,...harborOf(actor.islandId).water},reserved,4160);
     if (!position) return false;
@@ -1183,20 +1209,21 @@ export class IslandRoom {
     if (spot.harbor) {
       const id=actor.islandId;
       const water=placeRigid(id,id,harborOf(id).water,actor);
-      const target=setSailDestination(actor,water.x,water.y,this.boats);
+      const target=setSailDestination(actor,water.x,water.y,this.boatObstacles());
       actor.docking=Boolean(target);
       actor.dockTarget=target?{x:target[0],y:target[1]}:null;
       return;
     }
-    spot.approach=landingApproach(actor,spot,this.boats);
+    spot.approach=landingApproach(actor,spot,this.boatObstacles());
     info.landing=spot;
-    if (!near(actor,spot.approach,14) && !setSailDestination(actor,spot.approach.x,spot.approach.y,this.boats))
+    if (!near(actor,spot.approach,14) && !setSailDestination(actor,spot.approach.x,spot.approach.y,this.boatObstacles()))
       info.landing={...spot,approach:{x:actor.x,y:actor.y}};
   }
 
   stepMovement(now) {
     let active = false;
     let changedTravel = false;
+    const obstacles=this.boatObstacles();
     for (const [socket, info] of this.connections) {
       const actor = info.actor;
       if (!actor) continue;
@@ -1210,8 +1237,8 @@ export class IslandRoom {
       const before = crossing && {actor:structuredClone(actor),
         boat:structuredClone(this.boats.find(b=>b.id === (previousBoat ?? info.boarding)) ?? null)};
       if (actor.mode === 'sailing') {
-        this.recoverSailingPosition(actor);
-        sailStep(actor,.05,info.input,now/1000,this.boats,this.sailRoutes && ((actor,x,y) => {
+        this.recoverSailingPosition(actor,obstacles);
+        sailStep(actor,.05,info.input,now/1000,obstacles,this.sailRoutes && ((actor,x,y) => {
           if (!this.queueSailRoute(socket,info,x,y,'reroute',now)) return false;
           actor.sailTarget=null;
           actor.sailRoute=null;
@@ -1221,7 +1248,7 @@ export class IslandRoom {
         if (!boat) info.landing=null;
         if (boat) {
           const routePending = this.sailRoutes?.has(actor);
-          if (!routePending && !info.landing && crossIsland(actor,id=>this.allowLanding(socket,info,id),this.boats)) {
+          if (!routePending && !info.landing && crossIsland(actor,id=>this.allowLanding(socket,info,id),obstacles)) {
             changedTravel = true;
             info.input=ZERO;
             info.inputExpires=0;
@@ -1230,19 +1257,36 @@ export class IslandRoom {
           if (!routePending && info.landing && (near(actor,info.landing.approach,14) || !actor.sailTarget)) {
             const spot=info.landing; info.landing=null;
             if (!spot.islet&&!this.allowLanding(socket,info,spot.islandId)) continue;
+            const local=spot.islet?reframeIslet(actor.islandId,spot.islandId,ISLETS.find(i=>i.id===spot.islet),actor):unplaceRigid(actor.islandId,spot.islandId,actor);
+            const parking=this.boatParking({...boat,...local,islandId:spot.islandId},spot);
+            if(!parking){
+              actor.sailTarget=null;actor.sailRoute=null;actor.docking=false;
+              this.send(socket,{type:'travel-notice',text:'No room to park here. Try another stretch of shore.'});
+              continue;
+            }
             if(!spot.islet&&!this.chargeBogLanding(socket,info,spot.islandId))continue;
-            Object.assign(actor,spot.islet?reframeIslet(actor.islandId,spot.islandId,ISLETS.find(i=>i.id===spot.islet),actor):unplaceRigid(actor.islandId,spot.islandId,actor)); actor.islandId=spot.islandId; info.islandId=spot.islandId;
+            Object.assign(actor,local); actor.islandId=spot.islandId; info.islandId=spot.islandId;
             Object.assign(boat,{x:actor.x,y:actor.y,islandId:actor.islandId});
-            this.parkBoat(boat,spot);
+            this.parkBoat(boat,spot,now,parking);
             changedTravel = true;
-            Object.assign(actor,{x:spot.x,y:spot.y,mode:'walking',boatId:null,path:[],travel:0,pace:0,heading:null,docking:false,sailTarget:null,sailRoute:null});
+            const landed=boat.landing ?? spot;
+            Object.assign(actor,{x:landed.x,y:landed.y,mode:'walking',boatId:null,path:[],travel:0,pace:0,heading:null,docking:false,sailTarget:null,sailRoute:null});
             info.input=ZERO;
           } else if (!routePending && actor.docking && near(actor,actor.dockTarget??harborOf(actor.islandId).water,12)) {
+            const local=unplaceRigid(actor.islandId,actor.islandId,boat);
+            const landing=harborOf(actor.islandId).land;
+            const parking=this.boatParking({...boat,...local},landing);
+            if(!parking){
+              actor.docking=false;actor.sailTarget=null;actor.sailRoute=null;
+              this.send(socket,{type:'travel-notice',text:'No room at this dock. Try another stretch of shore.'});
+              continue;
+            }
             if (!this.allowLanding(socket,info,actor.islandId)||!this.chargeBogLanding(socket,info,actor.islandId)) continue;
-            Object.assign(boat,unplaceRigid(actor.islandId,actor.islandId,boat));
-            this.parkBoat(boat);
+            Object.assign(boat,local);
+            this.parkBoat(boat,landing,now,parking);
             changedTravel = true;
-            Object.assign(actor,{...harborOf(actor.islandId).land,mode:'walking',boatId:null,path:[],travel:0,pace:0,heading:null,docking:false,sailTarget:null});
+            const landed=boat.landing ?? landing;
+            Object.assign(actor,{x:landed.x,y:landed.y,mode:'walking',boatId:null,path:[],travel:0,pace:0,heading:null,docking:false,sailTarget:null});
             info.input=ZERO;
           }
         }
