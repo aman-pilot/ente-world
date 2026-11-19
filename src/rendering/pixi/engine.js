@@ -583,11 +583,15 @@ export class PixiIsland {
     this.landingView=null;
     delete this.camera.basis;
     if(this.sailingCamera)this.sailingCamera.active=false;
-    if (hop && !walkingArrival) {
+    // Only a boat crossing keeps the view continuous. A watcher's island picker or a jump
+    // starts on the new island; reframing there left the camera over open sea.
+    const sailingHop=hop && !walkingArrival && (this.travelMode==='sailing' || this.room?.mode==='sailing');
+    if (sailingHop) {
       for (const c of [this.camera, this.target]) Object.assign(c,reframe(c));
     } else {
       const player=this.player;
-      const focus=player ?? harborOf(id).land;
+      const map=mapOf(id);
+      const focus=player ?? (this.room ? {x:map.cx,y:map.cy+90} : harborOf(id).land);
       Object.assign(this.target,{x:focus.x,y:focus.y-90,zoom:this.target.zoom ?? .6});
       Object.assign(this.camera,this.target);
     }

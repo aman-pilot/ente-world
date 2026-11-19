@@ -23,6 +23,8 @@ const PEER_LEAD_SECONDS = .05;
 const PEER_DELAY_SECONDS = .25;
 const moving = input => input.x !== 0 || input.y !== 0;
 const nowSeconds = () => performance.now() / 1000;
+// Along-path errors smaller than this many seconds of travel are packet timing, not position.
+const JITTER_WINDOW = .3, ALONG_OMEGA = 2.5;
 
 function sample(track, now) {
   const {from,to,start,poseAt=start,blendSeconds=.1,vx=0,vy=0} = track;
@@ -655,15 +657,27 @@ export class RoomClient {
     }
     if (this.player.mode === 'sailing') sailStep(this.player,dt,input,now,this.boats);
     else walkStep(this.player, this.navHere(), dt, now, input);
-    const omega = 12, decay = Math.exp(-omega * dt);
-    const settle = (offset, velocity) => {
-      const c = velocity + omega * offset;
+    const settle = (offset, velocity, omega = 12) => {
+      const c = velocity + omega * offset, decay = Math.exp(-omega * dt);
       return [(offset + c * dt) * decay, (velocity - omega * c * dt) * decay];
     };
-    let [offsetX, velocityX] = settle(this.offsetX, this.correctionX);
-    let [offsetY, velocityY] = settle(this.offsetY, this.correctionY);
     const dx = this.player.x - x, dy = this.player.y - y;
     const distance2 = dx * dx + dy * dy;
+    let offsetX, velocityX, offsetY, velocityY;
+    const step = Math.sqrt(distance2), ux = dx / step, uy = dy / step;
+    const along = step > 0 ? this.offsetX * ux + this.offsetY * uy : 0;
+    if (step > 0 && Math.abs(along) < step / dt * JITTER_WINDOW) {
+      // Snapshots arrive unevenly, so the gap along the path swings forward and back
+      // every packet. Ease that part slowly (it averages out) instead of surging and
+      // braking ten times a second; sideways error (walls, pushes) still settles fast.
+      const [a, va] = settle(along, this.correctionX * ux + this.correctionY * uy, ALONG_OMEGA);
+      const [n, vn] = settle(this.offsetY * ux - this.offsetX * uy, this.correctionY * ux - this.correctionX * uy);
+      offsetX = a * ux - n * uy; offsetY = a * uy + n * ux;
+      velocityX = va * ux - vn * uy; velocityY = va * uy + vn * ux;
+    } else {
+      [offsetX, velocityX] = settle(this.offsetX, this.correctionX);
+      [offsetY, velocityY] = settle(this.offsetY, this.correctionY);
+    }
     const backward = (this.offsetX - offsetX) * dx + (this.offsetY - offsetY) * dy;
     // A walking correction can absorb the whole predicted step when the server is falling behind.
     const maxBackward = this.player.mode === 'walking' ? distance2 : distance2 / 2;

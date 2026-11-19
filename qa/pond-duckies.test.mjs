@@ -206,3 +206,20 @@ test('hidden and offscreen Duckies skip FX; reduced motion shows exactly one sta
   assert(layer.entries.every(e=>e.trail.every(r=>!r.active)),'no old trail bursts when motion resumes');
  }finally{layer.destroy();}
 });
+
+test('pond Duckies never stand in front of each other: their drawn sprites stay apart',()=>{
+ // Bodies are anchored at 92% of their height, so a Ducky in front covers the one behind it.
+ const box=(v,d)=>({l:v.x-d.width/2,r:v.x+d.width/2,t:v.y-d.height*.92,b:v.y+d.height*.08});
+ for(const p of PONDS){
+  const positions=p.duckies.map(pose);
+  for(let time=0;time<p.motion.period;time+=.25){
+   positions.forEach((v,i)=>samplePondDucky(p,i,time,false,v));
+   for(let i=0;i<positions.length;i++)for(let j=i+1;j<positions.length;j++){
+    const a=box(positions[i],p.duckies[i]),b=box(positions[j],p.duckies[j]);
+    const overlap=Math.max(0,Math.min(a.r,b.r)-Math.max(a.l,b.l))*Math.max(0,Math.min(a.b,b.b)-Math.max(a.t,b.t));
+    const smaller=Math.min((a.r-a.l)*(a.b-a.t),(b.r-b.l)*(b.b-b.t));
+    assert(overlap/smaller<=.15,`${p.island}/${p.id}: ${p.duckies[i].name} and ${p.duckies[j].name} overlap ${Math.round(overlap/smaller*100)}% at ${time}s`);
+   }
+  }
+ }
+});
