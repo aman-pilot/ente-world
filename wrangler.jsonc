@@ -3,7 +3,7 @@
   "pages_build_output_dir": "./dist",
   "compatibility_date": "2026-11-02",
   "compatibility_flags": ["nodejs_compat"],
-  "vars": {"SITE_ORIGIN": "https://world.ente.com", "SENTRY_ENVIRONMENT": "production", "WORLD_LAYOUT": "split", "WORLD_MIGRATION_ID": "world-simulations-v1"},
+  "vars": {"SITE_ORIGIN": "https://world.ente.com", "SENTRY_ENVIRONMENT": "production", "WORLD_LAYOUT": "split", "WORLD_MIGRATION_ID": "fleet-repair-2026-11-19-1", "WORLD_REPAIR_FLEET": "1"},
   "durable_objects": {"bindings": [{"name": "ISLAND", "class_name": "IslandRoom", "script_name": "ducky-land-room"},
     {"name": "ISLAND_SIM", "class_name": "IslandSimulation", "script_name": "ducky-land-room"},
     {"name": "SEA_SIM", "class_name": "SeaSimulation", "script_name": "ducky-land-room"},
