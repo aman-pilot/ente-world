@@ -1,5 +1,6 @@
 export const hash=s=>{let h=2166136261;for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h>>>0;};
 export class PondCapacityError extends Error {}
+const HEIGHT_CLEAR=.78;
 export function planPond(p){
  let seed=hash(p.island+'/'+p.id),rnd=()=>((seed=Math.imul(seed,1664525)+1013904223>>>0)/4294967296);
  const count=p.duckies.length;
@@ -7,9 +8,12 @@ export function planPond(p){
  const seeds=p.duckies.map((_,k)=>hash(p.island+'/'+p.id+'/'+k)),states=seeds.slice(),random=k=>((states[k]=Math.imul(states[k],1664525)+1013904223>>>0)/4294967296);
  const cells=new Set(p.cells),point=i=>[p.origin[0]+(i%p.cols)*p.step,p.origin[1]+Math.floor(i/p.cols)*p.step];
  const nodes=new Map(p.cells.map(i=>[i,point(i)]));
- const widths=p.duckies.map(d=>d.width).sort((a,b)=>b-a),gapX=(widths[0]+widths[1])/2+18,gapY=(widths[0]+widths[1])*.17+14;
- const near=(a,b)=>Math.hypot((a[0]-b[0])/gapX,(a[1]-b[1])/gapY);
- const distSegment=(p,a,b)=>{const dx=(b[0]-a[0])/gapX,dy=(b[1]-a[1])/gapY,x=(p[0]-a[0])/gapX,y=(p[1]-a[1])/gapY,t=Math.max(0,Math.min(1,(x*dx+y*dy)/(dx*dx+dy*dy||1)));return Math.hypot(x-dx*t,y-dy*t);};
+ const widths=p.duckies.map(d=>d.width).sort((a,b)=>b-a),heights=p.duckies.map(d=>d.height??0).sort((a,b)=>b-a);
+ // Ducky sprites stand tall: the one in front covers the one behind unless they are a body height apart.
+ const gapX=(widths[0]+widths[1])/2+18,gapY=Math.max((widths[0]+widths[1])*.17+14,heights[0]*HEIGHT_CLEAR);
+ // Sprites are boxes, not ovals: measure clearance on the larger axis so diagonal neighbours stay apart too.
+ const near=(a,b)=>Math.max(Math.abs(a[0]-b[0])/gapX,Math.abs(a[1]-b[1])/gapY);
+ const distSegment=(p,a,b)=>{const dx=(b[0]-a[0])/gapX,dy=(b[1]-a[1])/gapY,x=(p[0]-a[0])/gapX,y=(p[1]-a[1])/gapY,t=Math.max(0,Math.min(1,(x*dx+y*dy)/(dx*dx+dy*dy||1)));return Math.max(Math.abs(x-dx*t),Math.abs(y-dy*t));};
  const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
  function segmentDistance(a,b,c,d){
   if(cross(a,b,c)*cross(a,b,d)<0&&cross(c,d,a)*cross(c,d,b)<0)return 0;

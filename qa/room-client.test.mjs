@@ -676,3 +676,36 @@ test('a handoff keeps the source scene through a failed upgrade and accepts a fr
   assert.equal(room.islandId,'sunset');
   assert.deepEqual(destination.sent.at(-1),{type:'snapshot-ack',epoch:'destination',tick:1});
 });
+
+test('walking speed stays even when snapshots arrive unevenly',t=>{
+  let clock=0;
+  t.mock.method(performance,'now',()=>clock);
+  const {room}=setup();
+  t.after(()=>room.dispose());
+  room.navHere=()=>({clearLine:()=>true});
+  room.snapshot(packet(1));
+  room.setAlpha(1);
+  const startX=room.player.x, speed=245;
+  // The server moves the duck 0.1 s per snapshot; delivery jitters by up to 120 ms, as seen live.
+  const delays=[.02,.13,.05,.11,.01,.09,.12,.03,.07,.1];
+  const arrivals=Array.from({length:60},(_,i)=>({k:i+1,t:(i+1)*.1+.06+delays[i%delays.length]})).sort((a,b)=>a.t-b.t);
+  let next=0,tick=1,latest=0;
+  const speeds=[];
+  for(let frame=1;frame<=360;frame++){
+    clock=frame*1000/60;
+    const before=room.view().x;
+    room.step(1/60,{x:1,y:0});
+    while(next<arrivals.length&&arrivals[next].t<=clock/1000){
+      const {k}=arrivals[next++];
+      if(k<latest)continue;
+      latest=k;
+      const late=packet(++tick);
+      late.players[0].x=startX+Math.max(0,k*.1-.06)*speed;
+      late.self.ack=room.seq;
+      room.snapshot(late);
+    }
+    if(frame>90)speeds.push((room.view().x-before)*60);
+  }
+  const low=Math.min(...speeds), high=Math.max(...speeds);
+  assert.ok(low>speed*.85&&high<speed*1.15,`drawn speed ranges ${Math.round(low)}-${Math.round(high)} per second`);
+});
