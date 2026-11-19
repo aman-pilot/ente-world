@@ -43,7 +43,7 @@ export default function ArrivalClouds({drawn, login, message, onDone}) {
     {CLOUDS.map(([art, side, y], i) => <img key={i} className="arrival-cloud" data-side={side} style={{'--y':`${y}vh`, '--i':i}}
       src={window.EWClouds?.url(art, true)} alt="" aria-hidden="true"/>)}
     {/* a still white cover read as a broken page; the clouds drift and the golden feather floats while the island loads */}
-    <div className="arrival-loader" role="status" aria-label="Loading your island" dangerouslySetInnerHTML={{__html:window.EWArrival?.loader?.(message || (window.EWArrival.guest ? 'Flying to Home' : 'Landing on your island')) || ''}}/>
+    <div className="arrival-loader" role="status" aria-label="Loading your island" dangerouslySetInnerHTML={{__html:window.EWArrival?.loader?.(message || (window.EWArrival.guest ? 'Flying to Homeland' : 'Landing on your island')) || ''}}/>
     {phase === 'part' && login && <div className="arrival-tag" role="status">
       <img className="arrival-avatar" src={`https://github.com/${encodeURIComponent(login)}.png?size=96`} width="48" height="48" alt=""/>
       Hi, <b>@{login}</b>
