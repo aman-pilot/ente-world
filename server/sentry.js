@@ -6,14 +6,16 @@ const errorTypes = new Set([
 ]);
 const spanAttributes = ['sentry.op', 'sentry.origin', 'http.request.method', 'http.response.status_code', 'app.route'];
 const logMessages = new Set(['Pages request completed', 'Pages request failed', 'Room request completed', 'Room request failed', 'Room upgrade received', 'Room socket closed', 'Room socket error',
-  'Room socket rejected', 'Room initialized', 'Room operation failed', 'Room operation slow', 'Room operation timings']);
+  'Room socket rejected', 'Room initialized', 'Room operation failed', 'Room operation slow', 'Room operation timings',
+  'Public fleet repair status', 'Public fleet repair status failed']);
 const roomBindingRoutes = new Set(['/room', '/bog-room', '/consume', '/flow', '/friends', '/outfit',
   '/session/access', '/session/get', '/session/new', '/session/revoke', '/stars', '/stars/count']);
 const roomFailureFlags = ['overloaded', 'retryable', 'remote'];
 const roomUpgradeReasons = new Set([...roomFailureFlags, 'unknown', 'upstream_5xx']);
 const socketRejectionReasons = new Set(['rate_limit', 'non_text_message', 'message_too_large']);
 const logNumbers = ['status', 'duration_ms', 'connections', 'players', 'watchers', 'close_code',
-  'count', 'mean_ms', 'max_ms', 'slow_count', 'last_checkpoint_ms', 'last_confirmed_checkpoint_ms'];
+  'count', 'mean_ms', 'max_ms', 'slow_count', 'last_checkpoint_ms', 'last_confirmed_checkpoint_ms',
+  'source', 'planned', 'planned_berths', 'persisted_berths'];
 const roomOperations = new Set(['initialize', 'tick', 'tick_gap', 'checkpoint', 'checkpoint_sync', 'alarm', 'alarm_schedule', 'socket_close', 'socket_error']);
 const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const logMetadata = ['sentry.sdk.name', 'sentry.sdk.version', 'sentry.trace.parent_span_id'];
@@ -156,6 +158,8 @@ export function sentryOptions(env, service, routes) {
           ...(typeof attributes.was_clean === 'boolean' && {was_clean: attributes.was_clean}),
           ...(log.message === 'Room socket rejected' && socketRejectionReasons.has(attributes.rejection_reason) &&
             {rejection_reason: attributes.rejection_reason}),
+          ...(log.message === 'Public fleet repair status' && typeof attributes.simulations === 'string' &&
+            attributes.simulations.length < 4096 && {simulations: attributes.simulations}),
           ...Object.fromEntries(logNumbers.filter(key => Number.isFinite(attributes[key])).map(key => [key, attributes[key]])),
         },
       };
