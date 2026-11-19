@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 260" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<title>Tidepool feather gate, active</title>
+<ellipse cx="120" cy="238" rx="96" ry="16" fill="#49301e" opacity=".22"/>
+<path d="M26 207V224C26 242 214 242 214 224V207Z" fill="#9caa91" stroke="#523825" stroke-width="6"/>
+<ellipse cx="120" cy="207" rx="94" ry="26" fill="#d3d2b6" stroke="#523825" stroke-width="6"/>
+<ellipse cx="120" cy="207" rx="72" ry="16" fill="#4cc2f0" stroke="#523825" stroke-width="5"/>
+<path d="M47 222V230M78 229V237M169 229V237M195 221V232" fill="none" stroke="#7b8f77" stroke-width="5"/>
+<path d="M73 203V121C73 79 91 48 120 43C149 48 167 79 167 121V203Q120 216 73 203Z" fill="#70caff" stroke="#523825" stroke-width="6"/>
+<path d="M87 181V126C87 94 96 73 111 64M104 190Q124 183 147 191" fill="none" stroke="#c9f2ff" stroke-width="7"/>
+<path d="M95 149Q119 137 145 149M100 165Q120 154 142 165" fill="none" stroke="#4cc2f0" stroke-width="6"/>
+<path d="M58 211C38 177 34 147 43 124L54 132C43 106 48 78 64 60L73 74C70 48 84 29 104 20C108 47 104 72 92 90L102 96C88 112 83 129 85 143L95 143C88 162 83 181 83 208Z" fill="#ffd75e" stroke="#523825" stroke-width="6"/>
+<path d="M70 201C57 139 65 75 95 37" fill="none" stroke="#e0a21f" stroke-width="5"/>
+<path d="M64 161L51 148M66 126L81 114M77 82L66 70" fill="none" stroke="#e0a21f" stroke-width="4"/>
+<g transform="translate(240 0) scale(-1 1)">
+<path d="M58 211C38 177 34 147 43 124L54 132C43 106 48 78 64 60L73 74C70 48 84 29 104 20C108 47 104 72 92 90L102 96C88 112 83 129 85 143L95 143C88 162 83 181 83 208Z" fill="#ffd75e" stroke="#523825" stroke-width="6"/>
+<path d="M70 201C57 139 65 75 95 37" fill="none" stroke="#e0a21f" stroke-width="5"/>
+<path d="M64 161L51 148M66 126L81 114M77 82L66 70" fill="none" stroke="#e0a21f" stroke-width="4"/>
+</g>
+<path d="M83 225L89 208H151L157 225Z" fill="#fff9df" stroke="#523825" stroke-width="6"/>
+<path d="M91 235H149" fill="none" stroke="#7b8f77" stroke-width="5"/>
+<path d="M120 14 Q122 21 129 23 Q122 25 120 32 Q118 25 111 23 Q118 21 120 14Z" fill="#fff9df" stroke="#523825" stroke-width="3"/>
+<path d="M24 97 Q26 103 32 105 Q26 107 24 113 Q22 107 16 105 Q22 103 24 97Z" fill="#fff9df" stroke="#523825" stroke-width="3"/>
+</svg>

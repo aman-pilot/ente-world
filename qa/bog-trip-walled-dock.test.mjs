@@ -4,7 +4,7 @@ import {makeRoom,addPlayer} from './room-harness.mjs';
 import {destinationsFor,sailRoute,setSailDestination} from '../src/gameplay/islands.js';
 
 // Bog's moorings block the exact dock point, so the route aims for free water beside it.
-test('a 5-feather Ducky sails from a Home mooring to Booquack Bog past its moored boats and lands', async () => {
+test('a 5-feather Ducky sails from a Home mooring to Booquack past its moored boats and lands', async () => {
   const room=await makeRoom();
   try {
     const bog=destinationsFor('home').find(d=>d.destination==='isle-249');

@@ -1160,7 +1160,7 @@ export class IslandRoom {
           const targeted=command.x !== undefined || command.y !== undefined;
           if (targeted && (!Number.isFinite(command.x) || !Number.isFinite(command.y))) return;
           const spot=dockingSpot(actor,targeted ? {x:command.x,y:command.y} : null);
-          if (!spot) {this.send(socket,{type:'travel-notice',text:HARBOR_ONLY.has(actor.islandId)?'Boats land at the dock on Booquack Bog.':'Sail closer to the shore to dock.'}); break;}
+          if (!spot) {this.send(socket,{type:'travel-notice',text:HARBOR_ONLY.has(actor.islandId)?'Boats land at the dock on Booquack.':'Sail closer to the shore to dock.'}); break;}
           if (!spot.islet&&!this.allowLanding(socket,info,spot.islandId)) break;
           info.input=ZERO; info.landing=null;
           actor.sailTarget=null; actor.sailRoute=null; actor.docking=false;

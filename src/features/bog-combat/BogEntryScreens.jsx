@@ -18,7 +18,7 @@ export function BogWelcome({dialog, onEnter, onExplore, onLeave, status}) {
       </div>
       <div className="bog-ticket-stub">
         <p className="bog-ticket-admit">Admit one Ducky</p>
-        <h1 id="bog-ticket-heading">Booquack Bog</h1>
+        <h1 id="bog-ticket-heading">Booquack</h1>
         <p className="bog-ticket-lede">A paint fight in the swamp. You pick your side on the next screen.</p>
         <dl className="bog-ticket-fields">
           <div><dt>Team</dt><dd>Karma or Evil</dd></div>
@@ -45,7 +45,7 @@ export function BogTeamPick({dialog, data, onPlay, onLeave, leaveLabel, status})
     <div className="bog-pick-side bog-pick-side-evil" aria-hidden="true"/>
     <svg className="bog-pick-seam" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="54" y1="0" x2="46" y2="100"/></svg>
     <svg className="bog-pick-seam bog-pick-seam-phone" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="53" x2="100" y2="47"/></svg>
-    <header className="bog-pick-head"><h1 id="bog-pick-heading"><small>Booquack Bog</small>Pick your side</h1></header>
+    <header className="bog-pick-head"><h1 id="bog-pick-heading"><small>Booquack</small>Pick your side</h1></header>
     <button className="bog-pick-back" onClick={onLeave}>{leaveLabel}</button>
     {Object.entries(TEAMS).map(([id, name]) => <div key={id} className={`bog-pick-team bog-pick-${id}`}>
       <span className="bog-pick-shadow" aria-hidden="true"/>
