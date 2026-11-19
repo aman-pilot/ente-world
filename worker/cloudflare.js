@@ -194,6 +194,10 @@ class MonitoredRoom extends Room {
     });
   }
 
+  reportFleetStatus(level, message, fields) {
+    roomLog(level, message, {...this.diagnostics, ...fields});
+  }
+
   async fetch(request) {
     const route = new URL(request.url).pathname;
     const started = Date.now();

@@ -192,10 +192,10 @@ export async function reportFleetRepair(room, {id, world}) {
     simulations[owner] = {...summary, berths: berths.length};
     for (const berth of berths) persistedBerths.add(berth);
   }
-  console.info('Public fleet repair status', {
+  return {
     source: source.length, planned: planned.total, planned_berths: planned.berths.length,
     persisted_berths: persistedBerths.size, simulations: JSON.stringify(simulations),
-  });
+  };
 }
 
 export async function migrateWorld(room, {id, world, target, fleetRepair = false}) {

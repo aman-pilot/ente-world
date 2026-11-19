@@ -160,6 +160,10 @@ export class WorldService extends LegacyRoom {
     if (this.settings?.mode === 'split') await this.deliverNotices();
   }
 
+  reportFleetStatus(level, message, fields) {
+    console[level](message, fields);
+  }
+
   async control(path, data) {
     if (path === '/simulation/migrate') return migrateWorld(this, data);
     if (path === '/simulation/mode') {
@@ -169,14 +173,15 @@ export class WorldService extends LegacyRoom {
         const result = await migrateWorld(this, data);
         if (!result.ok) return result;
       }
-      if (data.fleetRepair && this.reportedFleetRepair !== data.id) {
-        const repair = this.ctx.storage.kv.get('migration');
-        if (repair?.id === data.id && repair.done && repair.fleetRepair) {
-          this.reportedFleetRepair = data.id;
-          this.ctx.waitUntil(reportFleetRepair(this, data).catch(error => {
-            this.reportedFleetRepair = undefined;
-            console.error('Public fleet repair status failed', {message: error?.message ?? String(error)});
+      const repair = this.ctx.storage.kv.get('migration');
+      if (repair?.done && repair.fleetRepair && this.reportedFleetRepair !== repair.id) {
+        this.reportedFleetRepair = repair.id;
+        try {
+          this.reportFleetStatus('info', 'Public fleet repair status', await reportFleetRepair(this, {
+            id: repair.id, world: this.settings.world,
           }));
+        } catch (error) {
+          this.reportFleetStatus('error', 'Public fleet repair status failed', {reason: error?.message ?? String(error)});
         }
       }
       return Response.json({mode: this.settings?.mode ?? 'legacy'});
