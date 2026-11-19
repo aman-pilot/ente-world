@@ -87,6 +87,7 @@ const SOLO_HIDDEN=new Set(WORLD_ISLANDS.map(island=>island.id));
 const ZERO = {x:0,y:0};
 const SIM_STEP = 1 / 60;
 const MIN_GAMEPLAY_ZOOM = .4;
+const DUCK_NAME_MIN_ZOOM = .65;
 const renderJumpLeft = (left, accumulator) => left > 0
   ? Math.min(JUMP_SECONDS, left + SIM_STEP - accumulator)
   : 0;
@@ -1755,9 +1756,9 @@ export class PixiIsland {
     } else if (!this.birdEye || (this.gestures.pointers.size && performance.now()-(this.dragAt||0)>80)) this.spin=null;
     if (this.fly) this.stepFly(now, player);
     if(!this.globeOpen){
-      const ceiling=this.zoomCeiling();
-      this.target.zoom=clamp(this.target.zoom,MIN_GAMEPLAY_ZOOM,ceiling);
-      this.camera.zoom=clamp(this.camera.zoom,MIN_GAMEPLAY_ZOOM,ceiling);
+      const floor=this.zoomFloor(), ceiling=this.zoomCeiling();
+      this.target.zoom=clamp(this.target.zoom,floor,ceiling);
+      this.camera.zoom=clamp(this.camera.zoom,floor,ceiling);
     }
     easeZoomCamera(this.camera, this.target, this.zoomMotion, dt, reduced, this.birdEye && (this.gestures.pointers.size || this.spin) ? 30 : 14);
     if (this.globeAim) {
@@ -2102,6 +2103,7 @@ export class PixiIsland {
       ? new Set(visibleWalkers.sort((a,b)=>distance(a)-distance(b)).slice(0,DETAILED_CROWD_DUCKS).map(p=>p.id)) : null;
     this.updateCrowdResolution(detailed ? visibleWalkers.length : 0);
     const scopeProps = this.artShown === 'home' ? this.props : this.arts?.get(this.artShown)?.props;
+    const showNames = this.nameLayer && !this.globeOpen && this.camera.zoom >= DUCK_NAME_MIN_ZOOM;
     for (const [id, entry] of this.liveRigs) {
       if (ids.has(id)) continue;
       entry.rig?.dispose();
@@ -2137,21 +2139,23 @@ export class PixiIsland {
           if (!this.disposed) console.error('Could not load a duck', error);
         });
       }
-      if (this.nameLayer && entry.login !== pose.login) {
+      if (entry.login !== pose.login) {
         entry.nameplate?.remove();
         entry.login = pose.login;
         entry.nameplate = null;
-        if (pose.login) {
-          entry.nameplate = document.createElement('div');
-          entry.nameplate.className = 'pixi-duck-name';
-          entry.nameplate.textContent = `@${pose.login}`;
-          this.nameLayer.appendChild(entry.nameplate);
-        }
       }
+      if (showNames && pose.login && !entry.nameplate) {
+        entry.nameplate = document.createElement('div');
+        entry.nameplate.className = 'pixi-duck-name';
+        entry.nameplate.textContent = `@${pose.login}`;
+        this.nameLayer.appendChild(entry.nameplate);
+      }
+      const nameplate = showNames ? entry.nameplate : null;
+      if (!showNames && entry.nameplate && !entry.nameplate.hidden) entry.nameplate.hidden = true;
       const chat = this.chatBubbles.get(id);
-      if (entry.nameplate || chat) {
+      if (nameplate || chat) {
         const anchor = this.duckLabelPosition(pose);
-        if (entry.nameplate) this.placeLabel(entry.nameplate,anchor.x,anchor.y);
+        if (nameplate) this.placeLabel(nameplate,anchor.x,anchor.y);
         if (chat && editing) chat.bubble.hidden = true;
         else if (chat) this.placeLabel(chat.bubble,anchor.x,anchor.y + CHAT_LABEL_GAP);
       }

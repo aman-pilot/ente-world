@@ -206,6 +206,59 @@ test('gameplay zoom keeps a 0.4 floor through landing, fit, and the detail clamp
 });
 
 
+test('zooming out past the gameplay floor opens the separate globe view',()=>{
+ const game=cameraGame();
+ game.archipelago={bounds:{x0:0,x1:80000}};
+ game.globeOpen=false;
+ game.openGlobe=()=>{
+  game.globeOpen=true;
+  return true;
+ };
+
+ game.target.zoom=.41;
+ for(let i=0;i<4;i++)assert.equal(game.zoomPastLimit(.8),false);
+ assert.equal(game.globeOpen,false);
+
+ game.target.zoom=game.zoomFloor();
+ assert.equal(game.target.zoom,.4);
+ for(let i=0;i<3;i++)assert.equal(game.zoomPastLimit(.8),false);
+ assert.equal(game.zoomPastLimit(.8),true);
+ assert(game.zoomFloor()<.4);
+});
+
+
+test('duck names appear at close zoom while chat stays visible at wide zoom',t=>{
+ const prior=globalThis.document;
+ globalThis.document={createElement:()=>({style:{}})};
+ t.after(()=>globalThis.document=prior);
+ const game=cameraGame();
+ const pose={id:'duck',login:'friend',x:0,y:0,mode:'walking',emoteVersion:0};
+ const entry={isPlayer:false,emoteVersion:0};
+ const bubble={style:{},hidden:true};
+ const nameplates=[];
+ game.liveRigs.set(pose.id,entry);
+ game.chatBubbles=new Map([[pose.id,{bubble}]]);
+ game.nameLayer={appendChild:label=>nameplates.push(label)};
+ const render=zoom=>{
+  game.camera.zoom=zoom;
+  game.renderLiveDucks([pose],0,0,false,()=>true,0);
+ };
+
+ render(.4);
+ assert.equal(nameplates.length,0);
+ assert.equal(bubble.hidden,false);
+ render(.65);
+ assert.equal(nameplates[0].textContent,'@friend');
+ assert.equal(nameplates[0].hidden,false);
+ render(.4);
+ assert.equal(nameplates[0].hidden,true);
+ assert.equal(bubble.hidden,false);
+ render(.8);
+ assert.equal(nameplates.length,1);
+ assert.equal(nameplates[0].hidden,false);
+});
+
+
 test('all islands and DPRs regain the camera limit from main only after detail activates',()=>{
  for(const island of WORLD_ISLANDS)for(const dpr of [1,2,3]){
   const game=Object.create(PixiIsland.prototype);
