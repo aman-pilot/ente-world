@@ -228,7 +228,7 @@ test('zooming out past the gameplay floor opens the separate globe view',()=>{
 });
 
 
-test('your name and confirmed friends stay visible at wide zoom while other names need close zoom',t=>{
+test('your name and confirmed friends stay visible below the 30% threshold for other names',t=>{
  const prior=globalThis.document;
  globalThis.document={createElement:()=>({style:{}})};
  t.after(()=>globalThis.document=prior);
@@ -254,15 +254,16 @@ test('your name and confirmed friends stay visible at wide zoom while other name
   return nameplates.filter(label=>!label.hidden).map(label=>label.textContent);
  };
 
- assert.deepEqual(render(.4),['@you','@friend']);
+ assert.deepEqual(render(.29),['@you','@friend']);
  assert.equal(bubble.hidden,false);
- assert.deepEqual(render(.65),['@you','@friend','@pending','@other']);
- assert.deepEqual(render(.4),['@you','@friend']);
+ assert.deepEqual(render(.3),['@you','@friend','@pending','@other']);
+ assert.deepEqual(render(.4),['@you','@friend','@pending','@other']);
+ assert.deepEqual(render(.29),['@you','@friend']);
  assert.equal(bubble.hidden,false);
  room.clearFriends();
- assert.deepEqual(render(.4),['@you']);
+ assert.deepEqual(render(.29),['@you']);
  game.globeOpen=true;
- assert.deepEqual(render(.65),[]);
+ assert.deepEqual(render(.3),[]);
 });
 
 test('all islands and DPRs regain the camera limit from main only after detail activates',()=>{

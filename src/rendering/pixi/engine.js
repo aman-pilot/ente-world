@@ -88,7 +88,7 @@ const SOLO_HIDDEN=new Set(WORLD_ISLANDS.map(island=>island.id));
 const ZERO = {x:0,y:0};
 const SIM_STEP = 1 / 60;
 const MIN_GAMEPLAY_ZOOM = .4;
-const DUCK_NAME_MIN_ZOOM = .65;
+const DUCK_NAME_MIN_ZOOM = .30;
 const renderJumpLeft = (left, accumulator) => left > 0
   ? Math.min(JUMP_SECONDS, left + SIM_STEP - accumulator)
   : 0;
@@ -2162,7 +2162,7 @@ export class PixiIsland {
     this.updateCrowdResolution(detailed ? visibleWalkers.length : 0);
     const scopeProps = this.artShown === 'home' ? this.props : this.arts?.get(this.artShown)?.props;
     const showNameplates = this.nameLayer && !this.globeOpen;
-    const closeZoom = this.camera.zoom >= DUCK_NAME_MIN_ZOOM;
+    const showAllNames = this.camera.zoom >= DUCK_NAME_MIN_ZOOM;
     const confirmedFriendIds = this.room?.confirmedFriendIds;
     for (const [id, entry] of this.liveRigs) {
       if (ids.has(id)) continue;
@@ -2204,7 +2204,7 @@ export class PixiIsland {
         entry.login = pose.login;
         entry.nameplate = null;
       }
-      const showName = showNameplates && (closeZoom || isPlayer ||
+      const showName = showNameplates && (showAllNames || isPlayer ||
         (pose.accountId != null && confirmedFriendIds?.has(String(pose.accountId))));
       if (showName && pose.login && !entry.nameplate) {
         entry.nameplate = document.createElement('div');
