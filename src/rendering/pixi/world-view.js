@@ -315,7 +315,7 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
   const glowTex = Texture.from(glowCanvas);
   const heartG = new Graphics().svg('<svg viewBox="0 0 24 24"><path d="M12 21.3c-.4 0-.8-.1-1.1-.4C6.6 17.2 2.5 13.9 2.5 9.4 2.5 6.4 4.8 4 7.7 4c1.8 0 3.3.9 4.3 2.3C13 4.9 14.5 4 16.3 4c2.9 0 5.2 2.4 5.2 5.4 0 4.5-4.1 7.8-8.4 11.5-.3.3-.7.4-1.1.4z" fill="#FF6F8E"/></svg>');
   const heartTex = app.renderer.generateTexture({target: heartG, resolution: 4}); heartG.destroy();
-  // Booquack Bog pops karma and evil ghosts (the knockout art) instead of hearts
+  // Booquack pops karma and evil ghosts (the knockout art) instead of hearts
   const ghostTex = {};
   let disposed = false;
   import('../../features/bog-combat/knockout.js').then(({loadKnockoutArt, ghostParts}) => loadKnockoutArt().then(art => {
@@ -330,8 +330,8 @@ export function createWorldView(app, scene, isletView, cloudTexture=Texture.EMPT
   const sprite = (pool, tex) => {const sp = pool.children.find(c => !c.visible) ?? pool.addChild(new Sprite(tex)); sp.texture = tex; sp.anchor.set(.5); sp.visible = true; return sp;};
   const pin = makePin();
   const bearing=new Graphics();pin.addChild(bearing);
-  // Booquack Bog's pin: always shown on the globe so players know where the Bog is
-  const bogPin = makePin('Booquack Bog', 0xb98cf0, BOG_RADAR_ICON), bogIsland = WORLD_ISLANDS.find(island => island.id === 'isle-249');
+  // Booquack's pin: always shown on the globe so players know where the Bog is
+  const bogPin = makePin('Booquack', 0xb98cf0, BOG_RADAR_ICON), bogIsland = WORLD_ISLANDS.find(island => island.id === 'isle-249');
   app.stage.addChildAt(life, app.stage.getChildIndex(mesh) + 1);
   app.stage.addChildAt(pin, app.stage.getChildIndex(life) + 1);
   app.stage.addChildAt(bogPin, app.stage.getChildIndex(pin));

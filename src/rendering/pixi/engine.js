@@ -604,17 +604,19 @@ export class PixiIsland {
     this.teleporter = null;
     const site=TELEPORTERS.get(id);
     if (!site || !this.objects) return;
-    const machine=new Container();
-    machine.addChild(new Graphics()
-      .ellipse(3,2,42,14).fill({color:0x49301e,alpha:.23})
-      .roundRect(-38,-21,76,33,12).fill(0xb97438).stroke({color:0x523825,width:3})
-      .roundRect(-34,-25,68,28,11).fill(0xffd98a).stroke({color:0x523825,width:3})
-      .ellipse(0,-43,24,34).fill(0x23514d).stroke({color:0x523825,width:12})
-      .ellipse(0,-43,23,33).stroke({color:0xffcd62,width:7})
-      .circle(-24,-11,4).fill(0x31725e).circle(24,-11,4).fill(0x31725e));
-    this.teleporterPortal=machine.addChild(new Graphics().ellipse(0,-43,16,25).fill(0xffffff));
-    this.teleporterSpark=machine.addChild(new Graphics()
-      .moveTo(-8,-45).lineTo(0,-58).lineTo(8,-45).lineTo(0,-31).closePath().fill(0xfff6bb));
+    // the Tidepool feather gate (public/pixi-art/teleporter): an active picture and a locked one, swapped by updateTeleporter
+    const machine=new Container({label:'Teleporter'});
+    const gate=state=>{
+      const sprite=machine.addChild(new Sprite(Texture.EMPTY));
+      sprite.anchor.set(.5,238/260); sprite.visible=false;
+      Assets.load({src:`/pixi-art/teleporter/tidepool-${state}.svg`,data:{resolution:2}}).then(texture=>{
+        if (sprite.destroyed) return;
+        sprite.texture=texture; sprite.scale.set(416/260); this.updateTeleporter();   // 416 tall: about 1.5x the Ducky
+      }).catch(()=>{});
+      return sprite;
+    };
+    this.teleporterPortal=gate('on');
+    this.teleporterSpark=gate('off');
     machine.position.set(site.x,site.y);
     machine.zIndex=site.y;
     machine.upright=true;
@@ -625,8 +627,9 @@ export class PixiIsland {
   updateTeleporter() {
     if (!this.teleporter) return;
     const unlocked = this.teleporterUnlocked;
-    this.teleporterPortal.tint = unlocked ? 0x70caff : 0x000000;
-    this.teleporterSpark.visible = unlocked;
+    const ready=sprite=>sprite.texture!==Texture.EMPTY;
+    this.teleporterPortal.visible = unlocked && ready(this.teleporterPortal);
+    this.teleporterSpark.visible = !unlocked && ready(this.teleporterSpark);
   }
 
   focusHarbor() {

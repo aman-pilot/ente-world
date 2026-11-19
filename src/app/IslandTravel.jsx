@@ -19,30 +19,35 @@ function DestinationPicker({source, balance, pending, notice, onClose, onConfirm
   const close=useRef(null);
   useEffect(() => {close.current?.focus();}, []);
   const price=destination ? teleportPrice(destination) : 0;
+  const feather = <img className="pixi-teleporter-feather" src="/pixi-art/karma/golden-feather.svg" alt="" draggable="false"/>;
   return <section className="pixi-teleporter" role="dialog" aria-labelledby="teleporter-title"
     onKeyDown={event => {if (event.key === 'Escape') {event.preventDefault(); onClose();}}}>
     <header>
-      <div><h2 id="teleporter-title">Island teleporter</h2><p>{balance} golden {balance === 1 ? 'feather' : 'feathers'} available</p></div>
-      <button ref={close} type="button" aria-label="Close teleporter" onClick={onClose}>×</button>
+      <h2 id="teleporter-title">Island teleporter</h2>
+      <button ref={close} type="button" className="pixi-teleporter-close" aria-label="Close teleporter" onClick={onClose}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
     </header>
+    <p className="pixi-teleporter-balance">You have <b>{balance}</b>{feather}<span className="pixi-sr">golden {balance === 1 ? 'feather' : 'feathers'}</span></p>
     <form onSubmit={event => {
       event.preventDefault();
       if (destination && balance >= price && !pending) onConfirm(destination);
     }}>
       <fieldset disabled={pending}>
-        <legend>Choose a destination</legend>
-        {ISLANDS.filter(({id}) => id !== source && TELEPORTERS.has(id)).map(({id,name}) => {
+        <legend>Where to?</legend>
+        {ISLANDS.filter(({id}) => id !== source && TELEPORTERS.has(id)).map(({id,name,accent}) => {
           const cost=teleportPrice(id), short=cost-balance;
-          return <label key={id}>
+          return <label key={id} data-short={short > 0 || undefined}>
             <input type="radio" name="destination" value={id} checked={destination === id} onChange={() => setDestination(id)}/>
-            <span><strong>{name}</strong>{short > 0 && <small>Need {short} more {short === 1 ? 'feather' : 'feathers'}</small>}</span>
-            <span>{cost} feathers</span>
+            <i className="pixi-teleporter-dot" style={{background:`#${(accent ?? 0xffda69).toString(16).padStart(6,'0')}`}} aria-hidden="true"/>
+            <span><strong>{name}</strong>{short > 0 && <small>Need {short} more</small>}</span>
+            <span className="pixi-teleporter-cost">{cost}{feather}<span className="pixi-sr">feathers</span></span>
           </label>;
         })}
       </fieldset>
-      {notice && <p role="status">{notice}</p>}
+      {notice && <p role="status" className="pixi-teleporter-notice">{notice}</p>}
       <button className="pixi-teleporter-confirm" disabled={!destination || balance < price || pending}>
-        {pending ? 'Teleporting…' : destination ? `Teleport for ${price} feathers` : 'Teleport'}
+        {pending ? 'Teleporting…' : destination ? <>Teleport for {price}{feather}</> : 'Pick an island'}
       </button>
     </form>
   </section>;

@@ -61,7 +61,7 @@ function FeatherCard({count, onClose}) {
     </div>
     <h2 id="feather-title">Golden feathers</h2>
     <p className="pixi-feather-lead">Glowing feathers lie around the islands. Walk into one to pick it up.</p>
-    {/* under 5 the slots count down to Booquack Bog; from 5 up there is nothing left to fill, so show the total and the unlock */}
+    {/* under 5 the slots count down to Booquack; from 5 up there is nothing left to fill, so show the total and the unlock */}
     {left ? <>
       <div className="pixi-feather-progress" role="img" aria-label={`${count} of ${KARMA_REQUIRED} feathers`}>
         {Array.from({length:KARMA_REQUIRED}, (_,n) => <span key={n} className={n < count ? 'is-filled' : ''} style={{'--i':n}}/>)}
@@ -71,7 +71,7 @@ function FeatherCard({count, onClose}) {
       <p className="pixi-feather-big"><b>{count.toLocaleString()}</b><img src="/pixi-art/karma/golden-feather.svg" alt=""/></p>
     </div>}
     <ul className="pixi-feather-perks">
-      <li>{left ? <><b>{KARMA_REQUIRED} feathers</b> let you land on Booquack Bog, the paint splat arena.</> : <><b>Booquack Bog is open.</b> Sail there for a paint splat match.</>}</li>
+      <li>{left ? <><b>{KARMA_REQUIRED} feathers</b> let you land on Booquack, the paint splat arena.</> : <><b>Booquack is open.</b> Sail there for a paint splat match.</>}</li>
       <li>Every feather you hold shows in the quiver on your Ducky's back.</li>
     </ul>
     <button className="pixi-feather-done" type="button" onClick={onClose}>Got it</button>
