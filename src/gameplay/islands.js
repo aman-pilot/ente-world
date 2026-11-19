@@ -127,8 +127,8 @@ export function parkFleetBoat(boat, boats, now, landing) {
   Object.assign(boat,parkedBoatPosition(boat,boats));
 }
 
-export function placeFleetBoatHome(boat, boats) {
-  const islandId=boatHome(boat), spot=boatSpot(boat);
+export function placeFleetBoatHome(boat, boats, spot = boatSpot(boat)) {
+  const islandId=boatHome(boat);
   if (!islandFor(islandId) || !spot) return null;
   const home={...boat,...spot,islandId,departure:islandId,occupant:null,parked:false,landing:null};
   const position=parkedBoatPosition(home,boats,4160);
