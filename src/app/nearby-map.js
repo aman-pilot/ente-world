@@ -32,12 +32,12 @@ export function nearbyFriends(islandId, point, friends, radius = NEARBY_MAP_WIDT
 
 export function nearbyHeading(id,p,dx,dy){return Math.atan2(dx,-dy)*180/Math.PI;}
 
-export function nearbyTeleporterBearing(islandId, player, unlocked) {
+export function nearbyOffMapTeleporterBearing(islandId, player, unlocked, radius = NEARBY_MAP_WIDTH / 2) {
   const machine = TELEPORTERS.get(islandId);
   if (!player || !unlocked || !machine) return null;
   const image = nearestSeaImage(machine.x, machine.y, player, seaCentreY(islandId));
   const dx = image.x - player.x, dy = image.y - player.y;
-  return dx === 0 && dy === 0 ? null : Math.round(nearbyHeading(islandId, player, dx, dy));
+  return Math.hypot(dx, dy) > radius ? nearbyHeading(islandId, player, dx, dy) : null;
 }
 
 export function teleporterRimPosition(bearing, radius, bogBadge) {
@@ -45,7 +45,7 @@ export function teleporterRimPosition(bearing, radius, bogBadge) {
   const x = radius * Math.sin(angle), y = -radius * Math.cos(angle);
   if (!bogBadge || Math.hypot(x - bogBadge.x, y - bogBadge.y) >= bogBadge.clearance) return {x, y};
 
-  // Where the badge overlaps the rim, use the nearest clear spot. The arrow still points at the harbor.
+  // Where the badge overlaps the rim, use the nearest clear spot.
   const distance = Math.hypot(bogBadge.x, bogBadge.y);
   if (!distance) return {x, y};
   const badgeAngle = Math.atan2(bogBadge.x, -bogBadge.y);

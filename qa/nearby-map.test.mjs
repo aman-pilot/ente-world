@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {nearbyMapFrame,nearbyHeading,nearbyTeleporterBearing,teleporterRimPosition} from '../src/app/nearby-map.js';
+import {nearbyMapFrame,nearbyHeading,nearbyOffMapTeleporterBearing,teleporterRimPosition} from '../src/app/nearby-map.js';
 import {mapPoint} from '../src/world/sphere-coordinates.js';
 import {mapOf} from '../src/world/island-maps.js';
 const m=mapOf('home'),centre={x:m.cx,y:m.cy};
@@ -45,21 +45,23 @@ test('the minimap reflects a coast when sailing on its opposite-meridian image',
  assert.deepEqual(frame[0],{id:'home',x:0,y:-1000,bearing:0,flip:-1});
 });
 
-test('the minimap arrow points to the current harbor when the teleporter is unlocked', async () => {
+test('the rim guides players to their unlocked teleporter only when it is outside the minimap', async () => {
   const {TELEPORTERS} = await import('../src/gameplay/teleport.js');
   const {SEA_WIDTH} = await import('../src/world/flat-layout.js');
   for (const [id, machine] of TELEPORTERS) {
-    const east = {x:machine.x + 500, y:machine.y};
-    const westAcrossSeam = {x:machine.x - 500 + SEA_WIDTH, y:machine.y};
-    assert.equal(nearbyTeleporterBearing(id, east, false), null);
-    assert.equal(nearbyTeleporterBearing(id, null, true), null);
-    assert.equal(nearbyTeleporterBearing(id, machine, true), null);
-    assert.equal(nearbyTeleporterBearing(id, east, true), -90);
-    assert.equal(nearbyTeleporterBearing(id, westAcrossSeam, true), 90);
+    const east = {x:machine.x + 5100, y:machine.y};
+    const edge = {x:machine.x + 5000, y:machine.y};
+    const westAcrossSeam = {x:machine.x - 5100 + SEA_WIDTH, y:machine.y};
+    assert.equal(nearbyOffMapTeleporterBearing(id, east, false), null);
+    assert.equal(nearbyOffMapTeleporterBearing(id, null, true), null);
+    assert.equal(nearbyOffMapTeleporterBearing(id, machine, true), null);
+    assert.equal(nearbyOffMapTeleporterBearing(id, edge, true), null);
+    assert.equal(nearbyOffMapTeleporterBearing(id, east, true), -90);
+    assert.equal(nearbyOffMapTeleporterBearing(id, westAcrossSeam, true), 90);
   }
 });
 
-test('the harbor arrow stays on the rim and clears the Bog badge on either side', () => {
+test('the harbor pin stays on the rim and clears the Bog badge on either side', () => {
   for (const radius of [72, 108]) {
     const badge = {x: 0, y: -radius, clearance: 33};
     const east = teleporterRimPosition(90, radius, badge);
@@ -67,10 +69,10 @@ test('the harbor arrow stays on the rim and clears the Bog badge on either side'
     assert.deepEqual(teleporterRimPosition(0, radius, null), {x: 0, y: -radius});
     for (const y of [-radius, -radius + 12]) {
       for (const bearing of [-5, 0, 5]) {
-        const arrow = teleporterRimPosition(bearing, radius, {...badge, y});
-        assert.ok(Math.abs(Math.hypot(arrow.x, arrow.y) - radius) < 1e-8);
-        assert.ok(Math.abs(Math.hypot(arrow.x, arrow.y - y) - badge.clearance) < 1e-8);
-        if (bearing !== 0) assert.equal(Math.sign(arrow.x), Math.sign(bearing));
+        const pin = teleporterRimPosition(bearing, radius, {...badge, y});
+        assert.ok(Math.abs(Math.hypot(pin.x, pin.y) - radius) < 1e-8);
+        assert.ok(Math.abs(Math.hypot(pin.x, pin.y - y) - badge.clearance) < 1e-8);
+        if (bearing !== 0) assert.equal(Math.sign(pin.x), Math.sign(bearing));
       }
     }
   }
