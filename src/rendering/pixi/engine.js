@@ -2161,7 +2161,9 @@ export class PixiIsland {
       ? new Set(visibleWalkers.sort((a,b)=>distance(a)-distance(b)).slice(0,DETAILED_CROWD_DUCKS).map(p=>p.id)) : null;
     this.updateCrowdResolution(detailed ? visibleWalkers.length : 0);
     const scopeProps = this.artShown === 'home' ? this.props : this.arts?.get(this.artShown)?.props;
-    const showNames = this.nameLayer && !this.globeOpen && this.camera.zoom >= DUCK_NAME_MIN_ZOOM;
+    const showNameplates = this.nameLayer && !this.globeOpen;
+    const closeZoom = this.camera.zoom >= DUCK_NAME_MIN_ZOOM;
+    const confirmedFriendIds = this.room?.confirmedFriendIds;
     for (const [id, entry] of this.liveRigs) {
       if (ids.has(id)) continue;
       entry.rig?.dispose();
@@ -2202,14 +2204,16 @@ export class PixiIsland {
         entry.login = pose.login;
         entry.nameplate = null;
       }
-      if (showNames && pose.login && !entry.nameplate) {
+      const showName = showNameplates && (closeZoom || isPlayer ||
+        (pose.accountId != null && confirmedFriendIds?.has(String(pose.accountId))));
+      if (showName && pose.login && !entry.nameplate) {
         entry.nameplate = document.createElement('div');
         entry.nameplate.className = isPlayer ? 'pixi-duck-name pixi-duck-name--self' : 'pixi-duck-name';
         entry.nameplate.textContent = `@${pose.login}`;
         this.nameLayer.appendChild(entry.nameplate);
       }
-      const nameplate = showNames ? entry.nameplate : null;
-      if (!showNames && entry.nameplate && !entry.nameplate.hidden) entry.nameplate.hidden = true;
+      const nameplate = showName ? entry.nameplate : null;
+      if (!showName && entry.nameplate && !entry.nameplate.hidden) entry.nameplate.hidden = true;
       const chat = this.chatBubbles.get(id);
       if (nameplate || chat) {
         const anchor = this.duckLabelPosition(pose);

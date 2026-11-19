@@ -4,6 +4,7 @@ import {groundTiles} from '../scripts/ground-mesh/build.mjs';
 import {WORLD_ISLANDS,offsetOf} from '../src/world/world-map.js';
 import {PixiIsland,cameraGame} from './helpers/pixi-engine.mjs';
 import {Sprite} from 'pixi.js';
+import {RoomClient} from '../src/multiplayer/room-client.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,stat} from 'node:fs/promises';
@@ -227,37 +228,42 @@ test('zooming out past the gameplay floor opens the separate globe view',()=>{
 });
 
 
-test('duck names appear at close zoom while chat stays visible at wide zoom',t=>{
+test('your name and confirmed friends stay visible at wide zoom while other names need close zoom',t=>{
  const prior=globalThis.document;
  globalThis.document={createElement:()=>({style:{}})};
  t.after(()=>globalThis.document=prior);
  const game=cameraGame();
- const pose={id:'duck',login:'friend',x:0,y:0,mode:'walking',emoteVersion:0};
- const entry={isPlayer:false,emoteVersion:0};
+ const room=game.room=new RoomClient(()=>{});
+ t.after(()=>room.dispose());
+ room.setFriends([{accountId:'2'},{accountId:'3'}]);
+ room.setFriendSpots([{accountId:'2',login:'friend'}]);
+ const poses=[
+  {id:'self',accountId:'1',login:'you',player:true},
+  {id:'friend',accountId:2,login:'friend'},
+  {id:'pending',accountId:'3',login:'pending'},
+  {id:'other',accountId:'4',login:'other'},
+ ].map(pose=>({x:0,y:0,mode:'walking',emoteVersion:0,...pose}));
  const bubble={style:{},hidden:true};
+ for(const pose of poses) game.liveRigs.set(pose.id,{isPlayer:Boolean(pose.player),emoteVersion:0});
+ game.chatBubbles=new Map([['other',{bubble}]]);
  const nameplates=[];
- game.liveRigs.set(pose.id,entry);
- game.chatBubbles=new Map([[pose.id,{bubble}]]);
  game.nameLayer={appendChild:label=>nameplates.push(label)};
  const render=zoom=>{
   game.camera.zoom=zoom;
-  game.renderLiveDucks([pose],0,0,false,()=>true,0);
+  game.renderLiveDucks(poses,0,0,false,()=>true,0);
+  return nameplates.filter(label=>!label.hidden).map(label=>label.textContent);
  };
 
- render(.4);
- assert.equal(nameplates.length,0);
+ assert.deepEqual(render(.4),['@you','@friend']);
  assert.equal(bubble.hidden,false);
- render(.65);
- assert.equal(nameplates[0].textContent,'@friend');
- assert.equal(nameplates[0].hidden,false);
- render(.4);
- assert.equal(nameplates[0].hidden,true);
+ assert.deepEqual(render(.65),['@you','@friend','@pending','@other']);
+ assert.deepEqual(render(.4),['@you','@friend']);
  assert.equal(bubble.hidden,false);
- render(.8);
- assert.equal(nameplates.length,1);
- assert.equal(nameplates[0].hidden,false);
+ room.clearFriends();
+ assert.deepEqual(render(.4),['@you']);
+ game.globeOpen=true;
+ assert.deepEqual(render(.65),[]);
 });
-
 
 test('all islands and DPRs regain the camera limit from main only after detail activates',()=>{
  for(const island of WORLD_ISLANDS)for(const dpr of [1,2,3]){

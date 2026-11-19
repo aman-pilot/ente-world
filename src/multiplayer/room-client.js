@@ -99,6 +99,7 @@ export class RoomClient {
     this.hasWelcomed = false;
     this.onKarmaPickup = () => {};
     this.friends = null;
+    this.confirmedFriendIds = new Set();
     this.dismissedFriends = new Set();
     this.islandId = 'home';
     this.mode = 'walking';
@@ -481,6 +482,7 @@ export class RoomClient {
   // Friends who are playing, for the mini-map and globe. Positions come from /api/friends every few seconds;
   // a friend on your island uses their live position instead so the dot moves smoothly.
   setFriendSpots(friends) {
+    this.confirmedFriendIds = new Set((friends ?? []).map(friend => String(friend.accountId)));
     this.friendSpots = (friends ?? []).filter(friend => friend.where)
       .map(friend => ({accountId:friend.accountId, login:friend.login, ...friend.where}));
   }
@@ -500,7 +502,7 @@ export class RoomClient {
 
   clearFriends() {
     this.friends = null;
-    this.friendSpots = [];
+    this.setFriendSpots([]);
     this.dismissedFriends.clear();
     this.updateNearby();
   }
