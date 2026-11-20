@@ -79,7 +79,7 @@ export default function WorldMap({island, globeOpen = false, indoors = false}) {
       const bogX = radar.current.x * scale, bogY = radar.current.y * scale, bogVisible = radar.current.visible;
       // free boats around the island you are on (the server only sends this island's boats)
       const here = engine.islandId, map = mapOf(here), reference = player ?? engine.camera;
-      const boats = (engine.room?.boats ?? []).filter(boat => !boat.occupant && (!boat.built || engine.room?.ownBoats?.has(boat.id)) && boat.islandId === here)
+      const boats = (engine.room?.boats ?? []).filter(boat => !boat.occupant && boat.islandId === here)
         .map(boat => {
           const p=unplaceRigid(here,here,boat,reference);
           return `${Math.round((p.x - map.cx) * scale)},${Math.round((p.y - map.cy) * scale)}`;
@@ -121,7 +121,7 @@ export default function WorldMap({island, globeOpen = false, indoors = false}) {
   <button type="button" className={`pixi-world-map${globeOpen ? ' pixi-world-map--hidden' : ''}`} disabled={indoors || globeOpen}
     aria-label="Open the world view" title="Open the world view" onClick={() => island.current?.openGlobe()}>
     <svg ref={svg} id="pixi-world-map-view" viewBox={`0 0 ${width} ${height}`} role="img"
-      aria-label={`Three nearest islands, cropped around ${frame.playing ? 'your duck. White arrow: your duck and direction' : 'the current view. White dot: view centre'}. Portal pins mark harbor teleporters. ${teleporterGuide} Telescope badges: stargazing spots. Paint gun badge: Booquack Bog, pinned to the rim when distant.`}>
+      aria-label={`Three nearest islands, cropped around ${frame.playing ? 'your duck. White arrow: your duck and direction' : 'the current view. White dot: view centre'}. Portal pins mark harbor teleporters. ${teleporterGuide} Telescope badges: stargazing spots. Paint gun badge: Booquack, pinned to the rim when distant.`}>
       <defs>
         <clipPath id="pixi-world-map-terrain-clip"><circle cx={width / 2} cy={height / 2} r={width / 2}/></clipPath>
         <pattern id="pixi-world-map-waves" width="180" height="120" patternUnits="userSpaceOnUse">
@@ -164,7 +164,7 @@ export default function WorldMap({island, globeOpen = false, indoors = false}) {
         fill="none" stroke="#f6c64a" strokeWidth={iconSize * .14}/>}
       {frame.bogVisible && <image href={BOG_RADAR_ICON}
         x={width / 2 + frame.bogX - iconSize / 2} y={height / 2 + frame.bogY - iconSize / 2}
-        width={iconSize} height={iconSize}><title>Booquack Bog</title></image>}
+        width={iconSize} height={iconSize}><title>Booquack</title></image>}
       {frame.islands.map(({id, x, y, flip}) => {
         const {teleporter} = islandShape(id);
         if (!teleporter || (rimTeleporter && id === frame.here)) return null;

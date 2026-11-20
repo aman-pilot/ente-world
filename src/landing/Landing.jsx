@@ -44,7 +44,7 @@ export default function LandingGate() {
   if (mode === 'landing') return <Landing signInAvailable={signInAvailable} onWatch={() => {
     startHomeHeadStart({guest:true});
     if (!window.EWArrival?.mount) {setMode('game'); return;}
-    window.EWArrival.mount('close', 'Flying to Home'); window.EWArrival.guest = true;
+    window.EWArrival.mount('close', 'Flying to Homeland'); window.EWArrival.guest = true;
     setTimeout(() => setMode('game'), 760);
   }}/>;
   return <div className="landing-boot"/>;

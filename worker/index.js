@@ -56,6 +56,7 @@ function publicPose(actor) {
 // Persist the chart version privately; wire poses keep their existing public shape.
 const savedPose=actor=>({...publicPose(actor),seaVersion:actor.seaVersion??SEA_VERSION});
 // a built boat's owner is an account id: clients only learn which boats are theirs (from their own self block)
+const ghostBoat = boat => Boolean(boat.occupant && Number.isFinite(boat.unattendedAt));
 function wireBoat({owner, ownershipVersion, buildRevision, unattendedAt, returnRetryAt, retireOnReturn, ...boat}) {
   return owner ? {...boat, built:true} : boat;
 }
@@ -297,6 +298,12 @@ export class IslandRoom {
   boatObstacles() {
     if(!this.remoteBoats?.length&&!this.parkingReservations?.size)return this.boats;
     return [...this.boats,...(this.remoteBoats??[]),...(this.parkingReservations?.values()??[])];
+  }
+
+  // A sailor who disconnected keeps the boat for a resume, but nobody is in it to draw.
+  // Others neither see nor sail into it until the rider comes back.
+  liveBoats(boats) {
+    return boats.some(ghostBoat) ? boats.filter(boat => !ghostBoat(boat)) : boats;
   }
 
   boatParking(boat,landing) {
@@ -790,7 +797,7 @@ export class IslandRoom {
       }
       this.farPosesAt=now+FAR_POSITION_INTERVAL_MS;
     }
-    const boatsForView = this.remoteBoats ? [...this.boats,...this.remoteBoats] : this.boats;
+    const boatsForView = this.liveBoats(this.remoteBoats ? [...this.boats,...this.remoteBoats] : this.boats);
     const legacyGlobeFields = new Map();
     const shared = new Map(), indexes = new Map(), empty = {guests:[], named:[]};
     const snapshotView = (islandId, named, info) => {
@@ -1135,10 +1142,6 @@ export class IslandRoom {
           this.send(socket,{type:'travel-notice',text:'Boat taken.'});
           break;
         }
-        if (boat.owner && boat.owner !== info.account) {
-          this.send(socket,{type:'travel-notice',text:'Someone else built that boat.'});
-          break;
-        }
         info.input=ZERO;
         const nav=this.navFor(actor.islandId), deck=boardingPoint(boat,nav);
         if (near(actor,deck,45) || setWalkDestination(actor,nav,deck.x,deck.y)) info.boarding=boat.id;
@@ -1153,7 +1156,7 @@ export class IslandRoom {
           const targeted=command.x !== undefined || command.y !== undefined;
           if (targeted && (!Number.isFinite(command.x) || !Number.isFinite(command.y))) return;
           const spot=dockingSpot(actor,targeted ? {x:command.x,y:command.y} : null);
-          if (!spot) {this.send(socket,{type:'travel-notice',text:HARBOR_ONLY.has(actor.islandId)?'Boats land at the dock on Booquack Bog.':'Sail closer to the shore to dock.'}); break;}
+          if (!spot) {this.send(socket,{type:'travel-notice',text:HARBOR_ONLY.has(actor.islandId)?'Boats land at the dock on Booquack.':'Sail closer to the shore to dock.'}); break;}
           if (!spot.islet&&!this.allowLanding(socket,info,spot.islandId)) break;
           info.input=ZERO; info.landing=null;
           actor.sailTarget=null; actor.sailRoute=null; actor.docking=false;
@@ -1223,7 +1226,7 @@ export class IslandRoom {
   stepMovement(now) {
     let active = false;
     let changedTravel = false;
-    const obstacles=this.boatObstacles();
+    const obstacles=this.liveBoats(this.boatObstacles());
     for (const [socket, info] of this.connections) {
       const actor = info.actor;
       if (!actor) continue;

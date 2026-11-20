@@ -16,7 +16,7 @@ function farShore(){
  return null;
 }
 
-test('Booquack Bog can be landed on from any shore, and the dock still works',()=>{
+test('Booquack can be landed on from any shore, and the dock still works',()=>{
  assert.equal(HARBOR_ONLY.has(BOG),false);
  const actor=farShore();assert.ok(actor,'found a Bog shore far from the dock');
  const far=dockingSpot(actor);

@@ -29,7 +29,7 @@ before(async () => {
       pickSpawn(account, occupied) {
         if (Number(account) >= 9800) return super.pickSpawn(account, occupied);
         // Keep Home movement, chat, and docking fixtures on their original map.
-        return {islandId:'home', ...mapOf('home').spawn, name:'Home Island'};
+        return {islandId:'home', ...mapOf('home').spawn, name:'Homeland'};
       }
       async fetch(request) {
         const path = new URL(request.url).pathname;
@@ -677,7 +677,7 @@ test('two GitHub sessions and a guest share server-owned movement, emotes and pr
     assert.notEqual(fresh.id,id);
     assert.equal(fresh.islandId,'home');
     assert.deepEqual([fresh.x,fresh.y],world.zones.plaza.spawn);
-    assert.equal(returned.welcome.arrival,'Home Island');
+    assert.equal(returned.welcome.arrival,'Homeland');
     assert.deepEqual(fresh.outfit,before.outfit);
     assert.ok(nav.walkable(fresh.x,fresh.y));
 
@@ -1015,7 +1015,7 @@ test('the live room admits more than 200 players on one island and more than 64 
     assert.equal(dropped.islandId,'home');
     assert.equal(worldwide.snapshot.islandId,dropped.islandId);
     assert.ok(navOf(dropped.islandId).walkable(dropped.x,dropped.y));
-    assert.equal(worldwide.welcome.arrival,'Home Island');
+    assert.equal(worldwide.welcome.arrival,'Homeland');
     const handoff = await socket(worldwideSession,true,{resume:dropped.id});
     players.push(handoff);
     const same = await eventually(() => handoff.duck());
@@ -1084,7 +1084,7 @@ test('new tabs, reloads and sign-ins start on Home after playing away', async ()
     assert.equal(duck.mode,'walking');
     assert.ok(nav.walkable(duck.x,duck.y));
     assert.notEqual(duck.id,previous.welcome.id);
-    assert.equal(client.welcome.arrival,'Home Island');
+    assert.equal(client.welcome.arrival,'Homeland');
   };
   try {
     const {session} = await signIn(account);

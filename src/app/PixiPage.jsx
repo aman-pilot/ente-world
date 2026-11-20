@@ -235,7 +235,7 @@ export default function PixiPage({signedInEntry = false}) {
       <IslandStargaze island={island} playing={status==='playing' || offline} offline={offline}/>
       <div className="pixi-notifications" ref={setNotificationHost}>
         <IslandPresence online={online} latestJoin={latestJoin}>
-          {room.current?.splitWorld && ['watching','star-required','taken-over'].includes(status) &&
+          {session?.user && room.current?.splitWorld && ['watching','star-required','taken-over'].includes(status) &&
             <select className="pixi-watch-island" aria-label="Watch an island" value={travel.islandId}
               onChange={event => room.current?.watch(event.target.value)}>
               {ISLANDS.map(({id,name}) => <option key={id} value={id}>{name}</option>)}

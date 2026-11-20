@@ -5,15 +5,16 @@ export const TELEPORTER_MAP_ICON = '/pixi-art/radar-marker/teleporter.svg';
 export const TELEPORTER_LOCKED_MAP_ICON = '/pixi-art/radar-marker/teleporter-locked.svg';
 export const teleportPrice = id => TELEPORT_COST + (id === BOG_ISLAND ? KARMA_REQUIRED : 0);
 
-// Authored in island-local coordinates, with the arrival pad beside each machine.
+// Authored in island-local coordinates, with the arrival pad beside each machine. Each sits on open land near the
+// harbour, at least 450 from any water, so it never stands on the docks.
 export const TELEPORTERS = new Map([
-  ['home', {x:4371, y:5435, arrival:{x:4423, y:5467}}],
-  ['blossom', {x:-1140, y:3360, arrival:{x:-1088, y:3392}}],
-  ['sunset', {x:9400, y:2970, arrival:{x:9452, y:3002}}],
-  ['isle-251', {x:6480, y:6650, arrival:{x:6532, y:6682}}],
-  ['isle-250', {x:3880, y:6440, arrival:{x:3932, y:6472}}],
-  [BOG_ISLAND, {x:3540, y:7290, arrival:{x:3488, y:7322}}],
-  ['isle-55', {x:8767, y:7048, arrival:{x:8819, y:7080}}],
+  ['home', {x:5350, y:5237, arrival:{x:5402, y:5269}}],
+  ['blossom', {x:-542, y:4018, arrival:{x:-490, y:4050}}],
+  ['sunset', {x:9463, y:2525, arrival:{x:9515, y:2557}}],
+  ['isle-251', {x:7564, y:6297, arrival:{x:7616, y:6329}}],
+  ['isle-250', {x:3709, y:6397, arrival:{x:3761, y:6429}}],
+  [BOG_ISLAND, {x:5061, y:6606, arrival:{x:5113, y:6638}}],
+  ['isle-55', {x:7632, y:7143, arrival:{x:7684, y:7175}}],
 ]);
 
 export function atTeleporter(actor, nav) {
