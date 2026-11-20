@@ -25,6 +25,8 @@ const DUCK_MANIFEST = '/pixi-duck/manifest.json', DUCK_PARTS = '/pixi-duck/frame
 export const startupPreloads = urls => [...new Set(urls.filter(Boolean))]
   .map(href => ({tag:'link',attrs:{rel:'preload',as:'fetch',href,crossorigin:''},injectTo:'head'}));
 const VERSION = 1;
+// Bump when placement changes to invalidate sheets from earlier builds.
+const SHEET_PACKING_VERSION = 1;
 
 // Uniform screen-density steps keep continuous pieces aligned across sheets.
 // Requests above the emitted range retain their exact SVG raster fallback.
@@ -278,7 +280,11 @@ export function prerenderArt() {
         const members=previousGroups.get(group);
         const sameMembers=members?.size===pieces.length&&pieces.every(p=>members.has(p.src+'\0'+p.tier.url));
         const lossless=!group.includes('/ground/opaque/'),quality=lossless?92:90;
-        const old=pieces.map(p=>sameMembers&&previous[p.src]?.tiers.find(t=>(t.group===group||!t.group&&t.atlasFallback==='oversized')&&t.url===p.tier.url&&(t.atlasFallback==='oversized'&&t.sheetLimit===4096||t.sheet&&t.sheetLimit===4096&&t.sheetWidth<=4096&&t.sheetHeight<=4096&&t.lossless===lossless&&(quality===92||t.sheetQuality===quality)&&t.sheetEffort===4)));
+        const old=pieces.map(p=>sameMembers&&previous[p.src]?.tiers.find(t=>
+          (t.group===group||!t.group&&t.atlasFallback==='oversized')&&t.url===p.tier.url&&t.sheetLimit===4096&&(
+            t.atlasFallback==='oversized'||t.sheet&&t.sheetPackingVersion===SHEET_PACKING_VERSION&&
+            t.sheetWidth<=4096&&t.sheetHeight<=4096&&t.lossless===lossless&&
+            (quality===92||t.sheetQuality===quality)&&t.sheetEffort===4)));
         if(old.every(Boolean)){
           const urls=[...new Set(old.flatMap(t=>[t.sheet]).filter(Boolean))];
           const files=await Promise.all(urls.map(async url=>{
@@ -312,7 +318,7 @@ export function prerenderArt() {
           for(const frame of sheet.frames) Object.assign(frame.piece.tier,{sheet:config.base+name,
             lossless:sheet.lossless,x:frame.x,y:frame.y,frameWidth:frame.width,frameHeight:frame.height,
             offsetX:frame.offsetX,offsetY:frame.offsetY,sheetWidth:sheet.width,sheetHeight:sheet.height,
-            group,gutter:2,sheetLimit:4096,sheetEffort:4,sheetQuality:quality});
+            group,gutter:2,sheetLimit:4096,sheetEffort:4,sheetQuality:quality,sheetPackingVersion:SHEET_PACKING_VERSION});
         }
         config.logger.info(`Art sheets ${group}: ${sheets.length}, ${pieces.filter(p=>p.tier.atlasFallback).length} oversized fallbacks, ${(sheets.reduce((n,s)=>n+s.bytes.length,0)/1048576).toFixed(2)} MiB, ${sheets.map(s=>`${s.width}x${s.height}`).join(' ')}`);
       };
